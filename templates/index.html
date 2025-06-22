@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <title>KOIStudy Solver 업로드</title>
+    <style>
+        body {
+            font-family: sans-serif;
+            max-width: 800px;
+            margin: 30px auto;
+        }
+        input, button, textarea {
+            font-size: 1em;
+            margin: 5px 0;
+        }
+        .hidden {
+            display: none;
+        }
+        #submissions, #codeResult {
+            white-space: pre-wrap;
+            border: 1px solid #ddd;
+            padding: 1em;
+            margin-top: 1em;
+            background: #f9f9f9;
+            font-family: monospace;
+        }
+    </style>
+</head>
+<body>
+    <h1>🗃️ KOIStudy Solver 업로드</h1>
+
+    <form id="uploadForm" enctype="multipart/form-data">
+        <p><input type="file" name="file" accept=".txt" required></p>
+        <p><button type="submit">📤 업로드</button></p>
+    </form>
+
+    <hr>
+
+    <h2>🔐 관리자 로그인</h2>
+    <div id="loginBox">
+        <input type="text" id="adminId" placeholder="관리자 ID"><br>
+        <input type="password" id="adminPw" placeholder="비밀번호"><br>
+        <button onclick="login()">로그인</button>
+    </div>
+
+    <div id="adminPanel" class="hidden">
+        <button onclick="logout()">로그아웃</button>
+        <button onclick="loadSubmissions()">제출 목록 불러오기</button>
+        <br><br>
+        <label for="codePid">문제 번호:</label>
+        <input id="codePid" type="text" placeholder="예: 0058">
+        <button onclick="loadCode()">코드 보기</button>
+        <pre id="codeResult">코드를 보려면 문제 번호를 입력하세요.</pre>
+        <div id="submissions"></div>
+    </div>
+
+    <script>
+        document.getElementById('uploadForm').onsubmit = async function(e) {
+            e.preventDefault();
+            const formData = new FormData(this);
+            const resp = await fetch('/upload', { method: 'POST', body: formData });
+            const result = await resp.json();
+            alert(JSON.stringify(result));
+        };
+
+        async function login() {
+            const id = document.getElementById('adminId').value;
+            const pw = document.getElementById('adminPw').value;
+            const resp = await fetch('/admin/login', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({id, pw})
+            });
+            const result = await resp.json();
+            if (result.status) {
+                alert(result.status);
+                document.getElementById('loginBox').classList.add('hidden');
+                document.getElementById('adminPanel').classList.remove('hidden');
+            } else {
+                alert("❌ 로그인 실패");
+            }
+        }
+
+        async function logout() {
+            await fetch('/admin/logout', {method: 'POST'});
+            location.reload();
+        }
+
+        async function loadSubmissions() {
+            const resp = await fetch('/admin/submissions');
+            const data = await resp.json();
+            let text = "📋 제출 목록\n\n";
+            for (let pid in data) {
+                text += `문제 ${pid} - 최근 수정: ${data[pid].updated_at}, IP: ${data[pid].uploader_ip}\n`;
+            }
+            document.getElementById("submissions").innerText = text;
+        }
+
+        async function loadCode() {
+            const pid = document.getElementById("codePid").value.padStart(4, "0");
+            const resp = await fetch(`/admin/submission/${pid}`);
+            if (resp.status === 200) {
+                const data = await resp.json();
+                document.getElementById("codeResult").innerText = data[pid].code;
+            } else {
+                alert("❌ 코드 없음 또는 접근 불가");
+                document.getElementById("codeResult").innerText = "";
+            }
+        }
+    </script>
+</body>
+</html>
