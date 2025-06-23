@@ -131,6 +131,7 @@ def list_license_requests():
 @app.route("/admin/sign_license", methods=["POST"])
 @admin_required
 def sign_license():
+    print("현재 uploads 폴더 파일들:", os.listdir("uploads"))
     data = request.json
     filename = data.get("filename")
     user_id = data.get("id")
