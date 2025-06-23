@@ -105,7 +105,7 @@ def upload_license_request():
         if not user_id:
             return jsonify({"error": "Missing 'id' in payload"}), 400
 
-        save_path = os.path.join("uploads", f"{user_id}.lic.request")
+        save_path = os.path.join("./uploads", f"{user_id}.lic.request")
         with open(save_path, "w", encoding="utf-8") as f:
             f.write(raw_b64)
 
@@ -117,7 +117,7 @@ def upload_license_request():
 @app.route("/list_license_requests")
 @admin_required
 def list_license_requests():
-    uploads_dir = "uploads"
+    uploads_dir = "./uploads"
     if not os.path.exists(uploads_dir):
         return jsonify([])
 
@@ -139,7 +139,7 @@ def sign_license():
     if not filename or not user_id or not exp or not max_limit:
         return "필수 입력 누락", 400
 
-    req_path = os.path.join("uploads", filename)
+    req_path = os.path.join("./uploads", filename)
     if not os.path.exists(req_path):
         return "요청 파일 없음", 404
 
