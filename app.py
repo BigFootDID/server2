@@ -1,216 +1,252 @@
-<!DOCTYPE html>
-<html lang="ko">
-<head>
-    <meta charset="UTF-8">
-    <title>KOIStudy Solver 업로드</title>
-    <style>
-        body {
-            font-family: sans-serif;
-            max-width: 800px;
-            margin: 30px auto;
-        }
-        input, button, textarea {
-            font-size: 1em;
-            margin: 5px 0;
-        }
-        .hidden {
-            display: none;
-        }
-        #submissions, #codeResult {
-            white-space: pre-wrap;
-            border: 1px solid #ddd;
-            padding: 1em;
-            margin-top: 1em;
-            background: #f9f9f9;
-            font-family: monospace;
-            overflow: auto;
-        }
-    </style>
-</head>
-<body>
-    <h1>🗃️ KOIStudy Solver 업로드</h1>
+from flask import Flask, request, jsonify, abort, session, render_template
+import os, json, time
+from datetime import datetime
+from functools import wraps
+from hashlib import sha256
+from threading import Lock
+from cryptography.hazmat.primitives.asymmetric import padding
+from cryptography.hazmat.primitives import hashes, serialization
+import base64
 
-    <!-- 제출 업로드 -->
-    <form id="uploadForm" enctype="multipart/form-data">
-        <p><input type="file" name="file" accept=".txt" required></p>
-        <p><button type="submit">📤 제출 업로드</button></p>
-    </form>
+app = Flask(__name__)
+app.secret_key = "9fbc1de44dd2088c6a6aa66a66f3fba9b51f3828a0dcf29587c07b3d2c4d45c4"
 
-    <!-- 라이선스 요청 업로드 -->
-    <h2>📎 라이선스 요청 업로드 (.lic.request)</h2>
-    <form id="licenseForm" enctype="multipart/form-data">
-        <input type="file" name="file" accept=".lic.request" required>
-        <button type="submit">📩 라이선스 업로드</button>
-    </form>
+STORAGE_FILE = "submissions.json"
+ADMIN_USER_FILE = "admin_users.json"
+RATE_LIMIT = {}
+RATE_LOCK = Lock()
+submissions = {}
 
-    <hr>
+os.makedirs("uploads", exist_ok=True)
+os.makedirs("signed", exist_ok=True)
 
-    <!-- 관리자 로그인 -->
-    <h2>🔐 관리자 로그인</h2>
-    <div id="loginBox">
-        <input type="text" id="adminId" placeholder="관리자 ID"><br>
-        <input type="password" id="adminPw" placeholder="비밀번호"><br>
-        <button onclick="login()">로그인</button>
-    </div>
+if os.path.exists(ADMIN_USER_FILE):
+    with open(ADMIN_USER_FILE, "r", encoding="utf-8") as f:
+        admin_users = json.load(f)
+else:
+    admin_users = {"admin": sha256("password".encode()).hexdigest()}
+    with open(ADMIN_USER_FILE, "w", encoding="utf-8") as f:
+        json.dump(admin_users, f)
 
-    <!-- 관리자 패널 -->
-    <div id="adminPanel" class="hidden">
-        <button onclick="logout()">로그아웃</button>
-        <button onclick="loadSubmissions()">제출 목록 불러오기</button>
-        <button onclick="clearSubmissions()">🧹 전체 제출 초기화</button>
-        <br><br>
+if os.path.exists(STORAGE_FILE):
+    with open(STORAGE_FILE, "r", encoding="utf-8") as f:
+        submissions = json.load(f)
 
-        <!-- 코드 보기 -->
-        <label for="codePid">문제 번호:</label>
-        <input id="codePid" type="text" placeholder="예: 0058">
-        <button onclick="loadCode()">코드 보기</button>
-        <pre id="codeResult">코드를 보려면 문제 번호를 입력하세요.</pre>
+def rate_limit(ip):
+    now = time.time()
+    with RATE_LOCK:
+        if ip not in RATE_LIMIT:
+            RATE_LIMIT[ip] = [now, 1]
+            return False
+        last_time, count = RATE_LIMIT[ip]
+        if now - last_time < 1.0:
+            RATE_LIMIT[ip][1] += 1
+        else:
+            RATE_LIMIT[ip] = [now, 1]
+        if RATE_LIMIT[ip][1] > 100 and now - last_time < 60:
+            return True
+    return False
 
-        <div id="submissions"></div>
+@app.before_request
+def limit_request_rate():
+    ip = request.remote_addr
+    if rate_limit(ip):
+        abort(429, description="Too Many Requests")
 
-        <hr>
+@app.route("/")
+def index():
+    return render_template("index.html")
 
-        <!-- 서명 대기 목록 -->
-        <h2>📝 서명 대기 라이선스 요청</h2>
-        <div id="licenseRequests">📭 대기 중인 요청이 없습니다.</div>
+def admin_required(func):
+    @wraps(func)
+    def wrapper(*args, **kwargs):
+        if not session.get("is_admin"):
+            abort(403, description="Admin login required")
+        return func(*args, **kwargs)
+    return wrapper
 
-        <h3>🔏 선택된 요청 파일 서명</h3>
-        <div>
-            <label>파일명: <span id="selectedFilename">(선택 안됨)</span></label><br>
-            <input type="text" id="signId" placeholder="사용자 ID">
-            <input type="text" id="signExp" placeholder="만료일 (YYYY-MM-DD)">
-            <input type="number" id="signMax" placeholder="최대 제출 수">
-            <button onclick="signSelectedLicense()">📄 서명하기</button>
-        </div>
-    </div>
+@app.route("/upload_license", methods=["POST"])
+def upload_license_request():
+    if "file" not in request.files:
+        return jsonify({"error": "No file part"}), 400
 
-    <script>
-        document.getElementById('uploadForm').onsubmit = async function(e) {
-            e.preventDefault();
-            const formData = new FormData(this);
-            const resp = await fetch('/upload', { method: 'POST', body: formData });
-            const result = await resp.json();
-            alert(JSON.stringify(result));
-        };
+    file = request.files["file"]
 
-        document.getElementById('licenseForm').onsubmit = async function(e) {
-            e.preventDefault();
-            const formData = new FormData(this);
-            const resp = await fetch('/upload_license', { method: 'POST', body: formData });
-            const result = await resp.json();
-            if (result.status === "uploaded") {
-                alert(`✅ ${result.filename} 업로드 완료`);
-                loadLicenseRequests();
-            } else {
-                alert("❌ 업로드 실패: " + JSON.stringify(result));
-            }
-        };
+    if not file.filename.endswith(".lic.request"):
+        return jsonify({"error": "Only .lic.request files are allowed"}), 400
 
-        async function login() {
-            const id = document.getElementById('adminId').value;
-            const pw = document.getElementById('adminPw').value;
-            const resp = await fetch('/admin/login', {
-                method: 'POST',
-                headers: {'Content-Type': 'application/json'},
-                body: JSON.stringify({id, pw})
-            });
-            const result = await resp.json();
-            if (result.status) {
-                alert(result.status);
-                document.getElementById('loginBox').classList.add('hidden');
-                document.getElementById('adminPanel').classList.remove('hidden');
-                loadLicenseRequests();
-            } else {
-                alert("❌ 로그인 실패");
-            }
-        }
+    try:
+        raw_b64 = file.read().decode().strip()
+        payload = json.loads(base64.b64decode(raw_b64).decode())
 
-        async function logout() {
-            await fetch('/admin/logout', {method: 'POST'});
-            location.reload();
-        }
+        user_id = payload.get("id")
+        if not user_id:
+            return jsonify({"error": "Missing 'id' in payload"}), 400
 
-        async function loadSubmissions() {
-            const resp = await fetch('/admin/submissions');
-            const data = await resp.json();
-            let text = "📋 제출 목록\n\n";
-            for (let pid in data) {
-                text += `문제 ${pid} - 최근 수정: ${data[pid].updated_at}, IP: ${data[pid].uploader_ip}\n`;
-            }
-            document.getElementById("submissions").textContent = text;
-        }
+        save_path = os.path.join("uploads", f"{user_id}.lic.request")
+        with open(save_path, "w", encoding="utf-8") as f:
+            f.write(raw_b64)
 
-        async function loadCode() {
-            const pid = document.getElementById("codePid").value.padStart(4, "0");
-            const resp = await fetch(`/admin/submission/${pid}`);
-            if (resp.status === 200) {
-                const data = await resp.json();
-                document.getElementById("codeResult").textContent = data[pid].code;
-            } else {
-                alert("❌ 코드 없음 또는 접근 불가");
-                document.getElementById("codeResult").textContent = "";
-            }
+        return jsonify({"status": "uploaded", "filename": f"{user_id}.lic.request"})
+
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+@app.route("/list_license_requests")
+@admin_required
+def list_license_requests():
+    uploads_dir = "uploads"
+    if not os.path.exists(uploads_dir):
+        return jsonify([])
+
+    files = [
+        fname for fname in os.listdir(uploads_dir)
+        if fname.endswith(".lic.request")
+    ]
+    return jsonify(sorted(files))
+
+@app.route("/admin/sign_license", methods=["POST"])
+@admin_required
+def sign_license():
+    data = request.json
+    filename = data.get("filename")
+    user_id = data.get("id")
+    exp = data.get("exp")
+    max_limit = data.get("max")
+
+    if not filename or not user_id or not exp or not max_limit:
+        return "필수 입력 누락", 400
+
+    req_path = os.path.join("uploads", filename)
+    if not os.path.exists(req_path):
+        return "요청 파일 없음", 404
+
+    try:
+        with open(req_path, "r", encoding="utf-8") as f:
+            payload_b64 = f.read().strip()
+        payload = json.loads(base64.b64decode(payload_b64).decode())
+
+        payload["id"] = user_id
+        payload["exp"] = exp
+        payload["max"] = int(max_limit)
+
+        new_payload_b64 = base64.b64encode(json.dumps(payload, separators=(",", ":")).encode()).decode()
+
+        with open("private_key.pem", "rb") as f:
+            private_key = serialization.load_pem_private_key(f.read(), password=None)
+
+        signature = private_key.sign(
+            new_payload_b64.encode(),
+            padding.PKCS1v15(),
+            hashes.SHA256()
+        ).hex()
+
+        signed = {
+            "payload": new_payload_b64,
+            "signature": signature,
+            "used": base64.b64encode(b"0").decode()
         }
 
-        async function clearSubmissions() {
-            if (!confirm("⚠️ 정말 모든 제출 코드를 삭제하시겠습니까?")) return;
-            const resp = await fetch("/admin/clear", { method: "POST" });
-            const result = await resp.json();
-            alert(result.status || "삭제 완료");
-            document.getElementById("submissions").textContent = "";
-            document.getElementById("codeResult").textContent = "";
-        }
+        out_path = os.path.join("signed", payload["hwid"] + ".lic")
+        with open(out_path, "w", encoding="utf-8") as f:
+            json.dump(signed, f, indent=2)
 
-        let selectedFilename = null;
+        os.remove(req_path)
 
-        async function loadLicenseRequests() {
-            const resp = await fetch("/list_license_requests");
-            const container = document.getElementById("licenseRequests");
-            container.innerHTML = "";
+        return jsonify({"status": "signed", "hwid": payload["hwid"]})
 
-            if (!resp.ok) {
-                container.innerHTML = "❌ 요청 실패";
-                return;
-            }
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
 
-            const files = await resp.json();
-            if (!files || files.length === 0) {
-                container.innerHTML = "📭 대기 중인 요청이 없습니다.";
-                return;
-            }
+@app.route("/upload", methods=["POST"])
+def upload_bulk_submit():
+    if "file" not in request.files:
+        return "No file part", 400
 
-            files.forEach(fname => {
-                const btn = document.createElement("button");
-                btn.innerText = fname;
-                btn.onclick = () => {
-                    selectedFilename = fname;
-                    document.getElementById("selectedFilename").innerText = fname;
-                };
-                container.appendChild(btn);
-                container.appendChild(document.createElement("br"));
-            });
-        }
+    file = request.files["file"]
+    if not file.filename.endswith(".txt"):
+        return "Invalid filename", 400
 
-        async function signSelectedLicense() {
-            if (!selectedFilename) return alert("파일을 선택하세요");
+    content = file.read().decode("utf-8")
+    lines = content.splitlines()
 
-            const id = document.getElementById("signId").value;
-            const exp = document.getElementById("signExp").value;
-            const max = document.getElementById("signMax").value;
+    uploader_ip = request.remote_addr
+    now = datetime.utcnow().isoformat()
+    count = 0
 
-            const resp = await fetch("/admin/sign_license", {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ filename: selectedFilename, id, exp, max })
-            });
-            const result = await resp.json();
-            if (result.status === "signed") {
-                alert("✅ 서명 완료: " + result.hwid);
-                loadLicenseRequests(); // 목록 갱신
-            } else {
-                alert("❌ 오류: " + JSON.stringify(result));
-            }
-        }
-    </script>
-</body>
-</html>
+    temp_pid = None
+    temp_code = []
+    in_code = False
+
+    for line in lines:
+        stripped = line.strip()
+        if stripped.endswith("~") and not in_code:
+            temp_pid = stripped[:-1]
+            temp_code = []
+            in_code = True
+        elif stripped.endswith("~") and in_code:
+            temp_code.append(stripped[:-1])
+            if temp_pid and temp_code:
+                submissions[temp_pid] = {
+                    "code": "\n".join(temp_code).rstrip(),
+                    "updated_at": now,
+                    "uploader_ip": uploader_ip
+                }
+                count += 1
+            temp_pid = None
+            temp_code = []
+            in_code = False
+        else:
+            temp_code.append(line)
+
+    with open(STORAGE_FILE, "w", encoding="utf-8") as f:
+        json.dump(submissions, f, ensure_ascii=False, indent=2)
+
+    return jsonify({"status": "success", "updated": count, "total": len(submissions)})
+
+@app.route("/admin/login", methods=["POST"])
+def admin_login():
+    data = request.json
+    user_id = data.get("id")
+    pw = data.get("pw")
+    hashed_pw = sha256(pw.encode()).hexdigest()
+    if admin_users.get(user_id) != hashed_pw:
+        return jsonify({"error": "Invalid credentials"}), 401
+    session["is_admin"] = True
+    session["user_id"] = user_id
+    return jsonify({"status": "admin login success"})
+
+@app.route("/admin/logout", methods=["POST"])
+def admin_logout():
+    session.clear()
+    return jsonify({"status": "logout"})
+
+@app.route("/admin/submissions", methods=["GET"])
+@admin_required
+def get_all_submissions_admin():
+    filtered = {pid: {
+        "updated_at": v["updated_at"],
+        "uploader_ip": v["uploader_ip"]
+    } for pid, v in submissions.items()}
+    return jsonify(filtered)
+
+@app.route("/admin/submission/<pid>", methods=["GET"])
+@admin_required
+def get_single_submission_admin(pid):
+    pid = pid.zfill(4)
+    if pid in submissions:
+        return jsonify({pid: submissions[pid]})
+    else:
+        abort(404, description=f"Submission for problem {pid} not found.")
+
+@app.route("/admin/clear", methods=["POST"])
+@admin_required
+def clear_submissions():
+    global submissions
+    submissions = {}
+    with open(STORAGE_FILE, "w", encoding="utf-8") as f:
+        json.dump(submissions, f)
+    return jsonify({"status": "cleared"})
+
+if __name__ == "__main__":
+    app.run(host="0.0.0.0", debug=True, port=5000)
