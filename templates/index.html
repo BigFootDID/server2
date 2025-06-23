@@ -25,9 +25,6 @@
             font-family: monospace;
             overflow: auto;
         }
-        #licenseRequests button {
-            margin: 2px;
-        }
     </style>
 </head>
 <body>
@@ -39,7 +36,7 @@
         <p><button type="submit">📤 제출 업로드</button></p>
     </form>
 
-    <!-- 라이선스 요청 업로드 (클라이언트용) -->
+    <!-- 라이선스 요청 업로드 -->
     <h2>📎 라이선스 요청 업로드 (.lic.request)</h2>
     <form id="licenseForm" enctype="multipart/form-data">
         <input type="file" name="file" accept=".lic.request" required>
@@ -48,7 +45,7 @@
 
     <hr>
 
-    <!-- 로그인 영역 -->
+    <!-- 관리자 로그인 -->
     <h2>🔐 관리자 로그인</h2>
     <div id="loginBox">
         <input type="text" id="adminId" placeholder="관리자 ID"><br>
@@ -73,8 +70,8 @@
 
         <hr>
 
-        <!-- 서명 대기 목록 및 서명 UI -->
-        <h2>📝 서명 대기 라이선스 목록</h2>
+        <!-- 서명 대기 목록 -->
+        <h2>📝 서명 대기 라이선스 요청</h2>
         <div id="licenseRequests">📭 대기 중인 요청이 없습니다.</div>
 
         <h3>🔏 선택된 요청 파일 서명</h3>
@@ -87,7 +84,6 @@
         </div>
     </div>
 
-    <!-- 스크립트 -->
     <script>
         document.getElementById('uploadForm').onsubmit = async function(e) {
             e.preventDefault();
@@ -104,9 +100,9 @@
             const result = await resp.json();
             if (result.status === "uploaded") {
                 alert(`✅ ${result.filename} 업로드 완료`);
-                loadLicenseRequests(); // 업로드 후 목록 갱신
+                loadLicenseRequests();
             } else {
-                alert("❌ 업로드 실패");
+                alert("❌ 업로드 실패: " + JSON.stringify(result));
             }
         };
 
@@ -157,8 +153,7 @@
         }
 
         async function clearSubmissions() {
-            const confirmed = confirm("⚠️ 정말 모든 제출 코드를 삭제하시겠습니까?");
-            if (!confirmed) return;
+            if (!confirm("⚠️ 정말 모든 제출 코드를 삭제하시겠습니까?")) return;
             const resp = await fetch("/admin/clear", { method: "POST" });
             const result = await resp.json();
             alert(result.status || "삭제 완료");
@@ -170,12 +165,17 @@
 
         async function loadLicenseRequests() {
             const resp = await fetch("/list_license_requests");
-            const files = await resp.json();
             const container = document.getElementById("licenseRequests");
             container.innerHTML = "";
 
-            if (files.length === 0) {
-                container.innerText = "📭 대기 중인 요청이 없습니다.";
+            if (!resp.ok) {
+                container.innerHTML = "❌ 요청 실패";
+                return;
+            }
+
+            const files = await resp.json();
+            if (!files || files.length === 0) {
+                container.innerHTML = "📭 대기 중인 요청이 없습니다.";
                 return;
             }
 
@@ -206,7 +206,7 @@
             const result = await resp.json();
             if (result.status === "signed") {
                 alert("✅ 서명 완료: " + result.hwid);
-                loadLicenseRequests(); // 서명 완료 후 목록 갱신
+                loadLicenseRequests(); // 목록 갱신
             } else {
                 alert("❌ 오류: " + JSON.stringify(result));
             }
