@@ -73,48 +73,44 @@ def upload_bulk_submit():
     content = file.read().decode("utf-8")
     lines = content.splitlines()
 
-    if not lines or len(lines) < 2:
-        return "Empty or invalid file", 400
-
     uploader_ip = request.remote_addr
     now = datetime.utcnow().isoformat()
     count = 0
 
-    temp_pid, temp_code = None, []
-    for line in lines:
-        if line.endswith("~"):
-            line_content = line[:-1].strip()
-            if temp_pid is None:
-                temp_pid = line_content
-            else:
-                # Save previous block (overwrite if exists)
-                code = "\n".join(temp_code)
-                if temp_pid and code:
-                    submissions[temp_pid] = {
-                        "code": code,
-                        "updated_at": now,
-                        "uploader_ip": uploader_ip
-                    }
-                    count += 1
-                temp_pid = line_content
-                temp_code = []
-        else:
-            temp_code.append(line)
+    temp_pid = None
+    temp_code = []
+    in_code = False
 
-    # 마지막 블록 저장
-    if temp_pid and temp_code:
-        code = "\n".join(temp_code)
-        submissions[temp_pid] = {
-            "code": code,
-            "updated_at": now,
-            "uploader_ip": uploader_ip
-        }
-        count += 1
+    for line in lines:
+        stripped = line.strip()
+
+        # 문제 번호 라인
+        if stripped.endswith("~") and not in_code:
+            temp_pid = stripped[:-1]
+            temp_code = []
+            in_code = True
+        elif stripped.endswith("~") and in_code:
+            # 코드 종료 줄
+            temp_code.append(stripped[:-1])
+            if temp_pid and temp_code:
+                submissions[temp_pid] = {
+                    "code": "\n".join(temp_code).rstrip(),
+                    "updated_at": now,
+                    "uploader_ip": uploader_ip
+                }
+                count += 1
+            temp_pid = None
+            temp_code = []
+            in_code = False
+        else:
+            # 코드 중간 줄
+            temp_code.append(line)
 
     with open(STORAGE_FILE, "w", encoding="utf-8") as f:
         json.dump(submissions, f, ensure_ascii=False, indent=2)
 
     return jsonify({"status": "success", "updated": count, "total": len(submissions)})
+
 
 @app.route("/admin/login", methods=["POST"])
 def admin_login():
