@@ -61,6 +61,92 @@ def admin_required(func):
         return func(*args, **kwargs)
     return wrapper
 
+@app.route("/upload_license", methods=["POST"])
+def upload_license_request():
+    if "file" not in request.files:
+        return jsonify({"error": "No file part"}), 400
+
+    file = request.files["file"]
+
+    if not file.filename.endswith(".lic.request"):
+        return jsonify({"error": "Only .lic.request files are allowed"}), 400
+
+    try:
+        # Base64 로드 및 디코딩
+        raw_b64 = file.read().decode().strip()
+        payload = json.loads(base64.b64decode(raw_b64).decode())
+
+        user_id = payload.get("id")
+        if not user_id:
+            return jsonify({"error": "Missing 'id' in payload"}), 400
+
+        # 저장 경로: uploads/{id}.lic.request
+        os.makedirs("uploads", exist_ok=True)
+        save_path = os.path.join("uploads", f"{user_id}.lic.request")
+        with open(save_path, "w", encoding="utf-8") as f:
+            f.write(raw_b64)
+
+        return jsonify({"status": "uploaded", "filename": f"{user_id}.lic.request"})
+
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+@app.route("/admin/sign_license", methods=["POST"])
+@admin_required
+def sign_license():
+    data = request.json
+    filename = data.get("filename")
+    user_id = data.get("id")
+    exp = data.get("exp")
+    max_limit = data.get("max")
+
+    if not filename or not user_id or not exp or not max_limit:
+        return "필수 입력 누락", 400
+
+    req_path = os.path.join("uploads", filename)
+    if not os.path.exists(req_path):
+        return "요청 파일 없음", 404
+
+    try:
+        # Base64 문자열 한 줄 읽기
+        with open(req_path, "r", encoding="utf-8") as f:
+            payload_b64 = f.read().strip()
+        payload = json.loads(base64.b64decode(payload_b64).decode())
+
+        # 관리자 입력 덮어쓰기
+        payload["id"] = user_id
+        payload["exp"] = exp
+        payload["max"] = int(max_limit)
+
+        # 재인코딩
+        new_payload_b64 = base64.b64encode(json.dumps(payload, separators=(",", ":")).encode()).decode()
+
+        # 서명
+        with open("private_key.pem", "rb") as f:
+            private_key = serialization.load_pem_private_key(f.read(), password=None)
+
+        signature = private_key.sign(
+            new_payload_b64.encode(),
+            padding.PKCS1v15(),
+            hashes.SHA256()
+        ).hex()
+
+        signed = {
+            "payload": new_payload_b64,
+            "signature": signature,
+            "used": base64.b64encode(b"0").decode()
+        }
+
+        out_path = os.path.join("signed", payload["hwid"] + ".lic")
+        os.makedirs("signed", exist_ok=True)
+        with open(out_path, "w", encoding="utf-8") as f:
+            json.dump(signed, f, indent=2)
+
+        return jsonify({"status": "signed", "hwid": payload["hwid"]})
+
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
 @app.route("/upload", methods=["POST"])
 def upload_bulk_submit():
     if "file" not in request.files:
