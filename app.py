@@ -12,6 +12,7 @@ app = Flask(__name__)
 app.secret_key = "9fbc1de44dd2088c6a6aa66a66f3fba9b51f3828a0dcf29587c07b3d2c4d45c4"
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 UPLOAD_DIR = os.path.join(BASE_DIR, "uploads")
+SIGNED_DIR = os.path.join(BASE_DIR, "signed")
 STORAGE_FILE = "submissions.json"
 ADMIN_USER_FILE = "admin_users.json"
 RATE_LIMIT = {}
@@ -19,7 +20,7 @@ RATE_LOCK = Lock()
 submissions = {}
 
 os.makedirs(UPLOAD_DIR, exist_ok=True)
-os.makedirs("signed", exist_ok=True)
+os.makedirs(SIGNED_DIR, exist_ok=True)
 
 if os.path.exists(ADMIN_USER_FILE):
     with open(ADMIN_USER_FILE, "r", encoding="utf-8") as f:
