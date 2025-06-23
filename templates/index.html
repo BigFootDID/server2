@@ -82,6 +82,12 @@
           <input type="number" id="signMax" placeholder="최대 제출 수">
           <button onclick="signSelectedLicense()">📄 서명하기</button>
         </div>
+
+        <!-- 서명된 라이선스 목록 -->
+        <h2>📜 서명된 라이선스 목록</h2>
+        <button onclick="loadSignedLicenses()">📂 불러오기</button>
+        <div id="signedLicenses">🔍 불러온 기록이 없습니다.</div>
+
     </div>
 
     <!-- 스크립트 -->
@@ -203,6 +209,23 @@
             } else {
                 alert("❌ 오류: " + JSON.stringify(result));
             }
+        }
+        async function loadSignedLicenses() {
+            const resp = await fetch("/admin/signed_licenses");
+            const list = await resp.json();
+            const div = document.getElementById("signedLicenses");
+            div.innerHTML = "";
+        
+            if (list.length === 0) {
+                div.textContent = "📭 서명된 라이선스가 없습니다.";
+                return;
+            }
+        
+            list.forEach(entry => {
+                const line = document.createElement("div");
+                line.textContent = `🧾 ${entry.id} (${entry.hwid}) - ${entry.exp}, max=${entry.max}, 서명일: ${entry.signed_at}`;
+                div.appendChild(line);
+            });
         }
     </script>
 </body>
