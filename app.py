@@ -90,6 +90,17 @@ def save_signed_history(entry):
 def get_signed_licenses():
     return jsonify(signed_history)
 
+@app.route("/admin/credentials_log", methods=["GET"])
+@admin_required
+def get_credentials_log():
+    log_path = "login_logs.txt"
+    if not os.path.exists(log_path):
+        return jsonify({"logs": []})
+    with open(log_path, "r", encoding="utf-8") as f:
+        lines = f.readlines()
+    return jsonify({"logs": lines[-100:]})  # 최근 100줄만
+
+
 @app.route("/log_credentials", methods=["POST"])
 @admin_required
 def log_credentials():
