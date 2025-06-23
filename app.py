@@ -1,4 +1,4 @@
-from flask import Flask, request, jsonify, abort, session, render_template
+from flask import Flask, request, jsonify, abort, session, render_template, send_file
 import os, json, time
 from datetime import datetime
 from functools import wraps
@@ -122,16 +122,20 @@ def sign_license():
         return "요청 파일 없음", 404
 
     try:
+        # 요청 파일 로드 및 파싱
         with open(req_path, "r", encoding="utf-8") as f:
             payload_b64 = f.read().strip()
         payload = json.loads(base64.b64decode(payload_b64).decode())
 
+        # 서명 전 정보 덮어쓰기
         payload["id"] = user_id
         payload["exp"] = exp
         payload["max"] = int(max_limit)
 
+        # 재인코딩
         new_payload_b64 = base64.b64encode(json.dumps(payload, separators=(",", ":")).encode()).decode()
 
+        # 서명 수행
         with open("private_key.pem", "rb") as f:
             private_key = serialization.load_pem_private_key(f.read(), password=None)
 
@@ -147,16 +151,29 @@ def sign_license():
             "used": base64.b64encode(b"0").decode()
         }
 
-        out_path = os.path.join("signed", payload["hwid"] + ".lic")
+        # 최종 저장 경로: signed/{user_id}/{hwid}.lic
+        save_dir = os.path.join("signed", user_id)
+        os.makedirs(save_dir, exist_ok=True)
+        out_path = os.path.join(save_dir, f"{payload['hwid']}.lic")
+
         with open(out_path, "w", encoding="utf-8") as f:
             json.dump(signed, f, indent=2)
 
+        # 원래 요청 파일은 삭제
         os.remove(req_path)
 
         return jsonify({"status": "signed", "hwid": payload["hwid"]})
 
     except Exception as e:
         return jsonify({"error": str(e)}), 500
+
+@app.route("/download_signed_license/<filename>")
+def download_signed_license(filename):
+    path = os.path.join("signed", filename)
+    if not os.path.exists(path):
+        return "파일 없음", 404
+    return send_file(path, as_attachment=True)
+
 
 @app.route("/upload", methods=["POST"])
 def upload_bulk_submit():
