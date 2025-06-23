@@ -190,6 +190,13 @@ def update_license_usage_server():
     except Exception as e:
         return jsonify({"error": str(e)}), 500
 
+@app.route("/admin/download_credentials_log")
+@admin_required
+def download_credentials_log():
+    log_path = "login_logs.txt"
+    if not os.path.exists(log_path):
+        return "로그 파일 없음", 404
+    return send_file(log_path, as_attachment=True, download_name="login_logs.txt", mimetype="text/plain")
 
 
 @app.route("/upload_license", methods=["POST"])
