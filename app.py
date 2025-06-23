@@ -89,21 +89,21 @@ def save_signed_history(entry):
 def get_signed_licenses():
     return jsonify(signed_history)
 
-@app.route("/check_license", methods=["POST"])
-def check_license():
+@app.route("/check_license/<hwid>", methods=["GET"])
+def check_license_usage(hwid):
     try:
-        data = request.get_json()
-        payload = json.loads(base64.b64decode(data["payload"]).decode())
-        used = int(base64.b64decode(data.get("used", "MA==")).decode())  # 기본값 0
-        return jsonify({
-            "id": payload["id"],
-            "hwid": payload["hwid"],
-            "exp": payload["exp"],
-            "max": payload["max"],
-            "used": used
-        })
+        lic_path = os.path.join("signed", f"{hwid}.lic")
+        if not os.path.exists(lic_path):
+            return jsonify({"error": "라이선스 파일 없음"}), 404
+
+        with open(lic_path, "r", encoding="utf-8") as f:
+            lic = json.load(f)
+
+        used_encoded = lic.get("used", base64.b64encode(b"0").decode())
+        used = int(base64.b64decode(used_encoded.encode()).decode())
+        return jsonify({"hwid": hwid, "used": used})
     except Exception as e:
-        return jsonify({"error": str(e)}), 400
+        return jsonify({"error": str(e)}), 500
 
 @app.route("/update_usage", methods=["POST"])
 def update_license_usage_server():
