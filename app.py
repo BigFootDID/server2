@@ -89,6 +89,22 @@ def save_signed_history(entry):
 def get_signed_licenses():
     return jsonify(signed_history)
 
+@app.route("/check_license", methods=["POST"])
+def check_license():
+    try:
+        data = request.get_json()
+        payload = json.loads(base64.b64decode(data["payload"]).decode())
+        used = int(base64.b64decode(data.get("used", "MA==")).decode())  # 기본값 0
+        return jsonify({
+            "id": payload["id"],
+            "hwid": payload["hwid"],
+            "exp": payload["exp"],
+            "max": payload["max"],
+            "used": used
+        })
+    except Exception as e:
+        return jsonify({"error": str(e)}), 400
+
 
 @app.route("/upload_license", methods=["POST"])
 def upload_license_request():
