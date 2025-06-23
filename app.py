@@ -65,6 +65,28 @@ def admin_required(func):
         return func(*args, **kwargs)
     return wrapper
 
+SIGNED_HISTORY_FILE = "signed_history.json"
+signed_history = []
+
+# 서버 시작 시 로드
+if os.path.exists(SIGNED_HISTORY_FILE):
+    with open(SIGNED_HISTORY_FILE, "r", encoding="utf-8") as f:
+        signed_history = json.load(f)
+
+# 서명 후 기록 저장 함수
+def save_signed_history(entry):
+    global signed_history
+    signed_history.append(entry)
+    with open(SIGNED_HISTORY_FILE, "w", encoding="utf-8") as f:
+        json.dump(signed_history, f, ensure_ascii=False, indent=2)
+
+# 서명된 라이선스 목록 조회 API
+@app.route("/admin/signed_licenses", methods=["GET"])
+@admin_required
+def get_signed_licenses():
+    return jsonify(signed_history)
+
+
 @app.route("/upload_license", methods=["POST"])
 def upload_license_request():
     if "file" not in request.files:
@@ -161,6 +183,20 @@ def sign_license():
 
         # 원래 요청 파일은 삭제
         os.remove(req_path)
+
+        save_signed_history({
+            "id": payload["id"],
+            "hwid": payload["hwid"],
+            "exp": payload["exp"],
+            "max": payload["max"],
+            "signed_at": datetime.utcnow().isoformat()
+        })
+
+        os.remove(req_path)
+        return jsonify({"status": "signed", "hwid": payload["hwid"]})
+
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
 
         return jsonify({"status": "signed", "hwid": payload["hwid"]})
 
