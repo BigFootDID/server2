@@ -105,6 +105,41 @@ def check_license():
     except Exception as e:
         return jsonify({"error": str(e)}), 400
 
+@app.route("/update_usage", methods=["POST"])
+def update_license_usage_server():
+    try:
+        data = request.get_json()
+        payload_b64 = data["payload"]
+        count = int(data.get("count", 0))
+        payload = json.loads(base64.b64decode(payload_b64).decode())
+        hwid = payload["hwid"]
+
+        lic_path = os.path.join(SIGNED_DIR, f"{hwid}.lic")
+        if not os.path.exists(lic_path):
+            return jsonify({"error": "라이선스 없음"}), 404
+
+        with open(lic_path, "r", encoding="utf-8") as f:
+            lic = json.load(f)
+
+        # used 증가
+        used = int(base64.b64decode(lic.get("used", base64.b64encode(b"0").decode())).decode())
+        used += count
+        lic["used"] = base64.b64encode(str(used).encode()).decode()
+
+        # 저장
+        with open(lic_path, "w", encoding="utf-8") as f:
+            json.dump(lic, f, indent=2)
+
+        # 응답
+        payload_info = json.loads(base64.b64decode(payload_b64).decode())
+        return jsonify({
+            "used": used,
+            "max": int(payload_info["max"])
+        })
+
+    except Exception as e:
+        return jsonify({"error": str(e)}), 400
+
 
 @app.route("/upload_license", methods=["POST"])
 def upload_license_request():
