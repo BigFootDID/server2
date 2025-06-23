@@ -300,6 +300,14 @@ def get_single_submission_admin(pid):
     else:
         abort(404, description=f"Submission for problem {pid} not found.")
 
+@app.route("/admin/download_bulk_submit")
+@admin_required
+def download_bulk_submit():
+    path = os.path.join(BASE_DIR, "bulk_submit.txt")
+    if not os.path.exists(path):
+        return "파일 없음", 404
+    return send_file(path, as_attachment=True)
+
 @app.route("/admin/clear", methods=["POST"])
 @admin_required
 def clear_submissions():
