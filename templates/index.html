@@ -92,6 +92,14 @@
 
     <!-- 스크립트 -->
     <script>
+        window.onload = async function() {
+            const resp = await fetch('/admin/submissions');
+            if (resp.status === 200) {
+                document.getElementById('loginBox').classList.add('hidden');
+                document.getElementById('adminPanel').classList.remove('hidden');
+            }
+        }
+
         // 제출 업로드
         document.getElementById('uploadForm').onsubmit = async function(e) {
             e.preventDefault();
