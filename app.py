@@ -28,7 +28,6 @@ if os.path.exists(STORAGE_FILE):
     with open(STORAGE_FILE, "r", encoding="utf-8") as f:
         submissions = json.load(f)
 
-
 def rate_limit(ip):
     now = time.time()
     with RATE_LOCK:
@@ -44,13 +43,11 @@ def rate_limit(ip):
             return True
     return False
 
-
 @app.before_request
 def limit_request_rate():
     ip = request.remote_addr
     if rate_limit(ip):
         abort(429, description="Too Many Requests")
-
 
 @app.route("/")
 def index():
@@ -63,7 +60,6 @@ def admin_required(func):
             abort(403, description="Admin login required")
         return func(*args, **kwargs)
     return wrapper
-
 
 @app.route("/upload", methods=["POST"])
 def upload_bulk_submit():
@@ -119,8 +115,6 @@ def upload_bulk_submit():
 
     return jsonify({"status": "success", "updated": count, "total": len(submissions)})
 
-
-
 @app.route("/admin/login", methods=["POST"])
 def admin_login():
     data = request.json
@@ -133,12 +127,10 @@ def admin_login():
     session["user_id"] = user_id
     return jsonify({"status": "admin login success"})
 
-
 @app.route("/admin/logout", methods=["POST"])
 def admin_logout():
     session.clear()
     return jsonify({"status": "logout"})
-
 
 @app.route("/admin/submissions", methods=["GET"])
 @admin_required
@@ -149,7 +141,6 @@ def get_all_submissions_admin():
     } for pid, v in submissions.items()}
     return jsonify(filtered)
 
-
 @app.route("/admin/submission/<pid>", methods=["GET"])
 @admin_required
 def get_single_submission_admin(pid):
@@ -159,6 +150,14 @@ def get_single_submission_admin(pid):
     else:
         abort(404, description=f"Submission for problem {pid} not found.")
 
+@app.route("/admin/clear", methods=["POST"])
+@admin_required
+def clear_submissions():
+    global submissions
+    submissions = {}
+    with open(STORAGE_FILE, "w", encoding="utf-8") as f:
+        json.dump(submissions, f)
+    return jsonify({"status": "cleared"})
 
 if __name__ == "__main__":
     app.run(host="0.0.0.0", debug=True, port=5000)
