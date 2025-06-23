@@ -25,6 +25,9 @@
             font-family: monospace;
             overflow: auto;
         }
+        #licenseRequests button {
+            margin: 2px;
+        }
     </style>
 </head>
 <body>
@@ -72,21 +75,20 @@
 
         <!-- 서명 대기 목록 및 서명 UI -->
         <h2>📝 서명 대기 라이선스 목록</h2>
-        <div id="licenseRequests"></div>
+        <div id="licenseRequests">📭 대기 중인 요청이 없습니다.</div>
 
         <h3>🔏 선택된 요청 파일 서명</h3>
         <div>
-          <label>파일명: <span id="selectedFilename">(선택 안됨)</span></label><br>
-          <input type="text" id="signId" placeholder="사용자 ID">
-          <input type="text" id="signExp" placeholder="만료일 (YYYY-MM-DD)">
-          <input type="number" id="signMax" placeholder="최대 제출 수">
-          <button onclick="signSelectedLicense()">📄 서명하기</button>
+            <label>파일명: <span id="selectedFilename">(선택 안됨)</span></label><br>
+            <input type="text" id="signId" placeholder="사용자 ID">
+            <input type="text" id="signExp" placeholder="만료일 (YYYY-MM-DD)">
+            <input type="number" id="signMax" placeholder="최대 제출 수">
+            <button onclick="signSelectedLicense()">📄 서명하기</button>
         </div>
     </div>
 
     <!-- 스크립트 -->
     <script>
-        // 제출 업로드
         document.getElementById('uploadForm').onsubmit = async function(e) {
             e.preventDefault();
             const formData = new FormData(this);
@@ -95,7 +97,6 @@
             alert(JSON.stringify(result));
         };
 
-        // 라이선스 요청 업로드
         document.getElementById('licenseForm').onsubmit = async function(e) {
             e.preventDefault();
             const formData = new FormData(this);
@@ -103,7 +104,7 @@
             const result = await resp.json();
             if (result.status === "uploaded") {
                 alert(`✅ ${result.filename} 업로드 완료`);
-                loadLicenseRequests();
+                loadLicenseRequests(); // 업로드 후 목록 갱신
             } else {
                 alert("❌ 업로드 실패");
             }
@@ -173,6 +174,11 @@
             const container = document.getElementById("licenseRequests");
             container.innerHTML = "";
 
+            if (files.length === 0) {
+                container.innerText = "📭 대기 중인 요청이 없습니다.";
+                return;
+            }
+
             files.forEach(fname => {
                 const btn = document.createElement("button");
                 btn.innerText = fname;
@@ -200,6 +206,7 @@
             const result = await resp.json();
             if (result.status === "signed") {
                 alert("✅ 서명 완료: " + result.hwid);
+                loadLicenseRequests(); // 서명 완료 후 목록 갱신
             } else {
                 alert("❌ 오류: " + JSON.stringify(result));
             }
