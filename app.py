@@ -109,9 +109,9 @@ def upload_license_request():
         save_path = os.path.join(UPLOAD_DIR, f"{user_id}.lic.request")
         with open(save_path, "w", encoding="utf-8") as f:
             f.write(raw_b64)
-
+        print("현재 uploads 폴더 파일들:", os.listdir("uploads"))
         return jsonify({"status": "uploaded", "filename": f"{user_id}.lic.request"})
-
+    
     except Exception as e:
         return jsonify({"error": str(e)}), 500
 
