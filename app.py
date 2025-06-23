@@ -131,7 +131,6 @@ def list_license_requests():
 @app.route("/admin/sign_license", methods=["POST"])
 @admin_required
 def sign_license():
-    print("현재 uploads 폴더 파일들:", os.listdir("uploads"))
     data = request.json
     filename = data.get("filename")
     user_id = data.get("id")
@@ -139,28 +138,36 @@ def sign_license():
     max_limit = data.get("max")
 
     if not filename or not user_id or not exp or not max_limit:
-        return "필수 입력 누락", 400
+        return jsonify({"error": "필수 입력 누락"}), 400
 
     req_path = os.path.join(UPLOAD_DIR, filename)
+
     if not os.path.exists(req_path):
-        return "요청 파일 없음", 404
+        return jsonify({
+            "error": "요청 파일 없음",
+            "path": req_path,
+            "existing_files": os.listdir(UPLOAD_DIR)
+        }), 404
 
     try:
         # 요청 파일 로드 및 파싱
         with open(req_path, "r", encoding="utf-8") as f:
             payload_b64 = f.read().strip()
-        payload = json.loads(base64.b64decode(payload_b64).decode())
 
-        # 서명 전 정보 덮어쓰기
+        payload_json = base64.b64decode(payload_b64).decode("utf-8")
+        payload = json.loads(payload_json)
+
+        # 서명 전 정보 수정
         payload["id"] = user_id
         payload["exp"] = exp
         payload["max"] = int(max_limit)
 
         # 재인코딩
-        new_payload_b64 = base64.b64encode(json.dumps(payload, separators=(",", ":")).encode()).decode()
+        new_payload_json = json.dumps(payload, separators=(",", ":"))
+        new_payload_b64 = base64.b64encode(new_payload_json.encode("utf-8")).decode("utf-8")
 
-        # 서명 수행
-        with open("private_key.pem", "rb") as f:
+        # 서명
+        with open(os.path.join(BASE_DIR, "private_key.pem"), "rb") as f:
             private_key = serialization.load_pem_private_key(f.read(), password=None)
 
         signature = private_key.sign(
@@ -172,35 +179,29 @@ def sign_license():
         signed = {
             "payload": new_payload_b64,
             "signature": signature,
-            "used": base64.b64encode(b"0").decode()
+            "used": base64.b64encode(b"0").decode("utf-8")
         }
 
-        # 최종 저장 경로: signed/{user_id}/{hwid}.lic
-        save_dir = "./signed"
-        os.makedirs(save_dir, exist_ok=True)
-        out_path = os.path.join(save_dir, f"{payload['hwid']}.lic")
+        # 저장
+        hwid = payload["hwid"]
+        out_path = os.path.join(SIGNED_DIR, f"{hwid}.lic")
 
         with open(out_path, "w", encoding="utf-8") as f:
             json.dump(signed, f, indent=2)
 
-        # 원래 요청 파일은 삭제
+        # 요청 파일 삭제
         os.remove(req_path)
 
+        # 서명 기록 저장
         save_signed_history({
             "id": payload["id"],
-            "hwid": payload["hwid"],
+            "hwid": hwid,
             "exp": payload["exp"],
             "max": payload["max"],
             "signed_at": datetime.utcnow().isoformat()
         })
 
-        os.remove(req_path)
-        return jsonify({"status": "signed", "hwid": payload["hwid"]})
-
-    except Exception as e:
-        return jsonify({"error": str(e)}), 500
-
-        return jsonify({"status": "signed", "hwid": payload["hwid"]})
+        return jsonify({"status": "signed", "hwid": hwid})
 
     except Exception as e:
         return jsonify({"error": str(e)}), 500
