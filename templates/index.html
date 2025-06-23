@@ -93,12 +93,22 @@
     <!-- 스크립트 -->
     <script>
         window.onload = async function() {
-            const resp = await fetch('/admin/submissions');
-            if (resp.status === 200) {
-                document.getElementById('loginBox').classList.add('hidden');
-                document.getElementById('adminPanel').classList.remove('hidden');
+            try {
+                const resp = await fetch('/admin/submissions');
+                if (resp.status === 200) {
+                    document.getElementById('loginBox').classList.add('hidden');
+                    document.getElementById('adminPanel').classList.remove('hidden');
+                } else if (resp.status === 403) {
+                    // 세션은 있지만 인증 안됨 (ex. 세션 만료)
+                    console.warn("관리자 인증 필요");
+                } else {
+                    console.error("서버 오류", resp.status);
+                }
+            } catch (e) {
+                console.error("요청 실패", e);
             }
-        }
+        };
+
 
         // 제출 업로드
         document.getElementById('uploadForm').onsubmit = async function(e) {
