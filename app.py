@@ -10,6 +10,7 @@ import base64
 
 app = Flask(__name__)
 app.secret_key = "9fbc1de44dd2088c6a6aa66a66f3fba9b51f3828a0dcf29587c07b3d2c4d45c4"
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 UPLOAD_DIR = os.path.join(BASE_DIR, "uploads")
 STORAGE_FILE = "submissions.json"
 ADMIN_USER_FILE = "admin_users.json"
