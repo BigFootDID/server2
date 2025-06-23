@@ -104,10 +104,13 @@ def upload_license_request():
         payload = json.loads(base64.b64decode(raw_b64).decode())
 
         user_id = payload.get("id")
+        hwid = payload.get("hwid")
         if not user_id:
             return jsonify({"error": "Missing 'id' in payload"}), 400
+        if not hwid:
+            return jsonify({"error": "Missing 'hwid' in payload"}), 400
 
-        save_path = os.path.join(UPLOAD_DIR, f"{user_id}.lic.request")
+        save_path = os.path.join(UPLOAD_DIR, f"{user_id}_{hwid}.lic.request")
         with open(save_path, "w", encoding="utf-8") as f:
             f.write(raw_b64)
         print("현재 uploads 폴더 파일들:", os.listdir("uploads"))
