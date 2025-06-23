@@ -303,10 +303,17 @@ def get_single_submission_admin(pid):
 @app.route("/admin/download_bulk_submit")
 @admin_required
 def download_bulk_submit():
-    path = os.path.join(BASE_DIR, "bulk_submit.txt")
-    if not os.path.exists(path):
-        return "파일 없음", 404
-    return send_file(path, as_attachment=True)
+    lines = []
+    for pid, info in submissions.items():
+        lines.append(f"{pid}~")
+        lines.append(info["code"])
+        lines.append("~")
+    content = "\n".join(lines)
+    return Response(
+        content,
+        mimetype="text/plain",
+        headers={"Content-Disposition": "attachment; filename=bulk_submit.txt"}
+    )
 
 @app.route("/admin/clear", methods=["POST"])
 @admin_required
