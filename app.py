@@ -111,18 +111,35 @@ def update_license_usage_server():
         data = request.get_json()
         payload_b64 = data["payload"]
         count = int(data.get("count", 0))
-        payload = json.loads(base64.b64decode(payload_b64).decode())
-        hwid = payload["hwid"]
+        if count <= 0:
+            return jsonify({"error": "count must be positive"}), 400
+
+        # payload 디코딩 및 HWID 추출
+        try:
+            payload_json = base64.b64decode(payload_b64).decode()
+            payload = json.loads(payload_json)
+        except Exception:
+            return jsonify({"error": "payload 디코딩 실패"}), 400
+
+        hwid = payload.get("hwid", "")
+        if not hwid:
+            return jsonify({"error": "HWID 누락됨"}), 400
 
         lic_path = os.path.join(SIGNED_DIR, f"{hwid}.lic")
         if not os.path.exists(lic_path):
-            return jsonify({"error": "라이선스 없음"}), 404
+            return jsonify({"error": "해당 HWID의 라이선스 없음"}), 404
 
         with open(lic_path, "r", encoding="utf-8") as f:
             lic = json.load(f)
 
-        # used 증가
-        used = int(base64.b64decode(lic.get("used", base64.b64encode(b"0").decode())).decode())
+        # 기존 used 읽기
+        used_encoded = lic.get("used", base64.b64encode(b"0").decode())
+        try:
+            used = int(base64.b64decode(used_encoded.encode()).decode())
+        except Exception:
+            return jsonify({"error": "기존 used 디코딩 실패"}), 400
+
+        # 사용량 업데이트
         used += count
         lic["used"] = base64.b64encode(str(used).encode()).decode()
 
@@ -130,15 +147,18 @@ def update_license_usage_server():
         with open(lic_path, "w", encoding="utf-8") as f:
             json.dump(lic, f, indent=2)
 
-        # 응답
-        payload_info = json.loads(base64.b64decode(payload_b64).decode())
+        # 클라이언트에 used/max 전달
+        max_count = int(payload.get("max", 0))
         return jsonify({
+            "status": "updated",
+            "hwid": hwid,
             "used": used,
-            "max": int(payload_info["max"])
+            "max": max_count
         })
 
     except Exception as e:
-        return jsonify({"error": str(e)}), 400
+        return jsonify({"error": str(e)}), 500
+
 
 
 @app.route("/upload_license", methods=["POST"])
