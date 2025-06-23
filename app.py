@@ -265,6 +265,7 @@ def admin_login():
     hashed_pw = sha256(pw.encode()).hexdigest()
     if admin_users.get(user_id) != hashed_pw:
         return jsonify({"error": "Invalid credentials"}), 401
+    session.permanent = True
     session["is_admin"] = True
     session["user_id"] = user_id
     return jsonify({"status": "admin login success"})
