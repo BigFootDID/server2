@@ -23,7 +23,7 @@ else:
     with open(ADMIN_USER_FILE, "w", encoding="utf-8") as f:
         json.dump(admin_users, f)
 
-# 로드: 제주 코드
+# 로드: 제출 코드
 if os.path.exists(STORAGE_FILE):
     with open(STORAGE_FILE, "r", encoding="utf-8") as f:
         submissions = json.load(f)
@@ -83,10 +83,12 @@ def upload_bulk_submit():
     temp_pid, temp_code = None, []
     for line in lines:
         if line.endswith("~"):
+            line_content = line[:-1].strip()
             if temp_pid is None:
-                temp_pid = line[:-1].strip()
+                temp_pid = line_content
             else:
-                code = "\n".join(temp_code).rstrip("~ ")
+                # Save previous block (overwrite if exists)
+                code = "\n".join(temp_code)
                 if temp_pid and code:
                     submissions[temp_pid] = {
                         "code": code,
@@ -94,13 +96,14 @@ def upload_bulk_submit():
                         "uploader_ip": uploader_ip
                     }
                     count += 1
-                temp_pid = line[:-1].strip()
+                temp_pid = line_content
                 temp_code = []
         else:
             temp_code.append(line)
 
+    # 마지막 블록 저장
     if temp_pid and temp_code:
-        code = "\n".join(temp_code).rstrip("~ ")
+        code = "\n".join(temp_code)
         submissions[temp_pid] = {
             "code": code,
             "updated_at": now,
