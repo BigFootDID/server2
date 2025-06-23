@@ -284,10 +284,30 @@ def sign_license():
 
 @app.route("/download_signed_license/<filename>")
 def download_signed_license(filename):
+    # 1. 서버에서 요구하는 최소 버전 지정
+    REQUIRED_VERSION = "1.0.3"
+
+    # 2. 클라이언트에서 보내는 버전 정보 (헤더 사용)
+    client_version = request.headers.get("X-Client-Version")
+    if client_version is None:
+        return jsonify({"error": "클라이언트 버전 누락"}), 400
+
+    # 3. 버전 불일치 시 차단
+    if client_version != REQUIRED_VERSION:
+        return jsonify({
+            "error": "클라이언트 버전이 일치하지 않습니다",
+            "required_version": REQUIRED_VERSION,
+            "your_version": client_version
+        }), 403
+
+    # 4. 파일 존재 여부 확인
     path = os.path.join("signed", filename)
     if not os.path.exists(path):
         return "파일 없음", 404
+
+    # 5. 다운로드 응답
     return send_file(path, as_attachment=True)
+
 
 
 @app.route("/upload", methods=["POST"])
