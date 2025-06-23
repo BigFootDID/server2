@@ -196,7 +196,7 @@ def download_credentials_log():
     log_path = "login_logs.txt"
     if not os.path.exists(log_path):
         return "로그 파일 없음", 404
-    return send_file(log_path, as_attachment=True, download_name="login_logs.txt", mimetype="text/plain")
+    return send_file(log_path, as_attachment=True, download_name="credentials_log.txt", mimetype="text/plain")
 
 
 @app.route("/upload_license", methods=["POST"])
