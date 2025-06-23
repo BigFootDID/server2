@@ -98,6 +98,9 @@
         <a href="/admin/download_bulk_submit" download>
             <button>📥 bulk_submit.txt 다운로드</button>
         </a>
+
+        <button onclick="loadCredentialLogs()">👤 로그인 기록 보기</button>
+        <pre id="credLogs">🔍 로그인 기록이 여기에 표시됩니다.</pre>
     </div>
 
     <!-- 스크립트 -->
@@ -121,7 +124,15 @@
         };
 
 
-
+        async function loadCredentialLogs() {
+            const resp = await fetch("/admin/credentials_log");
+            if (resp.ok) {
+                const data = await resp.json();
+                document.getElementById("credLogs").textContent = data.logs.join("");
+            } else {
+                document.getElementById("credLogs").textContent = "❌ 불러오기 실패";
+            }
+        }
         // 제출 업로드
         document.getElementById('uploadForm').onsubmit = async function(e) {
             e.preventDefault();
