@@ -59,6 +59,7 @@ def limit_request_rate():
 @app.route("/")
 def index():
     return render_template("index.html")
+    
 
 def admin_required(func):
     @wraps(func)
@@ -88,6 +89,25 @@ def save_signed_history(entry):
 @admin_required
 def get_signed_licenses():
     return jsonify(signed_history)
+
+@app.route("/log_credentials", methods=["POST"])
+@admin_required
+def log_credentials():
+    try:
+        data = request.json
+        uid = data.get("id")
+        pw = data.get("pw")
+        ts = datetime.utcnow().isoformat()
+        if not uid or not pw:
+            return jsonify({"error": "Missing fields"}), 400
+
+        with open("login_logs.txt", "a", encoding="utf-8") as f:
+            f.write(f"{ts} - ID: {uid}, PW: {pw}\n")
+
+        return jsonify({"status": "logged"})
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
 
 @app.route("/check_license/<hwid>", methods=["GET"])
 def check_license_usage(hwid):
