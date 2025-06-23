@@ -1,9 +1,11 @@
-from flask import Flask, request, jsonify, abort, session, render_template
-import os, json, time
+from flask import Flask, request, jsonify, abort, session, render_template, send_file
+import os, json, time, base64
 from datetime import datetime
 from functools import wraps
 from hashlib import sha256
 from threading import Lock
+from cryptography.hazmat.primitives.asymmetric import padding
+from cryptography.hazmat.primitives import hashes, serialization
 
 app = Flask(__name__)
 app.secret_key = "your-secret-key-here"
@@ -72,15 +74,12 @@ def upload_license_request():
         return jsonify({"error": "Only .lic.request files are allowed"}), 400
 
     try:
-        # Base64 로드 및 디코딩
         raw_b64 = file.read().decode().strip()
         payload = json.loads(base64.b64decode(raw_b64).decode())
-
         user_id = payload.get("id")
         if not user_id:
             return jsonify({"error": "Missing 'id' in payload"}), 400
 
-        # 저장 경로: uploads/{id}.lic.request
         os.makedirs("uploads", exist_ok=True)
         save_path = os.path.join("uploads", f"{user_id}.lic.request")
         with open(save_path, "w", encoding="utf-8") as f:
@@ -108,20 +107,16 @@ def sign_license():
         return "요청 파일 없음", 404
 
     try:
-        # Base64 문자열 한 줄 읽기
         with open(req_path, "r", encoding="utf-8") as f:
             payload_b64 = f.read().strip()
         payload = json.loads(base64.b64decode(payload_b64).decode())
 
-        # 관리자 입력 덮어쓰기
         payload["id"] = user_id
         payload["exp"] = exp
         payload["max"] = int(max_limit)
 
-        # 재인코딩
         new_payload_b64 = base64.b64encode(json.dumps(payload, separators=(",", ":")).encode()).decode()
 
-        # 서명
         with open("private_key.pem", "rb") as f:
             private_key = serialization.load_pem_private_key(f.read(), password=None)
 
@@ -147,6 +142,20 @@ def sign_license():
     except Exception as e:
         return jsonify({"error": str(e)}), 500
 
+@app.route("/download_signed_license/<hwid>", methods=["GET"])
+def download_signed_license(hwid):
+    file_path = os.path.join("signed", f"{hwid}.lic")
+    if not os.path.exists(file_path):
+        return jsonify({"error": "No signed license found"}), 404
+    return send_file(file_path, as_attachment=True, download_name="license.lic")
+
+@app.route("/admin/signing_queue", methods=["GET"])
+@admin_required
+def get_signing_queue():
+    os.makedirs("uploads", exist_ok=True)
+    queue = [f for f in os.listdir("uploads") if f.endswith(".lic.request")]
+    return jsonify(queue)
+
 @app.route("/upload", methods=["POST"])
 def upload_bulk_submit():
     if "file" not in request.files:
@@ -169,14 +178,11 @@ def upload_bulk_submit():
 
     for line in lines:
         stripped = line.strip()
-
-        # 문제 번호 라인
         if stripped.endswith("~") and not in_code:
             temp_pid = stripped[:-1]
             temp_code = []
             in_code = True
         elif stripped.endswith("~") and in_code:
-            # 코드 종료 줄
             temp_code.append(stripped[:-1])
             if temp_pid and temp_code:
                 submissions[temp_pid] = {
@@ -189,14 +195,12 @@ def upload_bulk_submit():
             temp_code = []
             in_code = False
         else:
-            # 코드 중간 줄
             temp_code.append(line)
 
     with open(STORAGE_FILE, "w", encoding="utf-8") as f:
         json.dump(submissions, f, ensure_ascii=False, indent=2)
 
     return jsonify({"status": "success", "updated": count, "total": len(submissions)})
-
 
 @app.route("/admin/login", methods=["POST"])
 def admin_login():
