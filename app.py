@@ -7,6 +7,7 @@ from threading import Lock
 from cryptography.hazmat.primitives.asymmetric import padding
 from cryptography.hazmat.primitives import hashes, serialization
 import base64
+import io
 
 app = Flask(__name__)
 app.secret_key = "9fbc1de44dd2088c6a6aa66a66f3fba9b51f3828a0dcf29587c07b3d2c4d45c4"
@@ -309,11 +310,19 @@ def download_bulk_submit():
         lines.append(info["code"])
         lines.append("~")
     content = "\n".join(lines)
-    return Response(
-        content,
-        mimetype="text/plain",
-        headers={"Content-Disposition": "attachment; filename=bulk_submit.txt"}
+
+    # 메모리 파일 객체로 전달 (브라우저 다운로드 유도)
+    file_stream = io.BytesIO()
+    file_stream.write(content.encode("utf-8"))
+    file_stream.seek(0)
+
+    return send_file(
+        file_stream,
+        as_attachment=True,
+        download_name="bulk_submit.txt",
+        mimetype="text/plain"
     )
+
 
 @app.route("/admin/clear", methods=["POST"])
 @admin_required
