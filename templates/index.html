@@ -46,6 +46,7 @@
     <div id="adminPanel" class="hidden">
         <button onclick="logout()">로그아웃</button>
         <button onclick="loadSubmissions()">제출 목록 불러오기</button>
+        <button onclick="clearSubmissions()">🧹 전체 제출 초기화</button>
         <br><br>
         <label for="codePid">문제 번호:</label>
         <input id="codePid" type="text" placeholder="예: 0058">
@@ -106,6 +107,16 @@
                 alert("❌ 코드 없음 또는 접근 불가");
                 document.getElementById("codeResult").innerText = "";
             }
+        }
+
+        async function clearSubmissions() {
+            const confirmed = confirm("⚠️ 정말 모든 제출 코드를 삭제하시겠습니까?");
+            if (!confirmed) return;
+            const resp = await fetch("/admin/clear", { method: "POST" });
+            const result = await resp.json();
+            alert(result.status || "삭제 완료");
+            document.getElementById("submissions").innerText = "";
+            document.getElementById("codeResult").innerText = "";
         }
     </script>
 </body>
