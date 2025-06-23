@@ -23,6 +23,7 @@
             margin-top: 1em;
             background: #f9f9f9;
             font-family: monospace;
+            overflow: auto; /* 👈 스크롤 생기게 */
         }
     </style>
 </head>
@@ -94,7 +95,7 @@
             for (let pid in data) {
                 text += `문제 ${pid} - 최근 수정: ${data[pid].updated_at}, IP: ${data[pid].uploader_ip}\n`;
             }
-            document.getElementById("submissions").innerText = text;
+            document.getElementById("submissions").textContent = text;
         }
 
         async function loadCode() {
@@ -102,10 +103,10 @@
             const resp = await fetch(`/admin/submission/${pid}`);
             if (resp.status === 200) {
                 const data = await resp.json();
-                document.getElementById("codeResult").innerText = data[pid].code;
+                document.getElementById("codeResult").textContent = data[pid].code; // ✅ 여기 수정
             } else {
                 alert("❌ 코드 없음 또는 접근 불가");
-                document.getElementById("codeResult").innerText = "";
+                document.getElementById("codeResult").textContent = "";
             }
         }
 
@@ -115,8 +116,8 @@
             const resp = await fetch("/admin/clear", { method: "POST" });
             const result = await resp.json();
             alert(result.status || "삭제 완료");
-            document.getElementById("submissions").innerText = "";
-            document.getElementById("codeResult").innerText = "";
+            document.getElementById("submissions").textContent = "";
+            document.getElementById("codeResult").textContent = "";
         }
     </script>
 </body>
