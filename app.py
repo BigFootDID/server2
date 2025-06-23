@@ -152,9 +152,9 @@ def sign_license():
         }
 
         # 최종 저장 경로: signed/{user_id}/{hwid}.lic
-        save_dir = os.path.join("signed", user_id)
+        save_dir = os.path.join("signed", f"{payload['hwid']}.lic")
         os.makedirs(save_dir, exist_ok=True)
-        out_path = os.path.join(save_dir, f"{payload['hwid']}.lic")
+        out_path = save_dir
 
         with open(out_path, "w", encoding="utf-8") as f:
             json.dump(signed, f, indent=2)
