@@ -45,6 +45,7 @@
     <h2>📎 라이선스 요청 업로드 (.lic.request)</h2>
     <form id="licenseForm" enctype="multipart/form-data">
         <input type="file" name="file" accept=".lic.request" required>
+        <div class="g-recaptcha" data-sitekey="{{ site_key }}"></div>
         <button type="submit">📩 라이선스 업로드</button>
     </form>
 
@@ -57,8 +58,6 @@
         <input type="password" id="adminPw" placeholder="비밀번호"><br>
         <button onclick="login()">로그인</button>
     </div>
-
-    <div class="g-recaptcha" data-sitekey="{{ site_key }}"></div>
 
     <!-- 관리자 패널 -->
     <div id="adminPanel" class="hidden">
