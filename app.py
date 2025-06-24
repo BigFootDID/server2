@@ -1,4 +1,3 @@
-```python
 from flask import Flask, request, jsonify, abort, session, render_template, send_file
 import os
 import json
