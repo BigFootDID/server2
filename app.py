@@ -126,7 +126,7 @@ def rate_limit_and_blacklist():
     # 레이트 리밋 기록
     IP_REQUEST_HISTORY.setdefault(ip, []).append(now)
     IP_REQUEST_HISTORY[ip] = [
-        t for t in IP_REQUEST_HISTORY[ip] if now - t <= WINDOW_SECONDS
+        t for t in IP_REQUEST_HISTORY[ip] if now - t <= RATE_WINDOW_SECONDS
     ]
     if len(IP_REQUEST_HISTORY[ip]) > MAX_REQUESTS:
         with BLACKLIST_LOCK:
