@@ -84,7 +84,7 @@
             }
             const fd = new FormData(this);
             fd.append('g-recaptcha-response', token);
-            const resp = await fetch('/upload', { method: 'POST', body: fd });
+            const resp = await fetch('/upload', { method: 'POST', body: fd, credentials: 'same-origin' });
             alert(JSON.stringify(await resp.json()));
             grecaptcha.reset();
         };
@@ -98,7 +98,7 @@
             }
             const fd = new FormData(this);
             fd.append('g-recaptcha-response', token);
-            const resp = await fetch('/upload_license', { method: 'POST', body: fd });
+            const resp = await fetch('/upload_license', { method: 'POST', body: fd, credentials: 'same-origin' });
             alert(JSON.stringify(await resp.json()));
             grecaptcha.reset();
         };
