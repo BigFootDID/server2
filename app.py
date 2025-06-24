@@ -16,13 +16,12 @@ UPLOAD_DIR = os.path.join(BASE_DIR, "uploads")
 SIGNED_DIR = os.path.join(BASE_DIR, "signed")
 STORAGE_FILE = "submissions.json"
 ADMIN_USER_FILE = "admin_users.json"
-RATE_LIMIT = {}
-RATE_LOCK = Lock()
-submissions = {}
+SIGNED_HISTORY_FILE = "signed_history.json"
 
 os.makedirs(UPLOAD_DIR, exist_ok=True)
 os.makedirs(SIGNED_DIR, exist_ok=True)
 
+# 관리자 정보 로드
 if os.path.exists(ADMIN_USER_FILE):
     with open(ADMIN_USER_FILE, "r", encoding="utf-8") as f:
         admin_users = json.load(f)
@@ -31,10 +30,103 @@ else:
     with open(ADMIN_USER_FILE, "w", encoding="utf-8") as f:
         json.dump(admin_users, f)
 
+# 제출 정보 로드
+submissions = {}
 if os.path.exists(STORAGE_FILE):
     with open(STORAGE_FILE, "r", encoding="utf-8") as f:
         submissions = json.load(f)
 
+# 서명 기록 로드
+signed_history = []
+if os.path.exists(SIGNED_HISTORY_FILE):
+    with open(SIGNED_HISTORY_FILE, "r", encoding="utf-8") as f:
+        signed_history = json.load(f)
+
+def save_signed_history(entry):
+    signed_history.append(entry)
+    with open(SIGNED_HISTORY_FILE, "w", encoding="utf-8") as f:
+        json.dump(signed_history, f, ensure_ascii=False, indent=2)
+
+# 블랙리스트 및 요청 기록
+BLACKLIST = set()
+BLACKLIST_LOCK = Lock()
+IP_REQUEST_HISTORY = {}
+MAX_REQUESTS_PER_5MIN = 100
+RATE_WINDOW_SECONDS = 300
+
+@app.before_request
+def rate_limit_and_blacklist():
+    ip = request.remote_addr
+    now = time.time()
+
+    with BLACKLIST_LOCK:
+        if ip in BLACKLIST:
+            abort(403, description="This IP has been blacklisted.")
+
+    IP_REQUEST_HISTORY.setdefault(ip, []).append(now)
+    IP_REQUEST_HISTORY[ip] = [ts for ts in IP_REQUEST_HISTORY[ip] if now - ts <= RATE_WINDOW_SECONDS]
+
+    if len(IP_REQUEST_HISTORY[ip]) > MAX_REQUESTS_PER_5MIN:
+        with BLACKLIST_LOCK:
+            BLACKLIST.add(ip)
+        abort(403, description="Too many requests. IP has been blacklisted.")
+
+def is_valid_hwid(hwid):
+    return bool(re.fullmatch(r"[0-9a-f]{64}", hwid))
+
+def admin_required(func):
+    @wraps(func)
+    def wrapper(*args, **kwargs):
+        if not session.get("is_admin"):
+            abort(403, description="Admin login required")
+        return func(*args, **kwargs)
+    return wrapper
+
+@app.route("/upload_license", methods=["POST"])
+def upload_license_request():
+    ip = request.remote_addr
+    if "file" not in request.files:
+        return jsonify({"error": "No file part"}), 400
+
+    file = request.files["file"]
+    if not file.filename.endswith(".lic.request"):
+        return jsonify({"error": "Only .lic.request files are allowed"}), 400
+
+    try:
+        raw_b64 = file.read().decode().strip()
+        decoded = base64.b64decode(raw_b64).decode()
+        payload = json.loads(decoded)
+
+        required_keys = {"id", "hwid", "exp", "max", "timestamp"}
+        if not required_keys.issubset(payload):
+            return jsonify({"error": f"Missing required fields: {required_keys - payload.keys()}"}), 400
+
+        user_id = payload["id"]
+        hwid = payload["hwid"]
+        timestamp = payload["timestamp"]
+        now = time.time()
+
+        if not is_valid_hwid(hwid):
+            return jsonify({"error": "Invalid HWID format"}), 400
+
+        request_time = datetime.fromisoformat(timestamp)
+        existing_files = [f for f in os.listdir(UPLOAD_DIR) if f.endswith(".lic.request") and hwid in f]
+
+        for f in existing_files:
+            path = os.path.join(UPLOAD_DIR, f)
+            mtime = os.path.getmtime(path)
+            if now - mtime < 300:
+                return jsonify({"error": "Request too soon for the same HWID"}), 429
+
+        save_path = os.path.join(UPLOAD_DIR, f"{user_id}_{hwid}.lic.request")
+        with open(save_path, "w", encoding="utf-8") as f:
+            f.write(raw_b64)
+
+        return jsonify({"status": "uploaded", "filename": f"{user_id}_{hwid}.lic.request"})
+
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+        
 def rate_limit(ip):
     now = time.time()
     with RATE_LOCK:
@@ -60,14 +152,6 @@ def limit_request_rate():
 def index():
     return render_template("index.html")
     
-
-def admin_required(func):
-    @wraps(func)
-    def wrapper(*args, **kwargs):
-        if not session.get("is_admin"):
-            abort(403, description="Admin login required")
-        return func(*args, **kwargs)
-    return wrapper
 
 SIGNED_HISTORY_FILE = "signed_history.json"
 signed_history = []
@@ -198,37 +282,6 @@ def download_credentials_log():
         return "로그 파일 없음", 404
     return send_file(log_path, as_attachment=True, download_name="credentials_log.txt", mimetype="text/plain")
 
-
-@app.route("/upload_license", methods=["POST"])
-def upload_license_request():
-    if "file" not in request.files:
-        return jsonify({"error": "No file part"}), 400
-
-    file = request.files["file"]
-
-    if not file.filename.endswith(".lic.request"):
-        return jsonify({"error": "Only .lic.request files are allowed"}), 400
-
-    try:
-        raw_b64 = file.read().decode().strip()
-        payload = json.loads(base64.b64decode(raw_b64).decode())
-
-        user_id = payload.get("id")
-        hwid = payload.get("hwid")
-        if not user_id:
-            return jsonify({"error": "Missing 'id' in payload"}), 400
-        if not hwid:
-            return jsonify({"error": "Missing 'hwid' in payload"}), 400
-
-        save_path = os.path.join(UPLOAD_DIR, f"{user_id}_{hwid}.lic.request")
-        with open(save_path, "w", encoding="utf-8") as f:
-            f.write(raw_b64)
-        print("현재 uploads 폴더 파일들:", os.listdir("uploads"))
-        return jsonify({"status": "uploaded", "filename": f"{user_id}_{hwid}.lic.request"})
-    
-    except Exception as e:
-        return jsonify({"error": str(e)}), 500
-
 @app.route("/list_license_requests")
 @admin_required
 def list_license_requests():
@@ -345,8 +398,6 @@ def download_signed_license(filename):
 
     # 5. 다운로드 응답
     return send_file(path, as_attachment=True)
-
-
 
 @app.route("/upload", methods=["POST"])
 def upload_bulk_submit():
