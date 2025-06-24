@@ -17,7 +17,7 @@ import io
 # --- Flask 앱 및 설정 ---
 app = Flask(__name__)
 app.secret_key = os.getenv("FLASK_SECRET_KEY", "9fbc1de44dd2088c6a6aa66a66f3fba9b51f3828a0dcf29587c07b3d2c4d45c4")
-
+app.permanent_session_lifetime = timedelta(hours=1)
 # --- ReCaptcha 설정 ---
 RECAPTCHA_SITE_KEY = os.getenv("RECAPTCHA_SITE_KEY", "6LcMAWwrAAAAAKIAOCMtFhdhfFnqIDQGdxZnb7ay")  # 프론트엔드에 삽입
 RECAPTCHA_SECRET_KEY = os.getenv("RECAPTCHA_SECRET_KEY", "6LcMAWwrAAAAACSvC_K-Pdf726e0h3GS5eztKfY5")
@@ -161,6 +161,7 @@ def require_recaptcha(f):
             return jsonify({'error': 'reCAPTCHA verification failed', 'details': resp.json()}), 403
 
         # 검증 성공 시 세션에 기록 (permanent 하려면 여기서 session.permanent=True)
+        session.permanent = True
         session['recaptcha_verified'] = True
         return f(*args, **kwargs)
     return decorated
