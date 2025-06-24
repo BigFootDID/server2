@@ -128,7 +128,7 @@ def rate_limit_and_blacklist():
     IP_REQUEST_HISTORY[ip] = [
         t for t in IP_REQUEST_HISTORY[ip] if now - t <= RATE_WINDOW_SECONDS
     ]
-    if len(IP_REQUEST_HISTORY[ip]) > MAX_REQUESTS:
+    if len(IP_REQUEST_HISTORY[ip]) > MAX_REQUESTS_PER_5MIN:
         with BLACKLIST_LOCK:
             BLACKLIST[ip] = now + BLOCK_DURATION
         abort(403, "Too many requests; IP blacklisted.")
