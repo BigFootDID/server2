@@ -139,27 +139,21 @@ def rate_limit_and_blacklist():
 def require_recaptcha(f):
     @wraps(f)
     def decorated(*args, **kwargs):
-        token = request.form.get('recaptcha_token')
-        ip    = get_client_ip()
-        resp  = requests.post(
-            RECAPTCHA_VERIFY_URL,
-            data={
-              'secret': RECAPTCHA_SECRET_KEY,
-              'response': token,
-              'remoteip': ip
-            }
-        ).json()
-        # 1) 성공 여부
-        if not resp.get('success'):
-            return jsonify({'error':'reCAPTCHA failed','details':resp}),400
-        # 2) v3 리스크 점수 체크 (0.0~1.0)
-        score = resp.get('score',0)
-
-        print("recaptcha score : {}".format(score))
-        if score < 0.7:
-            return jsonify({'error':'reCAPTCHA low score','score':score}),403
+        ip = get_client_ip()
+        token = (request.form.get('recaptcha_token') or
+                 request.form.get('g-recaptcha-response'))
+        if not token:
+            return jsonify({'error':'Missing reCAPTCHA token'}),400
+        resp = requests.post(RECAPTCHA_VERIFY_URL, data={
+            'secret':RECAPTCHA_SECRET_KEY,
+            'response':token,
+            'remoteip':ip
+        }).json()
+        if not resp.get('success') or resp.get('score',0)<RECAPTCHA_THRESHOLD:
+            return jsonify({'error':'reCAPTCHA failed','details':resp}),403
         return f(*args, **kwargs)
     return decorated
+
 
 
 
