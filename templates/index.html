@@ -151,34 +151,20 @@
         // 라이선스 요청 업로드
         document.getElementById('licenseForm').onsubmit = async function(e) {
             e.preventDefault();
-            const formData = new FormData(this);
-            const resp = await fetch('/upload_license', { method: 'POST', body: formData });
-            const result = await resp.json();
-            if (result.status === "uploaded") {
-                alert(`✅ ${result.filename} 업로드 완료`);
-                loadLicenseRequests();
-            } else {
-                alert("❌ 업로드 실패");
-            }
+            // reCAPTCHA 토큰 획득
             const token = grecaptcha.getResponse();
             if (!token) {
                 return alert('❌ reCAPTCHA 확인을 완료해주세요.');
             }
-        
             const formData = new FormData(this);
             formData.append('g-recaptcha-response', token);
-        
-            const resp = await fetch('/upload_license', {
-                method: 'POST',
-                body: formData
-            });
+            const resp = await fetch('/upload_license', { method: 'POST', body: formData });
             const result = await resp.json();
             if (result.status === 'uploaded') {
                 alert(`✅ ${result.filename} 업로드 완료`);
             } else {
                 alert(`❌ 업로드 실패: ${result.error || JSON.stringify(result)}`);
             }
-            // 제출 후 토큰 초기화
             grecaptcha.reset();
         };
 
