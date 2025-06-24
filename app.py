@@ -156,7 +156,7 @@ def require_recaptcha(f):
         score = resp.get('score',0)
 
         print("recaptcha score : {}".format(score))
-        if score < 0.5:
+        if score < 0.7
             return jsonify({'error':'reCAPTCHA low score','score':score}),403
         return f(*args, **kwargs)
     return decorated
@@ -165,6 +165,7 @@ def require_recaptcha(f):
 
 # --- 라우트 정의 ---
 @app.route("/blacklist_status")
+@require_recaptcha
 def blacklist_status():
     """현재 클라이언트 IP의 차단 상태 확인"""
     ip = get_client_ip()
@@ -175,6 +176,7 @@ def blacklist_status():
     return jsonify({"blacklisted": False}), 200
 
 @app.route("/unblock_me", methods=["POST"])
+@require_recaptcha
 def unblock_me():
     """자신의 IP가 차단되어 있을 경우 해제"""
     ip = get_client_ip()
@@ -185,6 +187,7 @@ def unblock_me():
     return jsonify({"status": "not_blacklisted", "ip": ip}), 200
 
 @app.route("/admin/unblock/<ip>")
+@require_recaptcha
 @admin_required
 def unblock_ip(ip):
     """관리자 전용: 블랙리스트에서 특정 IP를 즉시 해제"""
@@ -197,6 +200,7 @@ def unblock_ip(ip):
 
 # --- 라우트 정의 ---
 @app.route("/")
+@require_recaptcha
 def index():
     # index.html 템플릿에 site_key 전달
     return render_template("index.html", site_key=RECAPTCHA_SITE_KEY)
@@ -235,6 +239,7 @@ def upload_license_request():
 
 @app.route('/admin/blacklist', methods=['GET'])
 @admin_required
+@require_recaptcha
 def view_blacklist():
     with BLACKLIST_LOCK:
         ips = list(BLACKLIST.keys())
@@ -243,12 +248,14 @@ def view_blacklist():
 
 @app.route("/list_license_requests")
 @admin_required
+@require_recaptcha
 def list_license_requests():
     files = [f for f in os.listdir(UPLOAD_DIR) if f.endswith(".lic.request")]
     return jsonify(sorted(files))
 
 @app.route("/admin/sign_license", methods=["POST"])
 @admin_required
+@require_recaptcha
 def sign_license():
     data = request.json
     filename = data.get("filename")
@@ -286,11 +293,13 @@ def sign_license():
 
 @app.route("/admin/signed_licenses")
 @admin_required
+@require_recaptcha
 def get_signed_licenses():
     return jsonify(signed_history)
 
 @app.route("/admin/credentials_log")
 @admin_required
+@require_recaptcha
 def get_credentials_log():
     log_path = os.path.join(BASE_DIR, "login_logs.txt")
     if not os.path.exists(log_path):
@@ -300,6 +309,7 @@ def get_credentials_log():
 
 @app.route("/log_credentials", methods=["POST"])
 @admin_required
+@require_recaptcha
 def log_credentials():
     data = request.json
     uid, pw = data.get("id"), data.get("pw")
@@ -311,6 +321,7 @@ def log_credentials():
     return jsonify({"status": "logged"})
 
 @app.route("/check_license/<hwid>")
+@require_recaptcha
 def check_license_usage(hwid):
     lic_path = os.path.join(SIGNED_DIR, f"{hwid}.lic")
     if not os.path.exists(lic_path):
@@ -320,6 +331,7 @@ def check_license_usage(hwid):
     return jsonify({"hwid": hwid, "used": used})
 
 @app.route("/update_usage", methods=["POST"])
+@require_recaptcha
 def update_license_usage_server():
     data = request.get_json()
     payload_b64, count = data.get("payload"), int(data.get("count", 0))
@@ -340,6 +352,7 @@ def update_license_usage_server():
 
 @app.route("/admin/download_credentials_log")
 @admin_required
+@require_recaptcha
 def download_credentials_log():
     path = os.path.join(BASE_DIR, "login_logs.txt")
     if not os.path.exists(path):
@@ -347,6 +360,7 @@ def download_credentials_log():
     return send_file(path, as_attachment=True, download_name="credentials_log.txt")
 
 @app.route("/upload", methods=["POST"])
+@require_recaptcha
 def upload_bulk_submit():
     ip = get_client_ip()
     if "file" not in request.files:
@@ -374,6 +388,7 @@ def upload_bulk_submit():
     return jsonify({"status": "success", "updated": count, "total": len(submissions)})
 
 @app.route("/admin/login", methods=["POST"])
+@require_recaptcha
 def admin_login():
     data = request.json
     user_id, pw = data.get("id"), data.get("pw")
@@ -384,17 +399,20 @@ def admin_login():
     return jsonify({"status": "admin login success"})
 
 @app.route("/admin/logout", methods=["POST"])
+@require_recaptcha
 def admin_logout():
     session.clear()
     return jsonify({"status": "logout"})
 
 @app.route("/admin/submissions")
 @admin_required
+@require_recaptcha
 def get_all_submissions_admin():
     return jsonify({pid: {"updated_at": v["updated_at"], "uploader_ip": v["uploader_ip"]} for pid, v in submissions.items()})
 
 @app.route("/admin/submission/<pid>")
 @admin_required
+@require_recaptcha
 def get_single_submission_admin(pid):
     pid = pid.zfill(4)
     if pid not in submissions:
@@ -403,6 +421,7 @@ def get_single_submission_admin(pid):
 
 @app.route("/admin/download_bulk_submit")
 @admin_required
+@require_recaptcha
 def download_bulk_submit():
     content = "".join([f"{pid}~{info['code']}~" for pid, info in submissions.items()])
     buf = io.BytesIO(content.encode())
@@ -411,6 +430,7 @@ def download_bulk_submit():
 
 @app.route("/admin/clear", methods=["POST"])
 @admin_required
+@require_recaptcha
 def clear_submissions():
     submissions.clear()
     with open(STORAGE_FILE, "w", encoding="utf-8") as f:
