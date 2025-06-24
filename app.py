@@ -140,44 +140,28 @@ def rate_limit_and_blacklist():
 def require_recaptcha(f):
     @wraps(f)
     def decorated(*args, **kwargs):
-        # 1) form-data 또는 x-www-form-urlencoded, 쿼리스트링
+        # 이미 세션에 한번 검증된 기록이 있으면 재검증 생략
+        if session.get('recaptcha_verified'):
+            return f(*args, **kwargs)
+
+        # 최초에는 토큰 검사
         token = (
-            request.values.get('g-recaptcha-response') or
-            request.values.get('recaptcha_token')
+            request.values.get('g-recaptcha-response')
+            or request.values.get('recaptcha_token')
+            or request.headers.get('X-Recaptcha-Token')
         )
-        # 2) JSON body
-        if not token and request.is_json:
-            data = request.get_json(silent=True) or {}
-            token = data.get('g-recaptcha-response') or data.get('recaptcha_token')
-        # 3) 커스텀 헤더
-        if not token:
-            token = (
-                request.headers.get('Recaptcha-Token') or
-                request.headers.get('X-Recaptcha-Token')
-            )
         if not token:
             return jsonify({'error': 'Missing reCAPTCHA token'}), 400
 
-        # 검증 요청
-        resp = requests.post(
-            RECAPTCHA_VERIFY_URL,
-            data={
-                'secret': RECAPTCHA_SECRET_KEY,
-                'response': token
-            },
-            timeout=5
-        )
-        # 네트워크 실패 시
-        if resp.status_code != 200:
-            return jsonify({'error': 'reCAPTCHA verification service error'}), 502
+        resp = requests.post(RECAPTCHA_VERIFY_URL, data={
+            'secret': RECAPTCHA_SECRET_KEY,
+            'response': token
+        }, timeout=5)
+        if resp.status_code != 200 or not resp.json().get('success'):
+            return jsonify({'error': 'reCAPTCHA verification failed', 'details': resp.json()}), 403
 
-        result = resp.json()
-        if not result.get('success'):
-            return jsonify({
-                'error': 'reCAPTCHA verification failed',
-                'details': result
-            }), 403
-
+        # 검증 성공 시 세션에 기록 (permanent 하려면 여기서 session.permanent=True)
+        session['recaptcha_verified'] = True
         return f(*args, **kwargs)
     return decorated
 
