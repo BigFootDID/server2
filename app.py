@@ -156,7 +156,7 @@ def require_recaptcha(f):
         score = resp.get('score',0)
 
         print("recaptcha score : {}".format(score))
-        if score < 0.7
+        if score < 0.7:
             return jsonify({'error':'reCAPTCHA low score','score':score}),403
         return f(*args, **kwargs)
     return decorated
