@@ -4,28 +4,12 @@
     <meta charset="UTF-8">
     <title>KOIStudy Solver 업로드</title>
     <style>
-        body {
-            font-family: sans-serif;
-            max-width: 800px;
-            margin: 30px auto;
-        }
-        input, button, textarea {
-            font-size: 1em;
-            margin: 5px 0;
-        }
-        .hidden { display: none; }
-        #submissions, #codeResult {
-            white-space: pre-wrap;
-            border: 1px solid #ddd;
-            padding: 1em;
-            margin-top: 1em;
-            background: #f9f9f9;
-            font-family: monospace;
-            overflow: auto;
-        }
+        body { font-family: sans-serif; max-width: 800px; margin: 30px auto; }
+        input, button, textarea { font-size: 1em; margin: 5px 0; }
+        #submissions, #codeResult { white-space: pre-wrap; border: 1px solid #ddd; padding: 1em; margin-top: 1em; background: #f9f9f9; font-family: monospace; overflow: auto; }
         #submissions { max-height: 300px; overflow-y: auto; }
     </style>
-    <!-- reCAPTCHA v2 스크립트 로드 -->
+    <!-- reCAPTCHA v2 스크립트 -->
     <script src="https://www.google.com/recaptcha/api.js" async defer></script>
 </head>
 <body>
@@ -48,43 +32,42 @@
 
     <hr>
 
-    {% if session.get('is_admin') %}
-    <!-- 관리자 패널 (서버에서만 렌더링) -->
-    <div id="adminPanel">
-        <button onclick="logout()">로그아웃</button>
-        <button onclick="loadSubmissions()">제출 목록 불러오기</button>
-        <button onclick="clearSubmissions()">전체 제출 초기화</button>
+    {% if session.is_admin %}
+    <!-- 관리자 패널 (서버 렌더링) -->
+    <div>
+        <button onclick="logout()">🔓 로그아웃</button>
+        <button onclick="loadSubmissions()">📋 제출 목록</button>
+        <button onclick="clearSubmissions()">🧹 초기화</button>
         <br><br>
         <label for="codePid">문제 번호:</label>
         <input id="codePid" type="text" placeholder="예: 0058">
-        <button onclick="loadCode()">코드 보기</button>
-        <pre id="codeResult">코드를 보려면 문제 번호를 입력하세요.</pre>
+        <button onclick="loadCode()">🔍 코드 보기</button>
+        <pre id="codeResult">코드를 보려면 입력하세요.</pre>
         <div id="submissions"></div>
         <hr>
-        <h2>📝 서명 대기 라이선스 목록</h2>
+        <h2>📝 서명 대기 목록</h2>
         <div id="licenseRequests"></div>
-        <h3>🔏 선택된 요청 파일 서명</h3>
-        <div>
-          <label>파일명: <span id="selectedFilename">(선택 안됨)</span></label><br>
-          <input type="text" id="signId" placeholder="사용자 ID">
-          <input type="text" id="signExp" placeholder="만료일 (YYYY-MM-DD)">
-          <input type="number" id="signMax" placeholder="최대 제출 수">
-          <button onclick="signSelectedLicense()">서명하기</button>
-        </div>
-        <h2>📜 서명된 라이선스 목록</h2>
-        <button onclick="loadSignedLicenses()">불러오기</button>
-        <div id="signedLicenses">불러온 기록이 없습니다.</div>
+        <h3>🔏 서명하기</h3>
+        <label>파일: <span id="selectedFilename">(선택 안됨)</span></label><br>
+        <input type="text" id="signId" placeholder="ID">
+        <input type="text" id="signExp" placeholder="만료일 YYYY-MM-DD">
+        <input type="number" id="signMax" placeholder="최대">
+        <button onclick="signSelectedLicense()">서명</button>
         <hr>
-        <button onclick="loadCredentialLogs()">로그인 기록 보기</button>
-        <pre id="credLogs">로그인 기록이 여기에 표시됩니다.</pre>
-        <a href="/admin/download_credentials_log" download><button>로그인 기록 다운로드</button></a>
+        <h2>📜 서명된 라이선스</h2>
+        <button onclick="loadSignedLicenses()">불러오기</button>
+        <div id="signedLicenses"></div>
+        <hr>
+        <button onclick="loadCredentialLogs()">🔐 로그인 기록</button>
+        <pre id="credLogs"></pre>
+        <a href="/admin/download_credentials_log" download><button>⬇️ 다운로드</button></a>
     </div>
     {% else %}
-    <!-- 로그인 폼: 비관리자에게만 렌더링 -->
-    <h2>🔐 관리자 로그인</h2>
-    <div id="loginBox">
-        <input type="text" id="adminId" placeholder="관리자 ID"><br>
-        <input type="password" id="adminPw" placeholder="비밀번호"><br>
+    <!-- 관리자 로그인 폼 -->
+    <div>
+        <h2>🔐 관리자 로그인</h2>
+        <input type="text" id="adminId" placeholder="ID"><br>
+        <input type="password" id="adminPw" placeholder="PW"><br>
         <button onclick="login()">로그인</button>
     </div>
     {% endif %}
@@ -93,23 +76,18 @@
         // 제출 업로드
         document.getElementById('uploadForm').onsubmit = async function(e) {
             e.preventDefault();
-            const formData = new FormData(this);
-            const resp = await fetch('/upload', { method: 'POST', body: formData });
+            const resp = await fetch('/upload', { method:'POST', body:new FormData(this) });
             alert(JSON.stringify(await resp.json()));
         };
-                // 라이선스 요청 업로드 (reCAPTCHA v2 적용)
+        // 라이선스 업로드
         document.getElementById('licenseForm').onsubmit = async function(e) {
             e.preventDefault();
             const token = grecaptcha.getResponse();
-            if (!token) {
-                alert('❌ reCAPTCHA 검증을 완료해주세요.');
-                return;
-            }
-            const formData = new FormData(e.target);
-            formData.append('g-recaptcha-response', token);
-            const resp = await fetch('/upload_license', { method: 'POST', body: formData });
-            const result = await resp.json();
-            alert(JSON.stringify(result));
+            if(!token) return alert('reCAPTCHA 확인 필요');
+            const fd = new FormData(this);
+            fd.append('g-recaptcha-response', token);
+            const resp = await fetch('/upload_license',{method:'POST',body:fd});
+            alert(JSON.stringify(await resp.json()));
             grecaptcha.reset();
         };
         // 로그인/관리자 기능
