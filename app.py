@@ -398,31 +398,81 @@ def download_credentials_log():
     return send_file(path, as_attachment=True, download_name="credentials_log.txt")
 
 @app.route("/upload", methods=["POST"])
+@require_recaptcha
 def upload_bulk_submit():
-    ip = get_client_ip()
-    if "file" not in request.files:
-        return "No file part", 400
-    file = request.files["file"]
-    if not file.filename.endswith(".txt"):
-        return "Invalid filename", 400
-    content = file.read().decode("utf-8")
+    # 1) 업로드 디렉토리(파일 경로) 준비
+    storage_dir = os.path.dirname(STORAGE_FILE)
+    os.makedirs(storage_dir, exist_ok=True)
+
+    # 2) 파일 존재 확인
+    if 'file' not in request.files:
+        return jsonify({'error': 'No file part in request'}), 400
+
+    file = request.files['file']
+    filename = secure_filename(file.filename or '')
+    if not filename.lower().endswith('.txt'):
+        return jsonify({'error': 'Invalid file type; only .txt allowed'}), 400
+
+    # 3) 내용 읽기 + UTF-8 디코딩
+    try:
+        raw = file.read()
+        content = raw.decode('utf-8')
+    except UnicodeDecodeError:
+        return jsonify({'error': 'File must be UTF-8 encoded'}), 400
+
     lines = content.splitlines()
-    uploader_ip = ip
+    uploader_ip = get_client_ip()
     now_iso = datetime.utcnow().isoformat()
-    temp_pid, temp_code, in_code, count = None, [], False, 0
+
+    # 4) 기존 submissions 로드
+    try:
+        if os.path.exists(STORAGE_FILE):
+            with open(STORAGE_FILE, 'r', encoding='utf-8') as f:
+                submissions = json.load(f)
+        else:
+            submissions = {}
+    except Exception:
+        submissions = {}
+
+    # 5) 파싱 루프
+    temp_pid = None
+    temp_code = []
+    in_code = False
+    count = 0
+
     for line in lines:
         stripped = line.strip()
-        if stripped.endswith("~") and not in_code:
-            temp_pid, in_code, temp_code = stripped[:-1], True, []
-        elif stripped.endswith("~") and in_code:
-            submissions[temp_pid] = {"code": "".join(temp_code).rstrip(), "updated_at": now_iso, "uploader_ip": uploader_ip}
+        # 시작: “PID~”
+        if stripped.endswith('~') and not in_code:
+            pid = stripped[:-1].strip()
+            if pid:
+                temp_pid, in_code, temp_code = pid, True, []
+        # 종료: “...~”
+        elif stripped.endswith('~') and in_code:
+            code_text = '\n'.join(temp_code).rstrip()
+            submissions[temp_pid] = {
+                'code': code_text,
+                'updated_at': now_iso,
+                'uploader_ip': uploader_ip
+            }
             count += 1
             temp_pid, in_code = None, False
+        # 코드 라인
         elif in_code:
             temp_code.append(line)
-    with open(STORAGE_FILE, "w", encoding="utf-8") as f:
-        json.dump(submissions, f, ensure_ascii=False, indent=2)
-    return jsonify({"status": "success", "updated": count, "total": len(submissions)})
+
+    # 6) 저장
+    try:
+        with open(STORAGE_FILE, 'w', encoding='utf-8') as f:
+            json.dump(submissions, f, ensure_ascii=False, indent=2)
+    except Exception:
+        return jsonify({'error': 'Failed to write storage file'}), 500
+
+    return jsonify({
+        'status': 'success',
+        'updated': count,
+        'total': len(submissions)
+    }), 200
 
 @app.route("/admin/login", methods=["POST"])
 def admin_login():
