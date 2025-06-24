@@ -4,7 +4,7 @@ import json
 import time
 import re
 import requests  # ReCaptcha verification
-from datetime import datetime
+from datetime import datetime, timedelta
 from functools import wraps
 from hashlib import sha256
 from threading import Lock
