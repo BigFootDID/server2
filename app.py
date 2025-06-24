@@ -360,10 +360,7 @@ def get_single_submission_admin(pid):
 @app.route("/admin/download_bulk_submit")
 @admin_required
 def download_bulk_submit():
-    content = "
-".join([f"{pid}~
-{info['code']}
-~" for pid, info in submissions.items()])
+    content = "".join([f"{pid}~{info['code']}~" for pid, info in submissions.items()])
     buf = io.BytesIO(content.encode())
     buf.seek(0)
     return send_file(buf, as_attachment=True, download_name="bulk_submit.txt", mimetype="text/plain")
