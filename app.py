@@ -10,6 +10,7 @@ from hashlib import sha256
 from threading import Lock
 from cryptography.hazmat.primitives.asymmetric import padding
 from cryptography.hazmat.primitives import hashes, serialization
+from werkzeug.utils import secure_filename
 import base64
 import io
 
@@ -139,28 +140,51 @@ def rate_limit_and_blacklist():
 def require_recaptcha(f):
     @wraps(f)
     def decorated(*args, **kwargs):
-        # reCAPTCHA 토큰은 form 필드(g-recaptcha-response), FormData recaptcha_token, 또는 JSON body에서 받을 수 있도록 처리
-        token = (request.form.get('g-recaptcha-response') or
-                 request.form.get('recaptcha_token') or
-                 (request.is_json and request.get_json().get('recaptcha_token')))
+        # 1) form-data 또는 x-www-form-urlencoded, 쿼리스트링
+        token = (
+            request.values.get('g-recaptcha-response') or
+            request.values.get('recaptcha_token')
+        )
+        # 2) JSON body
+        if not token and request.is_json:
+            data = request.get_json(silent=True) or {}
+            token = data.get('g-recaptcha-response') or data.get('recaptcha_token')
+        # 3) 커스텀 헤더
         if not token:
-            return jsonify({'error':'Missing reCAPTCHA token'}), 400
+            token = (
+                request.headers.get('Recaptcha-Token') or
+                request.headers.get('X-Recaptcha-Token')
+            )
+        if not token:
+            return jsonify({'error': 'Missing reCAPTCHA token'}), 400
+
         # 검증 요청
-        resp = requests.post(RECAPTCHA_VERIFY_URL, data={
-            'secret': RECAPTCHA_SECRET_KEY,
-            'response': token
-        }).json()
-        if not resp.get('success'):
-            return jsonify({'error':'reCAPTCHA verification failed','details':resp}), 403
+        resp = requests.post(
+            RECAPTCHA_VERIFY_URL,
+            data={
+                'secret': RECAPTCHA_SECRET_KEY,
+                'response': token
+            },
+            timeout=5
+        )
+        # 네트워크 실패 시
+        if resp.status_code != 200:
+            return jsonify({'error': 'reCAPTCHA verification service error'}), 502
+
+        result = resp.json()
+        if not result.get('success'):
+            return jsonify({
+                'error': 'reCAPTCHA verification failed',
+                'details': result
+            }), 403
+
         return f(*args, **kwargs)
     return decorated
 
 
 
-
 # --- 라우트 정의 ---
 @app.route("/blacklist_status")
-@require_recaptcha
 def blacklist_status():
     """현재 클라이언트 IP의 차단 상태 확인"""
     ip = get_client_ip()
@@ -171,7 +195,6 @@ def blacklist_status():
     return jsonify({"blacklisted": False}), 200
 
 @app.route("/unblock_me", methods=["POST"])
-@require_recaptcha
 def unblock_me():
     """자신의 IP가 차단되어 있을 경우 해제"""
     ip = get_client_ip()
@@ -182,8 +205,6 @@ def unblock_me():
     return jsonify({"status": "not_blacklisted", "ip": ip}), 200
 
 @app.route("/admin/unblock/<ip>")
-@require_recaptcha
-@admin_required
 def unblock_ip(ip):
     """관리자 전용: 블랙리스트에서 특정 IP를 즉시 해제"""
     with BLACKLIST_LOCK:
@@ -195,7 +216,6 @@ def unblock_ip(ip):
 
 # --- 라우트 정의 ---
 @app.route("/")
-@require_recaptcha
 def index():
     # index.html 템플릿에 site_key 전달
     return render_template("index.html", site_key=RECAPTCHA_SITE_KEY)
@@ -203,38 +223,69 @@ def index():
 @app.route('/upload_license', methods=['POST'])
 @require_recaptcha
 def upload_license_request():
-    # HWID 라이선스 요청 업로드
+    # 1) 업로드 디렉토리 준비
+    os.makedirs(UPLOAD_DIR, exist_ok=True)
+
+    # 2) 파일 유무/이름 검사
     if 'file' not in request.files:
         return jsonify({'error': 'No file part'}), 400
     file = request.files['file']
-    if not file.filename.endswith('.lic.request'):
+    filename = secure_filename(file.filename)
+    if not filename.endswith('.lic.request'):
         return jsonify({'error': 'Invalid file type'}), 400
-    raw_b64 = file.read().decode().strip()
+
+    # 3) Base64 문자열 읽기
+    raw_b64 = file.read().decode('utf-8', 'ignore').strip()
     try:
-        payload = json.loads(base64.b64decode(raw_b64))
-    except Exception:
-        return jsonify({'error': 'Invalid payload'}), 400
-    keys = {'id','hwid','exp','max'}
-    if not keys.issubset(payload.keys()):
-        return jsonify({'error': f'Missing fields: {keys - set(payload)}'}), 400
-    uid, hwid = payload['id'], payload['hwid']
-    # 중복 HWID 제한
+        decoded = base64.b64decode(raw_b64)
+    except binascii.Error:
+        return jsonify({'error': 'Invalid Base64 payload'}), 400
+
+    # 4) JSON 파싱
+    try:
+        payload = json.loads(decoded)
+    except (ValueError, json.JSONDecodeError):
+        return jsonify({'error': 'Invalid JSON inside payload'}), 400
+
+    # 5) 필수 필드 확인 & 타입 검사
+    required = {'id', 'hwid', 'exp', 'max'}
+    missing = required - payload.keys()
+    if missing:
+        return jsonify({'error': f'Missing fields: {missing}'}), 400
+
+    uid = str(payload['id'])
+    hwid = str(payload['hwid'])
+    try:
+        exp = int(payload['exp'])
+        max_limit = int(payload['max'])
+    except (TypeError, ValueError):
+        return jsonify({'error': 'Fields "exp" and "max" must be integers'}), 400
+
+    # 6) 중복 제한 (WINDOW_SECONDS 내 재업로드 차단)
     now = time.time()
-    existing = [f for f in os.listdir(UPLOAD_DIR) if hwid in f]
-    for fn in existing:
-        mtime = os.path.getmtime(os.path.join(UPLOAD_DIR, fn))
-        if now - mtime < WINDOW_SECONDS:
-            return jsonify({'error': 'Please wait before retry', 'retry_after': WINDOW_SECONDS - (now-mtime)}), 429
-    path = os.path.join(UPLOAD_DIR, f"{uid}_{hwid}.lic.request")
+    prefix = f"{uid}_{hwid}"
+    for fn in os.listdir(UPLOAD_DIR):
+        if fn.startswith(prefix):
+            mtime = os.path.getmtime(os.path.join(UPLOAD_DIR, fn))
+            if now - mtime < WINDOW_SECONDS:
+                retry = int(WINDOW_SECONDS - (now - mtime))
+                return jsonify({
+                    'error': 'Please wait before retry',
+                    'retry_after': retry
+                }), 429
+
+    # 7) 파일 저장 (타임스탬프 포함)
+    saved_name = f"{prefix}_{int(now)}.lic.request"
+    path = os.path.join(UPLOAD_DIR, saved_name)
     with open(path, 'w', encoding='utf-8') as f:
         f.write(raw_b64)
-    return jsonify({'status': 'uploaded', 'filename': os.path.basename(path)})
+
+    return jsonify({'status': 'uploaded', 'filename': saved_name}), 201
 
 # --- 추가 라우트 정의 시작 ---
 
 @app.route('/admin/blacklist', methods=['GET'])
 @admin_required
-@require_recaptcha
 def view_blacklist():
     with BLACKLIST_LOCK:
         ips = list(BLACKLIST.keys())
@@ -243,14 +294,12 @@ def view_blacklist():
 
 @app.route("/list_license_requests")
 @admin_required
-@require_recaptcha
 def list_license_requests():
     files = [f for f in os.listdir(UPLOAD_DIR) if f.endswith(".lic.request")]
     return jsonify(sorted(files))
 
 @app.route("/admin/sign_license", methods=["POST"])
 @admin_required
-@require_recaptcha
 def sign_license():
     data = request.json
     filename = data.get("filename")
@@ -288,13 +337,11 @@ def sign_license():
 
 @app.route("/admin/signed_licenses")
 @admin_required
-@require_recaptcha
 def get_signed_licenses():
     return jsonify(signed_history)
 
 @app.route("/admin/credentials_log")
 @admin_required
-@require_recaptcha
 def get_credentials_log():
     log_path = os.path.join(BASE_DIR, "login_logs.txt")
     if not os.path.exists(log_path):
@@ -304,7 +351,6 @@ def get_credentials_log():
 
 @app.route("/log_credentials", methods=["POST"])
 @admin_required
-@require_recaptcha
 def log_credentials():
     data = request.json
     uid, pw = data.get("id"), data.get("pw")
@@ -316,7 +362,6 @@ def log_credentials():
     return jsonify({"status": "logged"})
 
 @app.route("/check_license/<hwid>")
-@require_recaptcha
 def check_license_usage(hwid):
     lic_path = os.path.join(SIGNED_DIR, f"{hwid}.lic")
     if not os.path.exists(lic_path):
@@ -326,7 +371,6 @@ def check_license_usage(hwid):
     return jsonify({"hwid": hwid, "used": used})
 
 @app.route("/update_usage", methods=["POST"])
-@require_recaptcha
 def update_license_usage_server():
     data = request.get_json()
     payload_b64, count = data.get("payload"), int(data.get("count", 0))
@@ -347,7 +391,6 @@ def update_license_usage_server():
 
 @app.route("/admin/download_credentials_log")
 @admin_required
-@require_recaptcha
 def download_credentials_log():
     path = os.path.join(BASE_DIR, "login_logs.txt")
     if not os.path.exists(path):
@@ -355,7 +398,6 @@ def download_credentials_log():
     return send_file(path, as_attachment=True, download_name="credentials_log.txt")
 
 @app.route("/upload", methods=["POST"])
-@require_recaptcha
 def upload_bulk_submit():
     ip = get_client_ip()
     if "file" not in request.files:
@@ -383,7 +425,6 @@ def upload_bulk_submit():
     return jsonify({"status": "success", "updated": count, "total": len(submissions)})
 
 @app.route("/admin/login", methods=["POST"])
-@require_recaptcha
 def admin_login():
     data = request.json
     user_id, pw = data.get("id"), data.get("pw")
@@ -394,20 +435,17 @@ def admin_login():
     return jsonify({"status": "admin login success"})
 
 @app.route("/admin/logout", methods=["POST"])
-@require_recaptcha
 def admin_logout():
     session.clear()
     return jsonify({"status": "logout"})
 
 @app.route("/admin/submissions")
 @admin_required
-@require_recaptcha
 def get_all_submissions_admin():
     return jsonify({pid: {"updated_at": v["updated_at"], "uploader_ip": v["uploader_ip"]} for pid, v in submissions.items()})
 
 @app.route("/admin/submission/<pid>")
 @admin_required
-@require_recaptcha
 def get_single_submission_admin(pid):
     pid = pid.zfill(4)
     if pid not in submissions:
@@ -416,7 +454,6 @@ def get_single_submission_admin(pid):
 
 @app.route("/admin/download_bulk_submit")
 @admin_required
-@require_recaptcha
 def download_bulk_submit():
     content = "".join([f"{pid}~{info['code']}~" for pid, info in submissions.items()])
     buf = io.BytesIO(content.encode())
@@ -425,7 +462,6 @@ def download_bulk_submit():
 
 @app.route("/admin/clear", methods=["POST"])
 @admin_required
-@require_recaptcha
 def clear_submissions():
     submissions.clear()
     with open(STORAGE_FILE, "w", encoding="utf-8") as f:
