@@ -157,9 +157,6 @@ def unblock_me():
 
 @app.route("/admin/unblock/<ip>")
 @admin_required
-
-@app.route("/admin/unblock/<ip>")
-@admin_required
 def unblock_ip(ip):
     """관리자 전용: 블랙리스트에서 특정 IP를 즉시 해제"""
     with BLACKLIST_LOCK:
