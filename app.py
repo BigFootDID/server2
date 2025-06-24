@@ -135,14 +135,17 @@ def rate_limit_and_blacklist():
 
 
 # recaptcha required 데코레이터
-# require_recaptcha 수정 예시 (v3 score 체크 추가)
+# reCAPTCHA 검증 데코레이터 (오직 /upload_license 에만 사용)
 def require_recaptcha(f):
     @wraps(f)
     def decorated(*args, **kwargs):
-        token = request.form.get('g-recaptcha-response')
+        # reCAPTCHA 토큰은 form 필드(g-recaptcha-response), FormData recaptcha_token, 또는 JSON body에서 받을 수 있도록 처리
+        token = (request.form.get('g-recaptcha-response') or
+                 request.form.get('recaptcha_token') or
+                 (request.is_json and request.get_json().get('recaptcha_token')))
         if not token:
             return jsonify({'error':'Missing reCAPTCHA token'}), 400
-        # reCAPTCHA v2 검증
+        # 검증 요청
         resp = requests.post(RECAPTCHA_VERIFY_URL, data={
             'secret': RECAPTCHA_SECRET_KEY,
             'response': token
