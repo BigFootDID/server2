@@ -154,6 +154,8 @@ def require_recaptcha(f):
             return jsonify({'error':'reCAPTCHA failed','details':resp}),400
         # 2) v3 리스크 점수 체크 (0.0~1.0)
         score = resp.get('score',0)
+
+        print("recaptcha score : {}".format(score))
         if score < 0.5:
             return jsonify({'error':'reCAPTCHA low score','score':score}),403
         return f(*args, **kwargs)
