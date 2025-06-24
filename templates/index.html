@@ -32,7 +32,7 @@
         }
     </style>
     <!-- reCAPTCHA 스크립트 로드 -->
-    <script src="https://www.google.com/recaptcha/api.js" async defer></script>
+    <script src="https://www.google.com/recaptcha/api.js?render={{ site_key }}" async defer></script>
 </head>
 <body>
     <h1>🗃️ KOIStudy Solver 업로드</h1>
@@ -151,25 +151,24 @@
         };
 
         // 라이선스 요청 업로드
-        document.getElementById('licenseForm').onsubmit = async function(e) {
+        document.getElementById('licenseForm').onsubmit = function(e) {
             e.preventDefault();
-            // reCAPTCHA 토큰 획득
-            const token = grecaptcha.getResponse();
-            if (!token) {
-                alert('❌ reCAPTCHA 확인을 완료해주세요.');
-                return;
-            }
-            const formData = new FormData(this);
-            formData.append('g-recaptcha-response', token);
-            const resp = await fetch('/upload_license', { method: 'POST', body: formData });
-            const result = await resp.json();
-            if (result.status === 'uploaded') {
-                alert(`✅ ${result.filename} 업로드 완료`);
-            } else {
-                alert(`❌ 업로드 실패: ${result.error || JSON.stringify(result)}`);
-            }
-            // 토큰 초기화
-            grecaptcha.reset();
+            grecaptcha.ready(async () => {
+                try {
+                    const token = await grecaptcha.execute('{{ site_key }}', { action: 'upload_license' });
+                    const formData = new FormData(e.target);
+                    formData.append('recaptcha_token', token);
+                    const resp = await fetch('/upload_license', { method: 'POST', body: formData });
+                    const result = await resp.json();
+                    if (result.status === 'uploaded') {
+                        alert(`✅ ${result.filename} 업로드 완료`);
+                    } else {
+                        alert(`❌ 업로드 실패: ${result.error || JSON.stringify(result)}`);
+                    }
+                } catch (err) {
+                    alert('❌ reCAPTCHA 처리 중 오류 발생');
+                }
+            });
         };
 
         async function login() {
