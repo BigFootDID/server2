@@ -156,7 +156,8 @@
             // reCAPTCHA 토큰 획득
             const token = grecaptcha.getResponse();
             if (!token) {
-                return alert('❌ reCAPTCHA 확인을 완료해주세요.');
+                alert('❌ reCAPTCHA 확인을 완료해주세요.');
+                return;
             }
             const formData = new FormData(this);
             formData.append('g-recaptcha-response', token);
@@ -164,6 +165,7 @@
             const result = await resp.json();
             if (result.status === 'uploaded') {
                 alert(`✅ ${result.filename} 업로드 완료`);
+                loadLicenseRequests && loadLicenseRequests();
             } else {
                 alert(`❌ 업로드 실패: ${result.error || JSON.stringify(result)}`);
             }
