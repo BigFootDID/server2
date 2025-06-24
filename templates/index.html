@@ -160,6 +160,26 @@
             } else {
                 alert("❌ 업로드 실패");
             }
+            const token = grecaptcha.getResponse();
+            if (!token) {
+                return alert('❌ reCAPTCHA 확인을 완료해주세요.');
+            }
+        
+            const formData = new FormData(this);
+            formData.append('g-recaptcha-response', token);
+        
+            const resp = await fetch('/upload_license', {
+                method: 'POST',
+                body: formData
+            });
+            const result = await resp.json();
+            if (result.status === 'uploaded') {
+                alert(`✅ ${result.filename} 업로드 완료`);
+            } else {
+                alert(`❌ 업로드 실패: ${result.error || JSON.stringify(result)}`);
+            }
+            // 제출 후 토큰 초기화
+            grecaptcha.reset();
         };
 
         async function login() {
