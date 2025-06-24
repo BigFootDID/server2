@@ -135,22 +135,30 @@ def rate_limit_and_blacklist():
 
 
 # recaptcha required 데코레이터
+# require_recaptcha 수정 예시 (v3 score 체크 추가)
 def require_recaptcha(f):
     @wraps(f)
     def decorated(*args, **kwargs):
-        ip = get_client_ip()
-        token = (request.form.get('recaptcha_token') or
-                 (request.json and request.json.get('recaptcha_token')))
-        if not token:
-            return jsonify({'error': 'reCAPTCHA token missing'}), 400
-        resp = requests.post(
+        token = request.form.get('recaptcha_token')
+        ip    = get_client_ip()
+        resp  = requests.post(
             RECAPTCHA_VERIFY_URL,
-            data={'secret': RECAPTCHA_SECRET_KEY, 'response': token, 'remoteip': ip}
+            data={
+              'secret': RECAPTCHA_SECRET_KEY,
+              'response': token,
+              'remoteip': ip
+            }
         ).json()
+        # 1) 성공 여부
         if not resp.get('success'):
-            return jsonify({'error': 'reCAPTCHA failed', 'details': resp}), 400
+            return jsonify({'error':'reCAPTCHA failed','details':resp}),400
+        # 2) v3 리스크 점수 체크 (0.0~1.0)
+        score = resp.get('score',0)
+        if score < 0.5:
+            return jsonify({'error':'reCAPTCHA low score','score':score}),403
         return f(*args, **kwargs)
     return decorated
+
 
 
 # --- 라우트 정의 ---
@@ -205,7 +213,7 @@ def upload_license_request():
         payload = json.loads(base64.b64decode(raw_b64))
     except Exception:
         return jsonify({'error': 'Invalid payload'}), 400
-    keys = {'id','hwid','exp','max','timestamp'}
+    keys = {'id','hwid','exp','max'}
     if not keys.issubset(payload.keys()):
         return jsonify({'error': f'Missing fields: {keys - set(payload)}'}), 400
     uid, hwid = payload['id'], payload['hwid']
