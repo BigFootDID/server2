@@ -165,10 +165,10 @@
             const result = await resp.json();
             if (result.status === 'uploaded') {
                 alert(`✅ ${result.filename} 업로드 완료`);
-                loadLicenseRequests && loadLicenseRequests();
             } else {
                 alert(`❌ 업로드 실패: ${result.error || JSON.stringify(result)}`);
             }
+            // 토큰 초기화
             grecaptcha.reset();
         };
 
