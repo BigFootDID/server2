@@ -468,6 +468,9 @@ def upload_bulk_submit():
     except Exception:
         return jsonify({'error': 'Failed to write storage file'}), 500
 
+    submissions.clear()
+    submissions.update(new_subs)
+    
     return jsonify({
         'status': 'success',
         'updated': count,
