@@ -13,9 +13,7 @@
             font-size: 1em;
             margin: 5px 0;
         }
-        .hidden {
-            display: none;
-        }
+        .hidden { display: none; }
         #submissions, #codeResult {
             white-space: pre-wrap;
             border: 1px solid #ddd;
@@ -25,14 +23,10 @@
             font-family: monospace;
             overflow: auto;
         }
-
-        #submissions {
-            max-height: 300px;  /* 필요 시 높이 조절 가능 */
-            overflow-y: auto;
-        }
+        #submissions { max-height: 300px; overflow-y: auto; }
     </style>
-    <!-- reCAPTCHA 스크립트 로드 -->
-    <script src="https://www.google.com/recaptcha/api.js?render={{ site_key }}" async defer></script>
+    <!-- reCAPTCHA v2 스크립트 로드 -->
+    <script src="https://www.google.com/recaptcha/api.js" async defer></script>
 </head>
 <body>
     <h1>🗃️ KOIStudy Solver 업로드</h1>
@@ -43,245 +37,97 @@
         <p><button type="submit">📤 제출 업로드</button></p>
     </form>
 
-    <!-- 라이선스 요청 업로드 (클라이언트용) -->
+    <!-- 라이선스 요청 업로드 -->
     <h2>📎 라이선스 요청 업로드 (.lic.request)</h2>
-    <form id="licenseForm" enctype="multipart/form-data">
-        <input type="file" name="file" accept=".lic.request" required>
-        <button type="submit">📩 라이선스 업로드</button>
+    <form id="licenseForm" method="post" enctype="multipart/form-data">
+        <p><input type="file" name="file" accept=".lic.request" required></p>
+        <!-- reCAPTCHA v2 체크박스 -->
+        <div class="g-recaptcha" data-sitekey="{{ site_key }}"></div>
+        <p><button type="submit">📩 라이선스 업로드</button></p>
     </form>
 
     <hr>
 
-    <!-- 로그인 영역 -->
-    <h2>🔐 관리자 로그인</h2>
-    <div id="loginBox">
-        <input type="text" id="adminId" placeholder="관리자 ID"><br>
-        <input type="password" id="adminPw" placeholder="비밀번호"><br>
-        <button onclick="login()">로그인</button>
-    </div>
-
-    <!-- 관리자 패널 -->
-    <div id="adminPanel" class="hidden">
+    {% if session.get('is_admin') %}
+    <!-- 관리자 패널 (서버에서만 렌더링) -->
+    <div id="adminPanel">
         <button onclick="logout()">로그아웃</button>
         <button onclick="loadSubmissions()">제출 목록 불러오기</button>
-        <button onclick="clearSubmissions()">🧹 전체 제출 초기화</button>
+        <button onclick="clearSubmissions()">전체 제출 초기화</button>
         <br><br>
-
-        <!-- 코드 보기 -->
         <label for="codePid">문제 번호:</label>
         <input id="codePid" type="text" placeholder="예: 0058">
         <button onclick="loadCode()">코드 보기</button>
         <pre id="codeResult">코드를 보려면 문제 번호를 입력하세요.</pre>
-
         <div id="submissions"></div>
-
         <hr>
-
-        <!-- 서명 대기 목록 및 서명 UI -->
         <h2>📝 서명 대기 라이선스 목록</h2>
         <div id="licenseRequests"></div>
-
         <h3>🔏 선택된 요청 파일 서명</h3>
         <div>
           <label>파일명: <span id="selectedFilename">(선택 안됨)</span></label><br>
           <input type="text" id="signId" placeholder="사용자 ID">
           <input type="text" id="signExp" placeholder="만료일 (YYYY-MM-DD)">
           <input type="number" id="signMax" placeholder="최대 제출 수">
-          <button onclick="signSelectedLicense()">📄 서명하기</button>
+          <button onclick="signSelectedLicense()">서명하기</button>
         </div>
-
-        <!-- 서명된 라이선스 목록 -->
         <h2>📜 서명된 라이선스 목록</h2>
-        <button onclick="loadSignedLicenses()">📂 불러오기</button>
-        <div id="signedLicenses">🔍 불러온 기록이 없습니다.</div>
-
-                <!-- bulk_submit.txt 다운로드 버튼 (관리자용) -->
-        <h3>⬇️ 제출 일괄 업로드 파일 다운로드</h3>
-        <a href="/admin/download_bulk_submit" download>
-            <button>📥 bulk_submit.txt 다운로드</button>
-        </a>
-
-        <button onclick="loadCredentialLogs()">👤 로그인 기록 보기</button>
-        <pre id="credLogs">🔍 로그인 기록이 여기에 표시됩니다.</pre>
-
-        <h3>⬇️ 로그인 기록 다운로드</h3>
-        <a href="/admin/download_credentials_log" download>
-            <button>📥 로그인 기록 다운로드</button>
-        </a>
+        <button onclick="loadSignedLicenses()">불러오기</button>
+        <div id="signedLicenses">불러온 기록이 없습니다.</div>
+        <hr>
+        <button onclick="loadCredentialLogs()">로그인 기록 보기</button>
+        <pre id="credLogs">로그인 기록이 여기에 표시됩니다.</pre>
+        <a href="/admin/download_credentials_log" download><button>로그인 기록 다운로드</button></a>
     </div>
+    {% else %}
+    <!-- 로그인 폼: 비관리자에게만 렌더링 -->
+    <h2>🔐 관리자 로그인</h2>
+    <div id="loginBox">
+        <input type="text" id="adminId" placeholder="관리자 ID"><br>
+        <input type="password" id="adminPw" placeholder="비밀번호"><br>
+        <button onclick="login()">로그인</button>
+    </div>
+    {% endif %}
 
-    <!-- 스크립트 -->
     <script>
-        window.onload = async function() {
-            try {
-                const resp = await fetch('/admin/submissions');
-                if (resp.status === 200) {
-                    document.getElementById('loginBox').classList.add('hidden');
-                    document.getElementById('adminPanel').classList.remove('hidden');
-                    loadLicenseRequests();  // ✅ 새로고침 시 자동 갱신
-                    loadSignedLicenses();   // (선택) 서명된 목록도 같이 불러오기
-                } else if (resp.status === 403) {
-                    console.warn("관리자 인증 필요");
-                } else {
-                    console.error("서버 오류", resp.status);
-                }
-            } catch (e) {
-                console.error("요청 실패", e);
-            }
-        };
-
-
-        async function loadCredentialLogs() {
-            const resp = await fetch("/admin/credentials_log");
-            if (resp.ok) {
-                const data = await resp.json();
-                document.getElementById("credLogs").textContent = data.logs.join("");
-            } else {
-                document.getElementById("credLogs").textContent = "❌ 불러오기 실패";
-            }
-        }
         // 제출 업로드
         document.getElementById('uploadForm').onsubmit = async function(e) {
             e.preventDefault();
             const formData = new FormData(this);
             const resp = await fetch('/upload', { method: 'POST', body: formData });
-            const result = await resp.json();
-            alert(JSON.stringify(result));
+            alert(JSON.stringify(await resp.json()));
         };
-
-        // 라이선스 요청 업로드
-        document.getElementById('licenseForm').onsubmit = function(e) {
+                // 라이선스 요청 업로드 (reCAPTCHA v2 적용)
+        document.getElementById('licenseForm').onsubmit = async function(e) {
             e.preventDefault();
-            grecaptcha.ready(async () => {
-                try {
-                    const token = await grecaptcha.execute('{{ site_key }}', { action: 'upload_license' });
-                    const formData = new FormData(e.target);
-                    formData.append('recaptcha_token', token);
-                    const resp = await fetch('/upload_license', { method: 'POST', body: formData });
-                    const result = await resp.json();
-                    if (result.status === 'uploaded') {
-                        alert(`✅ ${result.filename} 업로드 완료`);
-                    } else {
-                        alert(`❌ 업로드 실패: ${result.error || JSON.stringify(result)}`);
-                    }
-                } catch (err) {
-                    alert('❌ reCAPTCHA 처리 중 오류 발생');
-                }
-            });
-        };
-
-        async function login() {
-            const id = document.getElementById('adminId').value;
-            const pw = document.getElementById('adminPw').value;
-            const resp = await fetch('/admin/login', {
-                method: 'POST',
-                headers: {'Content-Type': 'application/json'},
-                body: JSON.stringify({id, pw})
-            });
-            const result = await resp.json();
-            if (result.status) {
-                alert(result.status);
-                document.getElementById('loginBox').classList.add('hidden');
-                document.getElementById('adminPanel').classList.remove('hidden');
-                loadLicenseRequests();
-            } else {
-                alert("❌ 로그인 실패");
-            }
-        }
-
-        async function logout() {
-            await fetch('/admin/logout', {method: 'POST'});
-            location.reload();
-        }
-
-        async function loadSubmissions() {
-            const resp = await fetch('/admin/submissions');
-            const data = await resp.json();
-            let text = "📋 제출 목록\n\n";
-            for (let pid in data) {
-                text += `문제 ${pid} - 최근 수정: ${data[pid].updated_at}, IP: ${data[pid].uploader_ip}\n`;
-            }
-            document.getElementById("submissions").textContent = text;
-        }
-
-        async function loadCode() {
-            const pid = document.getElementById("codePid").value.padStart(4, "0");
-            const resp = await fetch(`/admin/submission/${pid}`);
-            if (resp.status === 200) {
-                const data = await resp.json();
-                document.getElementById("codeResult").textContent = data[pid].code;
-            } else {
-                alert("❌ 코드 없음 또는 접근 불가");
-                document.getElementById("codeResult").textContent = "";
-            }
-        }
-
-        async function clearSubmissions() {
-            const confirmed = confirm("⚠️ 정말 모든 제출 코드를 삭제하시겠습니까?");
-            if (!confirmed) return;
-            const resp = await fetch("/admin/clear", { method: "POST" });
-            const result = await resp.json();
-            alert(result.status || "삭제 완료");
-            document.getElementById("submissions").textContent = "";
-            document.getElementById("codeResult").textContent = "";
-        }
-
-        let selectedFilename = null;
-
-        async function loadLicenseRequests() {
-            const resp = await fetch("/list_license_requests");
-            const files = await resp.json();
-            const container = document.getElementById("licenseRequests");
-            container.innerHTML = "";
-
-            files.forEach(fname => {
-                const btn = document.createElement("button");
-                btn.innerText = fname;
-                btn.onclick = () => {
-                    selectedFilename = fname;
-                    document.getElementById("selectedFilename").innerText = fname;
-                };
-                container.appendChild(btn);
-                container.appendChild(document.createElement("br"));
-            });
-        }
-
-        async function signSelectedLicense() {
-            if (!selectedFilename) return alert("파일을 선택하세요");
-
-            const id = document.getElementById("signId").value;
-            const exp = document.getElementById("signExp").value;
-            const max = document.getElementById("signMax").value;
-
-            const resp = await fetch("/admin/sign_license", {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ filename: selectedFilename, id, exp, max })
-            });
-            const result = await resp.json();
-            if (result.status === "signed") {
-                alert("✅ 서명 완료: " + result.hwid);
-            } else {
-                alert("❌ 오류: " + JSON.stringify(result));
-            }
-        }
-        async function loadSignedLicenses() {
-            const resp = await fetch("/admin/signed_licenses");
-            const list = await resp.json();
-            const div = document.getElementById("signedLicenses");
-            div.innerHTML = "";
-        
-            if (list.length === 0) {
-                div.textContent = "📭 서명된 라이선스가 없습니다.";
+            const token = grecaptcha.getResponse();
+            if (!token) {
+                alert('❌ reCAPTCHA 검증을 완료해주세요.');
                 return;
             }
-        
-            list.forEach(entry => {
-                const line = document.createElement("div");
-                line.textContent = `🧾 ${entry.id} (${entry.hwid}) - ${entry.exp}, max=${entry.max}, 서명일: ${entry.signed_at}`;
-                div.appendChild(line);
-            });
+            const formData = new FormData(e.target);
+            formData.append('g-recaptcha-response', token);
+            const resp = await fetch('/upload_license', { method: 'POST', body: formData });
+            const result = await resp.json();
+            alert(JSON.stringify(result));
+            grecaptcha.reset();
+        };
+        // 로그인/관리자 기능
+        async function login() {
+            const id=document.getElementById('adminId').value;
+            const pw=document.getElementById('adminPw').value;
+            const resp=await fetch('/admin/login',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({id,pw})});
+            const r=await resp.json();
+            if(r.status){ location.reload(); } else { alert('로그인 실패'); }
         }
+        async function logout(){ await fetch('/admin/logout',{method:'POST'}); location.reload(); }
+        async function loadSubmissions(){ const resp=await fetch('/admin/submissions'); const data=await resp.json(); document.getElementById('submissions').textContent=JSON.stringify(data, null, 2); }
+        async function clearSubmissions(){ await fetch('/admin/clear',{method:'POST'}); location.reload(); }
+        async function loadCode(){ const pid=document.getElementById('codePid').value.padStart(4,'0'); const resp=await fetch(`/admin/submission/${pid}`); const d=await resp.json(); document.getElementById('codeResult').textContent=d[pid]?.code||''; }
+        async function loadLicenseRequests(){ const resp=await fetch('/list_license_requests'); const files=await resp.json(); const c=document.getElementById('licenseRequests'); c.innerHTML=''; files.forEach(f=>{const b=document.createElement('button');b.innerText=f;b.onclick=()=>document.getElementById('selectedFilename').innerText=f; c.appendChild(b);c.appendChild(document.createElement('br'));}); }
+        async function signSelectedLicense(){ const fn=document.getElementById('selectedFilename').innerText; if(!fn) return; const id=document.getElementById('signId').value, exp=document.getElementById('signExp').value, max=document.getElementById('signMax').value; const resp=await fetch('/admin/sign_license',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({filename:fn,id,exp,max})}); alert(JSON.stringify(await resp.json())); }
+        async function loadSignedLicenses(){ const resp=await fetch('/admin/signed_licenses'); const list=await resp.json(); document.getElementById('signedLicenses').textContent=JSON.stringify(list,null,2); }
+        async function loadCredentialLogs(){ const resp=await fetch('/admin/credentials_log'); const data=await resp.json(); document.getElementById('credLogs').textContent=data.logs.join(''); }
     </script>
 </body>
 </html>
