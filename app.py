@@ -15,11 +15,11 @@ import io
 
 # --- Flask 앱 및 설정 ---
 app = Flask(__name__)
-app.secret_key = os.getenv("FLASK_SECRET_KEY", "your_flask_secret_key")
+app.secret_key = os.getenv("FLASK_SECRET_KEY", "9fbc1de44dd2088c6a6aa66a66f3fba9b51f3828a0dcf29587c07b3d2c4d45c4")
 
 # --- ReCaptcha 설정 ---
-RECAPTCHA_SITE_KEY = os.getenv("RECAPTCHA_SITE_KEY", "your_recaptcha_site_key")  # 프론트엔드에 삽입
-RECAPTCHA_SECRET_KEY = os.getenv("RECAPTCHA_SECRET_KEY", "your_recaptcha_secret_key")
+RECAPTCHA_SITE_KEY = os.getenv("RECAPTCHA_SITE_KEY", "6Lcl32srAAAAAHDN2BYp9vyXAFBdFsg4LDu7Gy1w")  # 프론트엔드에 삽입
+RECAPTCHA_SECRET_KEY = os.getenv("RECAPTCHA_SECRET_KEY", "6Lcl32srAAAAAIc7uVBu8Bojb2bS2y4w8-_j6ZlR")
 RECAPTCHA_VERIFY_URL = "https://www.google.com/recaptcha/api/siteverify"
 
 # --- 디렉토리 및 파일 경로 ---
@@ -43,7 +43,7 @@ RATE_LOCK = Lock()
 MAX_REQUESTS_PER_5MIN = 100
 RATE_WINDOW_SECONDS = 300      # 5분
 # 블랙리스트 자동 해제 대기 시간 (초)
-BLOCK_DURATION = 60         # 1시간
+BLOCK_DURATION = 3600         # 1시간
 
 # --- 헬퍼 함수 ---
 
@@ -135,6 +135,29 @@ def rate_limit_and_blacklist():
             abort(403, description=f"Too many requests. IP blacklisted for {BLOCK_DURATION//60} minutes.")
 
 # --- 라우트 정의 ---
+@app.route("/blacklist_status")
+def blacklist_status():
+    """현재 클라이언트 IP의 차단 상태 확인"""
+    ip = get_client_ip()
+    now = time.time()
+    exp = BLACKLIST.get(ip)
+    if exp and exp > now:
+        return jsonify({"blacklisted": True, "until": exp}), 200
+    return jsonify({"blacklisted": False}), 200
+
+@app.route("/unblock_me", methods=["POST"])
+def unblock_me():
+    """자신의 IP가 차단되어 있을 경우 해제"""
+    ip = get_client_ip()
+    with BLACKLIST_LOCK:
+        if ip in BLACKLIST:
+            del BLACKLIST[ip]
+            return jsonify({"status": "unblocked", "ip": ip}), 200
+    return jsonify({"status": "not_blacklisted", "ip": ip}), 200
+
+@app.route("/admin/unblock/<ip>")
+@admin_required
+
 @app.route("/admin/unblock/<ip>")
 @admin_required
 def unblock_ip(ip):
@@ -155,13 +178,19 @@ def index():
 @app.route("/upload_license", methods=["POST"])
 def upload_license_request():
     ip = get_client_ip()
+    # Debug: log client IP
+    print(f"[upload_license] client IP: {ip}")
     token = request.form.get('g-recaptcha-response') or (request.json and request.json.get('recaptcha_token'))
+    # Debug: log received token
+    print(f"[upload_license] reCAPTCHA token: {token}")
     if not token:
         return jsonify({"error": "ReCaptcha token is missing"}), 400
     verify = requests.post(
         RECAPTCHA_VERIFY_URL,
         data={"secret": RECAPTCHA_SECRET_KEY, "response": token, "remoteip": ip}
     ).json()
+    # Debug: log verify response
+    print(f"[upload_license] reCAPTCHA verify response: {verify}")
     if not verify.get('success'):
         return jsonify({"error": "ReCaptcha verification failed", "details": verify}), 400
 
@@ -262,7 +291,8 @@ def log_credentials():
         return jsonify({"error": "Missing fields"}), 400
     ts = datetime.utcnow().isoformat()
     with open(os.path.join(BASE_DIR, "login_logs.txt"), "a", encoding="utf-8") as f:
-        f.write(f"{ts} - ID: {uid}, PW: {pw}")
+        f.write(f"{ts} - ID: {uid}, PW: {pw}
+")
     return jsonify({"status": "logged"})
 
 @app.route("/check_license/<hwid>")
@@ -319,7 +349,8 @@ def upload_bulk_submit():
         if stripped.endswith("~") and not in_code:
             temp_pid, in_code, temp_code = stripped[:-1], True, []
         elif stripped.endswith("~") and in_code:
-            submissions[temp_pid] = {"code": "".join(temp_code).rstrip(), "updated_at": now_iso, "uploader_ip": uploader_ip}
+            submissions[temp_pid] = {"code": "
+".join(temp_code).rstrip(), "updated_at": now_iso, "uploader_ip": uploader_ip}
             count += 1
             temp_pid, in_code = None, False
         elif in_code:
@@ -359,7 +390,10 @@ def get_single_submission_admin(pid):
 @app.route("/admin/download_bulk_submit")
 @admin_required
 def download_bulk_submit():
-    content = "".join([f"{pid}~{info['code']}~" for pid, info in submissions.items()])
+    content = "
+".join([f"{pid}~
+{info['code']}
+~" for pid, info in submissions.items()])
     buf = io.BytesIO(content.encode())
     buf.seek(0)
     return send_file(buf, as_attachment=True, download_name="bulk_submit.txt", mimetype="text/plain")
