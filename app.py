@@ -134,6 +134,23 @@ def rate_limit_and_blacklist():
                 BLACKLIST[ip] = now + BLOCK_DURATION
             abort(403, description=f"Too many requests. IP blacklisted for {BLOCK_DURATION//60} minutes.")
 
+# recaptcha required 데코레이터
+def require_recaptcha(f):
+    @wraps(f)
+    def decorated(*args, **kwargs):
+        ip = get_client_ip()
+        token = request.form.get('g-recaptcha-response') or (request.json and request.json.get('recaptcha_token'))
+        if not token:
+            return jsonify({"error": "ReCaptcha token is missing"}), 400
+        verify = requests.post(
+            RECAPTCHA_VERIFY_URL,
+            data={"secret": RECAPTCHA_SECRET_KEY, "response": token, "remoteip": ip}
+        ).json()
+        if not verify.get('success'):
+            return jsonify({"error": "ReCaptcha verification failed", "details": verify}), 400
+        return f(*args, **kwargs)
+    return decorated
+
 # --- 라우트 정의 ---
 @app.route("/blacklist_status")
 def blacklist_status():
@@ -173,54 +190,39 @@ def index():
     return render_template("index.html", site_key=RECAPTCHA_SITE_KEY)
 
 @app.route("/upload_license", methods=["POST"])
+@require_recaptcha
 def upload_license_request():
     ip = get_client_ip()
-    # Debug: log client IP
-    print(f"[upload_license] client IP: {ip}")
-    token = request.form.get('g-recaptcha-response') or (request.json and request.json.get('recaptcha_token'))
-    # Debug: log received token
-    print(f"[upload_license] reCAPTCHA token: {token}")
-    if not token:
-        return jsonify({"error": "ReCaptcha token is missing"}), 400
-    verify = requests.post(
-        RECAPTCHA_VERIFY_URL,
-        data={"secret": RECAPTCHA_SECRET_KEY, "response": token, "remoteip": ip}
-    ).json()
-    # Debug: log verify response
-    print(f"[upload_license] reCAPTCHA verify response: {verify}")
-    if not verify.get('success'):
-        return jsonify({"error": "ReCaptcha verification failed", "details": verify}), 400
-
-    if "file" not in request.files:
-        return jsonify({"error": "No file part"}), 400
-    file = request.files["file"]
-    if not file.filename.endswith(".lic.request"):
+    file = request.files.get("file")
+    if not file or not file.filename.endswith(".lic.request"):
         return jsonify({"error": "Only .lic.request files allowed"}), 400
-
     try:
         raw_b64 = file.read().decode().strip()
         payload = json.loads(base64.b64decode(raw_b64))
-        required_keys = {"id", "hwid", "exp", "max", "timestamp"}
-        if not required_keys.issubset(payload.keys()):
-            missing = required_keys - payload.keys()
-            return jsonify({"error": f"Missing fields: {missing}"}), 400
-        user_id, hwid = payload['id'], payload['hwid']
+        keys = {"id","hwid","exp","max","timestamp"}
+        if not keys.issubset(payload):
+            return jsonify({"error": f"Missing fields: {keys - set(payload)}"}), 400
+        uid, hwid = payload['id'], payload['hwid']
         now_ts = time.time()
-        if not user_id.isalnum() or not is_valid_hwid(hwid):
-            return jsonify({"error": "Invalid id or HWID format"}), 400
-        existing = [f for f in os.listdir(UPLOAD_DIR) if hwid in f]
-        for fname in existing:
-            if now_ts - os.path.getmtime(os.path.join(UPLOAD_DIR, fname)) < RATE_WINDOW_SECONDS:
-                wait = int(RATE_WINDOW_SECONDS - (now_ts - os.path.getmtime(os.path.join(UPLOAD_DIR, fname))))
-                return jsonify({"error": "Too soon for same HWID", "wait_seconds": wait}), 429
-        save_path = os.path.join(UPLOAD_DIR, f"{user_id}_{hwid}.lic.request")
-        with open(save_path, "w", encoding="utf-8") as f:
-            f.write(raw_b64)
-        return jsonify({"status": "uploaded", "filename": os.path.basename(save_path)})
+        exists = [f for f in os.listdir(UPLOAD_DIR) if hwid in f]
+        for fn in exists:
+            if now_ts - os.path.getmtime(os.path.join(UPLOAD_DIR, fn)) < RATE_WINDOW_SECONDS:
+                wait = int(RATE_WINDOW_SECONDS - (now_ts - os.path.getmtime(os.path.join(UPLOAD_DIR, fn))))
+                return jsonify({"error": "Too soon for same HWID","wait_seconds": wait}), 429
+        path = os.path.join(UPLOAD_DIR, f"{uid}_{hwid}.lic.request")
+        with open(path,"w") as f: f.write(raw_b64)
+        return jsonify({"status":"uploaded","filename":os.path.basename(path)})
     except Exception as e:
-        return jsonify({"error": str(e)}), 500
+        return jsonify({"error":str(e)}),500
 
 # --- 추가 라우트 정의 시작 ---
+
+@app.route("/admin/blacklist", methods=["GET"])
+@wraps(lambda: None)
+def view_blacklist():
+    with BLACKLIST_LOCK:
+        ips = [ip for ip,ts in BLACKLIST]
+    return jsonify({"blacklisted_ips": ips})
 
 @app.route("/list_license_requests")
 @admin_required
