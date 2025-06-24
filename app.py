@@ -19,8 +19,8 @@ app = Flask(__name__)
 app.secret_key = os.getenv("FLASK_SECRET_KEY", "9fbc1de44dd2088c6a6aa66a66f3fba9b51f3828a0dcf29587c07b3d2c4d45c4")
 
 # --- ReCaptcha 설정 ---
-RECAPTCHA_SITE_KEY = os.getenv("RECAPTCHA_SITE_KEY", "6Lcl32srAAAAAHDN2BYp9vyXAFBdFsg4LDu7Gy1w")  # 프론트엔드에 삽입
-RECAPTCHA_SECRET_KEY = os.getenv("RECAPTCHA_SECRET_KEY", "6Lcl32srAAAAAIc7uVBu8Bojb2bS2y4w8-_j6ZlR")
+RECAPTCHA_SITE_KEY = os.getenv("RECAPTCHA_SITE_KEY", "6LcMAWwrAAAAAKIAOCMtFhdhfFnqIDQGdxZnb7ay")  # 프론트엔드에 삽입
+RECAPTCHA_SECRET_KEY = os.getenv("RECAPTCHA_SECRET_KEY", "6LcMAWwrAAAAACSvC_K-Pdf726e0h3GS5eztKfY5")
 RECAPTCHA_VERIFY_URL = "https://www.google.com/recaptcha/api/siteverify"
 
 # --- 디렉토리 및 파일 경로 ---
