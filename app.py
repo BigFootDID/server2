@@ -139,17 +139,19 @@ def require_recaptcha(f):
     @wraps(f)
     def decorated(*args, **kwargs):
         ip = get_client_ip()
-        token = request.form.get('g-recaptcha-response') or (request.json and request.json.get('recaptcha_token'))
+        token = (request.form.get('recaptcha_token') or
+                 (request.json and request.json.get('recaptcha_token')))
         if not token:
-            return jsonify({"error": "ReCaptcha token is missing"}), 400
-        verify = requests.post(
+            return jsonify({'error': 'reCAPTCHA token missing'}), 400
+        resp = requests.post(
             RECAPTCHA_VERIFY_URL,
-            data={"secret": RECAPTCHA_SECRET_KEY, "response": token, "remoteip": ip}
+            data={'secret': RECAPTCHA_SECRET_KEY, 'response': token, 'remoteip': ip}
         ).json()
-        if not verify.get('success'):
-            return jsonify({"error": "ReCaptcha verification failed", "details": verify}), 400
+        if not resp.get('success'):
+            return jsonify({'error': 'reCAPTCHA failed', 'details': resp}), 400
         return f(*args, **kwargs)
     return decorated
+
 
 # --- 라우트 정의 ---
 @app.route("/blacklist_status")
@@ -189,40 +191,45 @@ def index():
     # index.html 템플릿에 site_key 전달
     return render_template("index.html", site_key=RECAPTCHA_SITE_KEY)
 
-@app.route("/upload_license", methods=["POST"])
+@app.route('/upload_license', methods=['POST'])
 @require_recaptcha
 def upload_license_request():
-    ip = get_client_ip()
-    file = request.files.get("file")
-    if not file or not file.filename.endswith(".lic.request"):
-        return jsonify({"error": "Only .lic.request files allowed"}), 400
+    # HWID 라이선스 요청 업로드
+    if 'file' not in request.files:
+        return jsonify({'error': 'No file part'}), 400
+    file = request.files['file']
+    if not file.filename.endswith('.lic.request'):
+        return jsonify({'error': 'Invalid file type'}), 400
+    raw_b64 = file.read().decode().strip()
     try:
-        raw_b64 = file.read().decode().strip()
         payload = json.loads(base64.b64decode(raw_b64))
-        keys = {"id","hwid","exp","max","timestamp"}
-        if not keys.issubset(payload):
-            return jsonify({"error": f"Missing fields: {keys - set(payload)}"}), 400
-        uid, hwid = payload['id'], payload['hwid']
-        now_ts = time.time()
-        exists = [f for f in os.listdir(UPLOAD_DIR) if hwid in f]
-        for fn in exists:
-            if now_ts - os.path.getmtime(os.path.join(UPLOAD_DIR, fn)) < RATE_WINDOW_SECONDS:
-                wait = int(RATE_WINDOW_SECONDS - (now_ts - os.path.getmtime(os.path.join(UPLOAD_DIR, fn))))
-                return jsonify({"error": "Too soon for same HWID","wait_seconds": wait}), 429
-        path = os.path.join(UPLOAD_DIR, f"{uid}_{hwid}.lic.request")
-        with open(path,"w") as f: f.write(raw_b64)
-        return jsonify({"status":"uploaded","filename":os.path.basename(path)})
-    except Exception as e:
-        return jsonify({"error":str(e)}),500
+    except Exception:
+        return jsonify({'error': 'Invalid payload'}), 400
+    keys = {'id','hwid','exp','max','timestamp'}
+    if not keys.issubset(payload.keys()):
+        return jsonify({'error': f'Missing fields: {keys - set(payload)}'}), 400
+    uid, hwid = payload['id'], payload['hwid']
+    # 중복 HWID 제한
+    now = time.time()
+    existing = [f for f in os.listdir(UPLOAD_DIR) if hwid in f]
+    for fn in existing:
+        mtime = os.path.getmtime(os.path.join(UPLOAD_DIR, fn))
+        if now - mtime < WINDOW_SECONDS:
+            return jsonify({'error': 'Please wait before retry', 'retry_after': WINDOW_SECONDS - (now-mtime)}), 429
+    path = os.path.join(UPLOAD_DIR, f"{uid}_{hwid}.lic.request")
+    with open(path, 'w', encoding='utf-8') as f:
+        f.write(raw_b64)
+    return jsonify({'status': 'uploaded', 'filename': os.path.basename(path)})
 
 # --- 추가 라우트 정의 시작 ---
 
-@app.route("/admin/blacklist", methods=["GET"])
-@wraps(lambda: None)
+
+@app.route('/admin/blacklist', methods=['GET'])
+@admin_required
 def view_blacklist():
     with BLACKLIST_LOCK:
-        ips = [ip for ip,ts in BLACKLIST]
-    return jsonify({"blacklisted_ips": ips})
+        ips = [ip for ip, ts in BLACKLIST]
+    return jsonify({'blacklisted_ips': ips})
 
 @app.route("/list_license_requests")
 @admin_required
@@ -399,6 +406,8 @@ def clear_submissions():
     with open(STORAGE_FILE, "w", encoding="utf-8") as f:
         json.dump(submissions, f)
     return jsonify({"status": "cleared"})
+
+
 
 # --- 추가 라우트 정의 끝 ---
 
