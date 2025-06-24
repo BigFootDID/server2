@@ -419,11 +419,11 @@ def upload_bulk_submit():
         content = raw.decode('utf-8')
     except UnicodeDecodeError:
         return jsonify({'error': 'File must be UTF-8 encoded'}), 400
-
+    
     lines = content.splitlines()
     uploader_ip = get_client_ip()
     now_iso = datetime.utcnow().isoformat()
-
+    global submissions
     # 4) 기존 submissions 로드
     try:
         if os.path.exists(STORAGE_FILE):
