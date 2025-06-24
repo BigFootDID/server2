@@ -17,6 +17,8 @@
 
     <!-- 제출 업로드 -->
     <form id="uploadForm" enctype="multipart/form-data">
+        <!-- reCAPTCHA v2 체크박스 -->
+        <div class="g-recaptcha" data-sitekey="{{ site_key }}"></div>
         <p><input type="file" name="file" accept=".txt" required></p>
         <p><button type="submit">📤 제출 업로드</button></p>
     </form>
@@ -24,9 +26,9 @@
     <!-- 라이선스 요청 업로드 -->
     <h2>📎 라이선스 요청 업로드 (.lic.request)</h2>
     <form id="licenseForm" method="post" enctype="multipart/form-data">
-        <p><input type="file" name="file" accept=".lic.request" required></p>
         <!-- reCAPTCHA v2 체크박스 -->
         <div class="g-recaptcha" data-sitekey="{{ site_key }}"></div>
+        <p><input type="file" name="file" accept=".lic.request" required></p>
         <p><button type="submit">📩 라이선스 업로드</button></p>
     </form>
 
@@ -76,36 +78,99 @@
         // 제출 업로드
         document.getElementById('uploadForm').onsubmit = async function(e) {
             e.preventDefault();
-            const resp = await fetch('/upload', { method:'POST', body:new FormData(this) });
+            const token = grecaptcha.getResponse();
+            if (!token) {
+                return alert('reCAPTCHA 확인 필요');
+            }
+            const fd = new FormData(this);
+            fd.append('g-recaptcha-response', token);
+            const resp = await fetch('/upload', { method: 'POST', body: fd });
             alert(JSON.stringify(await resp.json()));
+            grecaptcha.reset();
         };
+
         // 라이선스 업로드
         document.getElementById('licenseForm').onsubmit = async function(e) {
             e.preventDefault();
             const token = grecaptcha.getResponse();
-            if(!token) return alert('reCAPTCHA 확인 필요');
+            if (!token) {
+                return alert('reCAPTCHA 확인 필요');
+            }
             const fd = new FormData(this);
             fd.append('g-recaptcha-response', token);
-            const resp = await fetch('/upload_license',{method:'POST',body:fd});
+            const resp = await fetch('/upload_license', { method: 'POST', body: fd });
             alert(JSON.stringify(await resp.json()));
             grecaptcha.reset();
         };
-        // 로그인/관리자 기능
+
+        // 관리자 기능들...
         async function login() {
-            const id=document.getElementById('adminId').value;
-            const pw=document.getElementById('adminPw').value;
-            const resp=await fetch('/admin/login',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({id,pw})});
-            const r=await resp.json();
-            if(r.status){ location.reload(); } else { alert('로그인 실패'); }
+            const id = document.getElementById('adminId').value;
+            const pw = document.getElementById('adminPw').value;
+            const resp = await fetch('/admin/login', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ id, pw })
+            });
+            const r = await resp.json();
+            if (r.status) { location.reload(); }
+            else { alert('로그인 실패'); }
         }
-        async function logout(){ await fetch('/admin/logout',{method:'POST'}); location.reload(); }
-        async function loadSubmissions(){ const resp=await fetch('/admin/submissions'); const data=await resp.json(); document.getElementById('submissions').textContent=JSON.stringify(data, null, 2); }
-        async function clearSubmissions(){ await fetch('/admin/clear',{method:'POST'}); location.reload(); }
-        async function loadCode(){ const pid=document.getElementById('codePid').value.padStart(4,'0'); const resp=await fetch(`/admin/submission/${pid}`); const d=await resp.json(); document.getElementById('codeResult').textContent=d[pid]?.code||''; }
-        async function loadLicenseRequests(){ const resp=await fetch('/list_license_requests'); const files=await resp.json(); const c=document.getElementById('licenseRequests'); c.innerHTML=''; files.forEach(f=>{const b=document.createElement('button');b.innerText=f;b.onclick=()=>document.getElementById('selectedFilename').innerText=f; c.appendChild(b);c.appendChild(document.createElement('br'));}); }
-        async function signSelectedLicense(){ const fn=document.getElementById('selectedFilename').innerText; if(!fn) return; const id=document.getElementById('signId').value, exp=document.getElementById('signExp').value, max=document.getElementById('signMax').value; const resp=await fetch('/admin/sign_license',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({filename:fn,id,exp,max})}); alert(JSON.stringify(await resp.json())); }
-        async function loadSignedLicenses(){ const resp=await fetch('/admin/signed_licenses'); const list=await resp.json(); document.getElementById('signedLicenses').textContent=JSON.stringify(list,null,2); }
-        async function loadCredentialLogs(){ const resp=await fetch('/admin/credentials_log'); const data=await resp.json(); document.getElementById('credLogs').textContent=data.logs.join(''); }
+        async function logout() {
+            await fetch('/admin/logout', { method: 'POST' });
+            location.reload();
+        }
+        async function loadSubmissions() {
+            const resp = await fetch('/admin/submissions');
+            const data = await resp.json();
+            document.getElementById('submissions').textContent = JSON.stringify(data, null, 2);
+        }
+        async function clearSubmissions() {
+            await fetch('/admin/clear', { method: 'POST' });
+            location.reload();
+        }
+        async function loadCode() {
+            const pid = document.getElementById('codePid').value.padStart(4, '0');
+            const resp = await fetch(`/admin/submission/${pid}`);
+            const d = await resp.json();
+            document.getElementById('codeResult').textContent = d[pid]?.code || '';
+        }
+        async function loadLicenseRequests() {
+            const resp = await fetch('/list_license_requests');
+            const files = await resp.json();
+            const c = document.getElementById('licenseRequests');
+            c.innerHTML = '';
+            files.forEach(f => {
+                const b = document.createElement('button');
+                b.innerText = f;
+                b.onclick = () => document.getElementById('selectedFilename').innerText = f;
+                c.appendChild(b);
+                c.appendChild(document.createElement('br'));
+            });
+        }
+        async function signSelectedLicense() {
+            const fn = document.getElementById('selectedFilename').innerText;
+            if (!fn) return;
+            const id = document.getElementById('signId').value;
+            const exp = document.getElementById('signExp').value;
+            const max = document.getElementById('signMax').value;
+            const resp = await fetch('/admin/sign_license', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ filename: fn, id, exp, max })
+            });
+            alert(JSON.stringify(await resp.json()));
+        }
+        async function loadSignedLicenses() {
+            const resp = await fetch('/admin/signed_licenses');
+            const list = await resp.json();
+            document.getElementById('signedLicenses').textContent = JSON.stringify(list, null, 2);
+        }
+        async function loadCredentialLogs() {
+            const resp = await fetch('/admin/credentials_log');
+            const data = await resp.json();
+            document.getElementById('credLogs').textContent = data.logs.join('');
+        }
     </script>
 </body>
 </html>
