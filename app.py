@@ -116,23 +116,23 @@ if os.path.exists(SIGNED_HISTORY_FILE):
 def rate_limit_and_blacklist():
     ip = get_client_ip()
     now = time.time()
-    # 블랙리스트 만료된 항목 제거
+    # 블랙리스트 만료 해제
     with BLACKLIST_LOCK:
-        expired = [blocked_ip for blocked_ip, exp in BLACKLIST.items() if exp <= now]
-        for blocked_ip in expired:
-            del BLACKLIST[blocked_ip]
-        # 블랙리스트 확인
+        for blocked_ip, expiry in list(BLACKLIST.items()):
+            if now > expiry:
+                del BLACKLIST[blocked_ip]
         if ip in BLACKLIST:
-            abort(403, description="This IP is temporarily blacklisted.")
-    # 요청 기록 업데이트 및 오래된 기록 제거
-    with RATE_LOCK:
-        IP_REQUEST_HISTORY.setdefault(ip, []).append(now)
-        IP_REQUEST_HISTORY[ip] = [ts for ts in IP_REQUEST_HISTORY[ip] if now - ts <= RATE_WINDOW_SECONDS]
-        # 과도 요청 시 블랙리스트 등록 (만료시간 설정)
-        if len(IP_REQUEST_HISTORY[ip]) > MAX_REQUESTS_PER_5MIN:
-            with BLACKLIST_LOCK:
-                BLACKLIST[ip] = now + BLOCK_DURATION
-            abort(403, description=f"Too many requests. IP blacklisted for {BLOCK_DURATION//60} minutes.")
+            abort(403, "This IP has been temporarily blacklisted.")
+    # 레이트 리밋 기록
+    IP_REQUEST_HISTORY.setdefault(ip, []).append(now)
+    IP_REQUEST_HISTORY[ip] = [
+        t for t in IP_REQUEST_HISTORY[ip] if now - t <= WINDOW_SECONDS
+    ]
+    if len(IP_REQUEST_HISTORY[ip]) > MAX_REQUESTS:
+        with BLACKLIST_LOCK:
+            BLACKLIST[ip] = now + BLOCK_DURATION
+        abort(403, "Too many requests; IP blacklisted.")
+
 
 # recaptcha required 데코레이터
 def require_recaptcha(f):
@@ -223,13 +223,13 @@ def upload_license_request():
 
 # --- 추가 라우트 정의 시작 ---
 
-
 @app.route('/admin/blacklist', methods=['GET'])
 @admin_required
 def view_blacklist():
     with BLACKLIST_LOCK:
-        ips = [ip for ip, ts in BLACKLIST]
+        ips = list(BLACKLIST.keys())
     return jsonify({'blacklisted_ips': ips})
+
 
 @app.route("/list_license_requests")
 @admin_required
