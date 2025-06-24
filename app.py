@@ -291,8 +291,7 @@ def log_credentials():
         return jsonify({"error": "Missing fields"}), 400
     ts = datetime.utcnow().isoformat()
     with open(os.path.join(BASE_DIR, "login_logs.txt"), "a", encoding="utf-8") as f:
-        f.write(f"{ts} - ID: {uid}, PW: {pw}
-")
+        f.write(f"{ts} - ID: {uid}, PW: {pw}")
     return jsonify({"status": "logged"})
 
 @app.route("/check_license/<hwid>")
@@ -349,8 +348,7 @@ def upload_bulk_submit():
         if stripped.endswith("~") and not in_code:
             temp_pid, in_code, temp_code = stripped[:-1], True, []
         elif stripped.endswith("~") and in_code:
-            submissions[temp_pid] = {"code": "
-".join(temp_code).rstrip(), "updated_at": now_iso, "uploader_ip": uploader_ip}
+            submissions[temp_pid] = {"code": "".join(temp_code).rstrip(), "updated_at": now_iso, "uploader_ip": uploader_ip}
             count += 1
             temp_pid, in_code = None, False
         elif in_code:
@@ -390,10 +388,7 @@ def get_single_submission_admin(pid):
 @app.route("/admin/download_bulk_submit")
 @admin_required
 def download_bulk_submit():
-    content = "
-".join([f"{pid}~
-{info['code']}
-~" for pid, info in submissions.items()])
+    content = "".join([f"{pid}~{info['code']}~" for pid, info in submissions.items()])
     buf = io.BytesIO(content.encode())
     buf.seek(0)
     return send_file(buf, as_attachment=True, download_name="bulk_submit.txt", mimetype="text/plain")
