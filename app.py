@@ -147,17 +147,34 @@ def clear_subs(): submissions.clear(); json.dump(submissions,open(STORAGE,'w'),i
 # --- 라이선스 요청 업로드 ---
 @app.route('/upload_license', methods=['POST'])
 def upload_license():
-    if 'file' not in request.files: return jsonify(error='No file'),400
-    f=request.files['file']; fn=secure_filename(f.filename)
-    if not fn.endswith('.lic.request'): return jsonify(error='Only .lic.request'),400
-    raw=f.read().decode('utf-8').strip(); prefix=fn.split('_')[0]
-    now=time.time()
+    if 'file' not in request.files:
+        return jsonify(error='No file'), 400
+
+    f = request.files['file']
+    raw_b64 = f.read().decode('utf-8').strip()
+
+    # payload 디코딩해서 id, hwid 추출
+    try:
+        payload_json = base64.b64decode(raw_b64.encode('utf-8')).decode('utf-8')
+        info = json.loads(payload_json)
+        user_id = info.get('id', 'unknown')
+        hwid = info.get('hwid', '')
+    except Exception:
+        return jsonify(error='Invalid payload'), 400
+
+    # rate limit check: user_id 기준
+    now = time.time()
     for ex in os.listdir(UPLOAD_DIR):
-        if ex.startswith(prefix) and now-os.path.getmtime(os.path.join(UPLOAD_DIR,ex))<WINDOW:
-            return jsonify(error='Retry later'),429
-    out=f"{prefix}_{int(now)}.lic.request"
-    open(os.path.join(UPLOAD_DIR,out),'w').write(raw)
-    return jsonify(status='uploaded',filename=out)
+        if ex.startswith(user_id + '_') and now - os.path.getmtime(os.path.join(UPLOAD_DIR, ex)) < WINDOW:
+            return jsonify(error='Retry later'), 429
+
+    # 저장 파일명: {id}_{hwid}.lic.request
+    out_name = f"{user_id}_{hwid}.lic.request"
+    out_path = os.path.join(UPLOAD_DIR, secure_filename(out_name))
+    with open(out_path, 'w', encoding='utf-8') as wf:
+        wf.write(raw_b64)
+
+    return jsonify(status='uploaded', filename=out_name)
 
 # --- 서명 & 히스토리 ---
 @app.route('/list_license_requests')
