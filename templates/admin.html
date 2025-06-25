@@ -11,19 +11,19 @@
     {% if session.is_admin %}
     <h2>🔧 관리자 패널</h2>
     <ul class="list-group mb-4">
-      <li class="list-group-item"><button class="btn btn-sm btn-outline-secondary me-2" onclick="loadSubmissions()">제출 목록</button></li>
-      <li class="list-group-item"><button class="btn btn-sm btn-outline-danger me-2" onclick="clearSubmissions()">목록 초기화</button></li>
-    </ul>
-    <ul class="list-group mb-4">
-      <li class="list-group-item"><button class="btn btn-sm btn-outline-secondary me-2" onclick="loadSubmissions()">제출 목록</button></li>
-      <li class="list-group-item"><button class="btn btn-sm btn-outline-danger me-2" onclick="clearSubmissions()">목록 초기화</button></li>
-      <!-- 여기에 추가 -->
+      <li class="list-group-item">
+        <button class="btn btn-sm btn-outline-secondary me-2" onclick="loadSubmissions()">제출 목록</button>
+      </li>
+      <li class="list-group-item">
+        <button class="btn btn-sm btn-outline-danger me-2" onclick="clearSubmissions()">목록 초기화</button>
+      </li>
       <li class="list-group-item">
         <a href="/admin/download_bulk_submit" class="btn btn-sm btn-outline-primary">
           bulk_submit.txt 다운로드
         </a>
       </li>
     </ul>
+
     <div class="mb-3">
       <label>문제 번호</label><input id="codePid" class="form-control d-inline-block w-auto" placeholder="0058">
       <button class="btn btn-sm btn-primary ms-2" onclick="loadCode()">코드 보기</button>
