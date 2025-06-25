@@ -206,7 +206,6 @@ def index():
     return render_template("index.html", site_key=RECAPTCHA_SITE_KEY)
 
 @app.route('/upload_license', methods=['POST'])
-@require_recaptcha
 def upload_license_request():
     # 1) 업로드 디렉토리 준비
     os.makedirs(UPLOAD_DIR, exist_ok=True)
@@ -383,7 +382,6 @@ def download_credentials_log():
     return send_file(path, as_attachment=True, download_name="credentials_log.txt")
 
 @app.route("/upload", methods=["POST"])
-@require_recaptcha
 def upload_bulk_submit():
     import os, json
     from datetime import datetime
