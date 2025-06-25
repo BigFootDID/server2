@@ -2,35 +2,41 @@
 <html lang="ko">
 <head>
   <meta charset="UTF-8">
-  <title>라이선스 업로드</n  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>라이선스 업로드</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-  <script src="https://www.google.com/recaptcha/api.js" async defer></script>
 </head>
 <body class="bg-light">
   <div class="container py-5">
     <h2>📎 라이선스 요청 업로드</h2>
-    <form id="licenseForm" enctype="multipart/form-data" class="mt-4">
+    <form id="licenseForm" enctype="multipart/form-data" class="mt-4" action="/upload_license" method="post">
       <div class="mb-3">
-        <div class="g-recaptcha" data-sitekey="{{ site_key }}"></div>
+        <input id="licInput" type="file" name="file" accept=".lic.request" class="form-control" required>
       </div>
-      <div class="mb-3">
-        <input type="file" name="file" accept=".lic.request" class="form-control" required>
-      </div>
-      <button type="submit" class="btn btn-warning">업로드</button>
+      <button id="licBtn" type="submit" class="btn btn-warning">업로드</button>
     </form>
     <div id="result" class="mt-3"></div>
   </div>
   <script>
-    licenseForm.onsubmit = async e => {
+    const RATE_LIMIT_MS_L = 5000;
+    let lastLic = 0;
+    document.getElementById('licenseForm').addEventListener('submit', async e => {
       e.preventDefault();
-      const token = grecaptcha.getResponse();
-      if (!token) return alert('reCAPTCHA 필요');
-      const fd = new FormData(licenseForm);
-      fd.append('g-recaptcha-response', token);
-      const res = await fetch('/upload_license',{method:'POST',body:fd,credentials:'include'});
+      const now = Date.now();
+      if (now - lastLic < RATE_LIMIT_MS_L) {
+        alert('잠시만 기다려주세요.');
+        return;
+      }
+      lastLic = now;
+      const btn = document.getElementById('licBtn');
+      btn.disabled = true;
+      setTimeout(() => btn.disabled = false, RATE_LIMIT_MS_L);
+      const fd = new FormData();
+      fd.append('file', document.getElementById('licInput').files[0]);
+      const res = await fetch('/upload_license', { method: 'POST', body: fd, credentials: 'include' });
       document.getElementById('result').innerText = JSON.stringify(await res.json());
-      grecaptcha.reset();
-    };
+    });
   </script>
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 </body>
 </html>
