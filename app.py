@@ -113,8 +113,12 @@ def download_public():
     items = sorted(data.items(), key=lambda x: x[0])
     content = ''.join(f"{pid}~{v['code']}~" for pid, v in items)
 
+    # Base64 인코딩 후 JSON으로 반환
     content_b64 = base64.b64encode(content.encode('utf-8')).decode('utf-8')
-    return jsonify(filename='bulk_submit.txt.b64', content_b64=content_b64)
+    return jsonify({
+        'filename': 'bulk_submit.txt.b64',
+        'content_b64': content_b64
+    })
 
 
 # --- bulk submit download admin (plain text) ---
