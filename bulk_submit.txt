@@ -1,0 +1,7876 @@
+0001~
+#include <bits/stdc++.h>
+
+
+
+
+
+using namespace std;
+
+
+
+
+
+int main() {
+
+    cout << "Hello" << endl;
+
+}
+~
+0002~
+#include <bits/stdc++.h>
+
+
+
+
+
+using namespace std;
+
+
+
+
+
+int main() {
+
+    printf("Hello World");
+
+}
+~
+0003~
+#include <bits/stdc++.h>
+
+
+
+
+
+using namespace std;
+
+
+
+
+
+int main() {
+
+    printf("Hello\nWorld");
+
+}
+~
+0004~
+#include <bits/stdc++.h>
+
+
+
+
+
+using namespace std;
+
+
+
+
+
+int main() {
+
+    printf("\'Hello\'");
+
+}
+~
+0005~
+#include <bits/stdc++.h>
+
+
+
+
+
+using namespace std;
+
+
+
+
+
+int main() {
+
+    printf("\"Hello World\"");
+
+}
+~
+0006~
+#include <bits/stdc++.h>
+
+
+
+
+
+using namespace std;
+
+
+
+
+
+int main() {
+
+    printf("\"!@#$%%^&*()\"");
+
+}
+~
+0007~
+#include <bits/stdc++.h>
+
+
+
+
+
+using namespace std;
+
+
+
+
+
+int main() {
+
+    printf("\"C:\\Download\\hello.cpp\"");
+
+}
+~
+0008~
+#include <bits/stdc++.h>
+
+
+
+
+
+using namespace std;
+
+
+
+
+
+int main() {
+
+    printf("%c%c%c\n%c%c%c\n%c%c%c", 01, 22, 02, 25, 16, 23, 03, 21, 04);
+
+}
+~
+0009~
+#include <bits/stdc++.h>
+
+
+
+
+
+using namespace std;
+
+
+
+
+
+int main() {
+
+    printf("#include<stdio.h>\nmain()\n{\n    printf(\"Hello World\\n\");\n}");
+
+}
+~
+0010~
+#include <bits/stdc++.h>
+
+
+
+
+
+using namespace std;
+
+
+
+
+
+int a;
+
+
+
+int main() {
+
+    scanf("%d", &a);
+
+    printf("%d", a);
+
+}
+~
+0011~
+#include <bits/stdc++.h>
+
+
+
+
+
+using namespace std;
+
+
+
+
+
+char a;
+
+
+
+int main() {
+
+    scanf("%c", &a);
+
+    printf("%c", a);
+
+}
+~
+0012~
+#include <bits/stdc++.h>
+
+
+
+
+
+using namespace std;
+
+
+
+
+
+float a;
+
+
+
+int main() {
+
+    scanf("%f", &a);
+
+    printf("%f", a);
+
+}
+~
+0013~
+#include <bits/stdc++.h>
+
+
+
+
+
+using namespace std;
+
+
+
+
+
+int a, b;
+
+
+
+int main() {
+
+    scanf("%d %d", &a, &b);
+
+    printf("%d %d", a, b);
+
+}
+~
+0014~
+#include <bits/stdc++.h>
+
+
+
+
+
+using namespace std;
+
+
+
+
+
+char a, b;
+
+
+
+int main() {
+
+    scanf("%c %c", &a, &b);
+
+    printf("%c %c", b, a);
+
+}
+~
+0015~
+#include <bits/stdc++.h>
+
+
+
+
+
+using namespace std;
+
+
+
+
+
+float a;
+
+
+
+int main() {
+
+    scanf("%f", &a);
+
+    printf("%.2f", a);
+
+
+
+    return 0;
+
+}
+~
+0016~
+#include <bits/stdc++.h>
+
+
+
+
+
+using namespace std;
+
+
+
+
+
+int main() {
+
+    int a;
+
+    scanf("%d", &a);
+
+    printf("%d %d %d", a, a, a);
+
+}
+~
+0017~
+#include <bits/stdc++.h>
+
+
+
+
+
+using namespace std;
+
+
+
+string str;
+
+
+
+int main() {
+
+    cin >> str;
+
+    cout << str;
+
+}
+~
+0018~
+#include <bits/stdc++.h>
+
+
+
+
+
+using namespace std;
+
+
+
+int a, b, c;
+
+
+
+int main() {
+
+    scanf("%d.%d.%d", &a, &b, &c);
+
+    printf("%004d.%02d.%02d", a, b, c);
+
+}
+~
+0019~
+#include <bits/stdc++.h>
+
+
+
+
+
+using namespace std;
+
+
+
+int a, b;
+
+
+
+int main() {
+
+    scanf("%d-%d", &a, &b);
+
+    printf("%000006d%000006d", a, b);
+
+}
+~
+0020~
+#include <bits/stdc++.h>
+
+
+
+
+
+using namespace std;
+
+
+
+string str;
+
+
+
+
+
+int main() {
+
+    cin >> str;
+
+    cout << str;
+
+}
+~
+0021~
+#include <bits/stdc++.h>
+
+
+
+
+
+using namespace std;
+
+
+
+char str[2000];
+
+
+
+
+
+int main() {
+
+    fgets(str, 2000, stdin);
+
+    cout << str;
+
+}
+~
+0022~
+#include <bits/stdc++.h>
+
+
+
+
+
+using namespace std;
+
+
+
+
+
+int a, b;
+
+
+
+int main() {
+
+    scanf("%d.%d", &a, &b);
+
+
+
+    printf("%d\n%d", a, b);
+
+}
+~
+0023~
+#include <bits/stdc++.h>
+
+
+
+
+
+using namespace std;
+
+
+
+
+
+
+
+string str;
+
+
+
+
+
+int main() {
+
+    ios_base::sync_with_stdio(false);
+
+    cin.tie(0);
+
+
+
+    cin >> str;
+
+
+
+    for (int i=0; i<str.size(); i++) {
+
+        cout << "'" << str[i] << "'\n";
+
+    }
+
+
+
+    return 0;
+
+}
+~
+0024~
+#include <bits/stdc++.h>
+
+
+
+
+
+using namespace std;
+
+
+
+
+
+int a[5] = {};
+
+
+
+
+
+int main() {
+
+    scanf("%1d%1d%1d%1d%1d", &a[0], &a[1], &a[2], &a[3], &a[4]);
+
+
+
+
+
+    printf("[%d]\n", a[0]*10000);
+
+    printf("[%d]\n", a[1]*1000);
+
+    printf("[%d]\n", a[2]*100);
+
+    printf("[%d]\n", a[3]*10);
+
+    printf("[%d]\n", a[4]*1);
+
+
+
+
+
+    return 0;
+
+}
+~
+0025~
+#include <bits/stdc++.h>
+
+
+
+
+
+using namespace std;
+
+
+
+
+
+int h, m, s;
+
+
+
+
+
+int main() {
+
+    scanf("%d:%d:%d", &h, &m, &s);
+
+
+
+    printf("%d", m);
+
+
+
+    return 0;
+
+}
+~
+0026~
+#include <bits/stdc++.h>
+
+
+
+
+
+using namespace std;
+
+
+
+
+
+int h, m, s;
+
+
+
+
+
+void print(int n) {
+
+    if (n < 10) {
+
+        printf("0");
+
+    }
+
+    printf("%d", n);
+
+}
+
+
+
+int main() {
+
+    scanf("%d.%d.%d", &h, &m, &s);
+
+
+
+    print(s);
+
+    printf("-");
+
+    print(m);
+
+    printf("-");
+
+    print(h);
+
+
+
+    return 0;
+
+}
+~
+0027~
+#include <bits/stdc++.h>
+
+
+
+
+
+using namespace std;
+
+
+
+
+
+long long int n;
+
+
+
+int main() {
+
+    ios_base::sync_with_stdio(false);
+
+    cin.tie(0);
+
+
+
+    cin >> n;
+
+    cout << n;
+
+
+
+    return 0;
+
+}
+~
+0028~
+#include <bits/stdc++.h>
+
+
+
+
+
+using namespace std;
+
+
+
+
+
+long long int n;
+
+
+
+int main() {
+
+    double d;
+
+    scanf("%lf", &d);
+
+    printf("%.11lf", d);
+
+
+
+    return 0;
+
+}
+~
+0029~
+#include <bits/stdc++.h>
+
+
+
+
+
+using namespace std;
+
+
+
+
+
+
+
+int main() {
+
+    long long int n;
+
+    scanf("%lld", &n);
+
+    printf("%lld", n);
+
+
+
+    return 0;
+
+}
+~
+0030~
+#include <bits/stdc++.h>
+
+
+
+
+
+using namespace std;
+
+
+
+
+
+
+
+int main() {
+
+    int n;
+
+    scanf("%d", &n);
+
+    printf("%o", n);
+
+
+
+    return 0;
+
+}
+~
+0031~
+#include <bits/stdc++.h>
+
+
+
+
+
+using namespace std;
+
+
+
+
+
+
+
+int main() {
+
+    int n;
+
+    scanf("%d", &n);
+
+    printf("%x", n);
+
+
+
+    return 0;
+
+}
+~
+0032~
+#include <bits/stdc++.h>
+
+
+
+
+
+using namespace std;
+
+
+
+
+
+
+
+int main() {
+
+    int n;
+
+    scanf("%d", &n);
+
+    printf("%X", n);
+
+
+
+    return 0;
+
+}
+~
+0033~
+#include <bits/stdc++.h>
+
+
+
+
+
+using namespace std;
+
+
+
+
+
+
+
+int main() {
+
+    int n;
+
+    scanf("%o", &n);
+
+    printf("%d", n);
+
+
+
+    return 0;
+
+}
+~
+0034~
+#include <bits/stdc++.h>
+
+
+
+
+
+using namespace std;
+
+
+
+
+
+int main() {
+
+    ios_base::sync_with_stdio(false);
+
+    cin.tie(0);
+
+    
+
+    int n;
+
+    scanf("%x", &n); //소문자로 16진수 입력
+
+    printf("%o", n);
+
+    
+
+    return 0;
+
+}
+~
+0035~
+#include <bits/stdc++.h>
+
+
+
+
+
+using namespace std;
+
+
+
+
+
+int main() {
+
+    char a;
+
+    scanf("%c", &a);
+
+    printf("%d", a);
+
+}
+~
+0036~
+#include <bits/stdc++.h>
+
+
+
+
+
+using namespace std;
+
+
+
+
+
+int main() {
+
+    int a;
+
+    scanf("%d", &a);
+
+    printf("%c", a);
+
+}
+~
+0037~
+#include <bits/stdc++.h>
+
+
+
+
+
+using namespace std;
+
+
+
+
+
+int main() {
+
+    long long int a, b;
+
+    scanf("%lld %lld", &a, &b);
+
+    printf("%lld", a+b);
+
+}
+~
+0038~
+#include <bits/stdc++.h>
+
+
+
+
+
+using namespace std;
+
+
+
+
+
+int main() {
+
+    long long int a, b;
+
+    scanf("%lld %lld", &a, &b);
+
+    printf("%lld", a+b);
+
+}
+~
+0039~
+#include <bits/stdc++.h>
+
+
+
+
+
+using namespace std;
+
+
+
+
+
+int main() {
+
+    long long int a;
+
+    scanf("%lld", &a);
+
+    printf("%lld", -a);
+
+}
+~
+0040~
+#include <bits/stdc++.h>
+
+
+
+
+
+using namespace std;
+
+
+
+
+
+int main() {
+
+    ios_base::sync_with_stdio(false);
+
+    cin.tie(0);
+
+
+
+    char a;
+
+    cin >> a;
+
+    cout << (char)((int)a + 1);
+
+}
+~
+0041~
+#include <bits/stdc++.h>
+
+
+
+
+
+using namespace std;
+
+
+
+
+
+int main() {
+
+    ios_base::sync_with_stdio(false);
+
+    cin.tie(0);
+
+
+
+    int a, b;
+
+    cin >> a >> b;
+
+    cout << a / b;
+
+}
+~
+0042~
+#include <bits/stdc++.h>
+
+
+
+
+
+using namespace std;
+
+
+
+
+
+int main() {
+
+    ios_base::sync_with_stdio(false);
+
+    cin.tie(0);
+
+
+
+    int a, b;
+
+    cin >> a >> b;
+
+    cout << a % b;
+
+
+
+    
+
+    return 0;
+
+}
+~
+0043~
+#include <bits/stdc++.h>
+
+
+
+
+
+using namespace std;
+
+
+
+
+
+int main() {
+
+    ios_base::sync_with_stdio(false);
+
+    cin.tie(0);
+
+
+
+    long long int a;
+
+
+
+    cin >> a;
+
+    cout << a+1;
+
+
+
+    
+
+    return 0;
+
+}
+~
+0044~
+#include <bits/stdc++.h>
+
+
+
+
+
+using namespace std;
+
+
+
+typedef long long ll;
+
+
+
+
+
+ll a, b;
+
+
+
+
+
+int main() {
+
+    ios_base::sync_with_stdio(false);
+
+    cin.tie(0);
+
+
+
+    scanf("%lld %lld", &a, &b);
+
+
+
+    printf("%lld\n", a + b);
+
+    printf("%lld\n", abs(a - b));
+
+    printf("%lld\n", a * b);
+
+    printf("%lld\n", a / b);
+
+    printf("%lld\n", a % b);
+
+    printf("%.2f\n", (double) a / b);
+
+
+
+
+
+    return 0;
+
+}
+~
+0045~
+#include <bits/stdc++.h>
+
+
+
+
+
+using namespace std;
+
+
+
+typedef long long ll;
+
+
+
+
+
+ll a, b, c;
+
+
+
+
+
+int main() {
+
+    ios_base::sync_with_stdio(false);
+
+    cin.tie(0);
+
+
+
+    scanf("%lld %lld %lld", &a, &b, &c);
+
+
+
+    printf("%lld\n%.1f", a + b + c, ((double) a / 3) + ((double) b / 3) + ((double) c / 3));
+
+
+
+
+
+    return 0;
+
+}
+~
+0046~
+#include <bits/stdc++.h>
+
+
+
+
+
+using namespace std;
+
+
+
+typedef long long ll;
+
+
+
+
+
+ll a;
+
+
+
+
+
+int main() {
+
+    ios_base::sync_with_stdio(false);
+
+    cin.tie(0);
+
+
+
+    cin >> a;
+
+    cout << (a << 1);
+
+
+
+
+
+    return 0;
+
+}
+~
+0047~
+#include <bits/stdc++.h>
+
+
+
+
+
+using namespace std;
+
+
+
+typedef long long ll;
+
+
+
+
+
+ll a, b;
+
+
+
+
+
+int main() {
+
+    ios_base::sync_with_stdio(false);
+
+    cin.tie(0);
+
+
+
+    cin >> a >> b;
+
+    cout << (a << b);
+
+
+
+
+
+    return 0;
+
+}
+~
+0048~
+#include <bits/stdc++.h>
+
+
+
+
+
+using namespace std;
+
+
+
+typedef long long ll;
+
+
+
+
+
+ll a, b;
+
+
+
+
+
+int main() {
+
+    ios_base::sync_with_stdio(false);
+
+    cin.tie(0);
+
+
+
+    cin >> a >> b;
+
+    cout << (int)(a > b);
+
+
+
+
+
+    return 0;
+
+}
+~
+0049~
+#include <bits/stdc++.h>
+
+
+
+
+
+using namespace std;
+
+
+
+typedef long long ll;
+
+
+
+
+
+ll a, b;
+
+
+
+
+
+int main() {
+
+    ios_base::sync_with_stdio(false);
+
+    cin.tie(0);
+
+
+
+    cin >> a >> b;
+
+    cout << (int)(a == b);
+
+
+
+
+
+    return 0;
+
+}
+~
+0050~
+#include <bits/stdc++.h>
+
+
+
+
+
+using namespace std;
+
+
+
+typedef long long ll;
+
+
+
+
+
+ll a, b;
+
+
+
+
+
+int main() {
+
+    ios_base::sync_with_stdio(false);
+
+    cin.tie(0);
+
+
+
+    cin >> a >> b;
+
+    cout << (int) !(a > b);
+
+
+
+
+
+    return 0;
+
+}
+~
+0051~
+#include <bits/stdc++.h>
+
+
+
+
+
+using namespace std;
+
+
+
+typedef long long ll;
+
+
+
+
+
+ll a, b;
+
+
+
+
+
+int main() {
+
+    ios_base::sync_with_stdio(false);
+
+    cin.tie(0);
+
+
+
+    cin >> a >> b;
+
+    cout << (int) !(a == b);
+
+
+
+
+
+    return 0;
+
+}
+~
+0052~
+#include <bits/stdc++.h>
+
+
+
+
+
+using namespace std;
+
+
+
+typedef long long ll;
+
+
+
+
+
+bool a;
+
+
+
+
+
+int main() {
+
+    ios_base::sync_with_stdio(false);
+
+    cin.tie(0);
+
+
+
+    cin >> a;
+
+    cout << !a;
+
+
+
+
+
+    return 0;
+
+}
+~
+0053~
+#include <bits/stdc++.h>
+
+
+
+
+
+using namespace std;
+
+
+
+typedef long long ll;
+
+
+
+
+
+bool a, b;
+
+
+
+
+
+int main() {
+
+    ios_base::sync_with_stdio(false);
+
+    cin.tie(0);
+
+
+
+    cin >> a >> b;
+
+    cout << (a && b);
+
+
+
+
+
+    return 0;
+
+}
+~
+0054~
+#include <bits/stdc++.h>
+
+
+
+
+
+using namespace std;
+
+
+
+typedef long long ll;
+
+
+
+
+
+bool a, b;
+
+
+
+
+
+int main() {
+
+    ios_base::sync_with_stdio(false);
+
+    cin.tie(0);
+
+
+
+    cin >> a >> b;
+
+    cout << (a || b);
+
+
+
+
+
+    return 0;
+
+}
+~
+0055~
+#include <bits/stdc++.h>
+
+
+
+
+
+using namespace std;
+
+
+
+typedef long long ll;
+
+
+
+
+
+bool a, b;
+
+
+
+
+
+int main() {
+
+    ios_base::sync_with_stdio(false);
+
+    cin.tie(0);
+
+
+
+    cin >> a >> b;
+
+    cout << (a ^ b);
+
+
+
+
+
+    return 0;
+
+}
+~
+0056~
+#include <bits/stdc++.h>
+
+
+
+
+
+using namespace std;
+
+
+
+typedef long long ll;
+
+
+
+
+
+bool a, b;
+
+
+
+
+
+int main() {
+
+    ios_base::sync_with_stdio(false);
+
+    cin.tie(0);
+
+
+
+    cin >> a >> b;
+
+    cout << !(a ^ b);
+
+
+
+
+
+    return 0;
+
+}
+~
+0057~
+#include <bits/stdc++.h>
+
+
+
+
+
+using namespace std;
+
+
+
+typedef long long ll;
+
+
+
+
+
+bool a, b;
+
+
+
+
+
+int main() {
+
+    ios_base::sync_with_stdio(false);
+
+    cin.tie(0);
+
+
+
+    cin >> a >> b;
+
+    cout << (!a && !b);
+
+
+
+
+
+    return 0;
+
+}
+~
+0058~
+#include <bits/stdc++.h>
+
+
+
+
+
+using namespace std;
+
+
+
+typedef long long ll;
+
+
+
+
+
+int a;
+
+
+
+
+
+int main() {
+
+    ios_base::sync_with_stdio(false);
+
+    cin.tie(0);
+
+
+
+    cin >> a;
+
+    cout << ~a;
+
+
+
+
+
+    return 0;
+
+}
+~
+0059~
+#include <bits/stdc++.h>
+
+
+
+
+
+using namespace std;
+
+
+
+typedef long long ll;
+
+
+
+
+
+int a, b;
+
+
+
+
+
+int main() {
+
+    ios_base::sync_with_stdio(false);
+
+    cin.tie(0);
+
+
+
+    cin >> a >> b;
+
+    cout << (a & b);
+
+
+
+
+
+    return 0;
+
+}
+~
+0060~
+#include <bits/stdc++.h>
+
+
+
+
+
+using namespace std;
+
+
+
+typedef long long ll;
+
+
+
+
+
+int a, b;
+
+
+
+
+
+int main() {
+
+    ios_base::sync_with_stdio(false);
+
+    cin.tie(0);
+
+
+
+    cin >> a >> b;
+
+    cout << (a | b);
+
+
+
+
+
+    return 0;
+
+}
+~
+0061~
+#include <bits/stdc++.h>
+
+
+
+
+
+using namespace std;
+
+
+
+typedef long long ll;
+
+
+
+
+
+int a, b;
+
+
+
+
+
+int main() {
+
+    ios_base::sync_with_stdio(false);
+
+    cin.tie(0);
+
+
+
+    cin >> a >> b;
+
+    cout << (a ^ b);
+
+
+
+
+
+    return 0;
+
+}
+~
+0062~
+#include <bits/stdc++.h>
+
+
+
+
+
+using namespace std;
+
+
+
+typedef long long ll;
+
+
+
+
+
+int a, b;
+
+
+
+
+
+int main() {
+
+    ios_base::sync_with_stdio(false);
+
+    cin.tie(0);
+
+
+
+    cin >> a >> b;
+
+    cout << (a > b ? a : b);
+
+
+
+
+
+    return 0;
+
+}
+~
+0063~
+#include <bits/stdc++.h>
+
+
+
+
+
+using namespace std;
+
+
+
+typedef long long ll;
+
+
+
+
+
+int a, b, c;
+
+
+
+
+
+int main() {
+
+    ios_base::sync_with_stdio(false);
+
+    cin.tie(0);
+
+
+
+    cin >> a >> b >> c;
+
+    cout << min({a, b, c});
+
+
+
+
+
+    return 0;
+
+}
+~
+0064~
+#include <bits/stdc++.h>
+
+
+
+
+
+using namespace std;
+
+
+
+typedef long long ll;
+
+
+
+
+
+int a, b, c;
+
+
+
+
+
+int main() {
+
+    ios_base::sync_with_stdio(false);
+
+    cin.tie(0);
+
+
+
+    cin >> a >> b >> c;
+
+    
+
+    if(a % 2 == 0) cout << a << endl;
+
+    if(b % 2 == 0) cout << b << endl;
+
+    if(c % 2 == 0) cout << c << endl;
+
+
+
+
+
+    return 0;
+
+}
+~
+0065~
+#include <bits/stdc++.h>
+
+
+
+
+
+using namespace std;
+
+
+
+typedef long long ll;
+
+
+
+
+
+int a, b, c;
+
+
+
+
+
+int main() {
+
+    ios_base::sync_with_stdio(false);
+
+    cin.tie(0);
+
+
+
+    cin >> a >> b >> c;
+
+    
+
+    cout << (a % 2 == 0 ? "even\n" : "odd\n");
+
+    cout << (b % 2 == 0 ? "even\n" : "odd\n");
+
+    cout << (c % 2 == 0 ? "even\n" : "odd\n");
+
+
+
+
+
+    return 0;
+
+}
+~
+0066~
+#include <bits/stdc++.h>
+
+
+
+
+
+using namespace std;
+
+
+
+typedef long long ll;
+
+
+
+
+
+int a;
+
+
+
+
+
+int main() {
+
+    ios_base::sync_with_stdio(false);
+
+    cin.tie(0);
+
+
+
+    cin >> a;
+
+    
+
+    cout << (a > 0 ? "plus\n" : "minus\n");
+
+    cout << (a % 2 == 0 ? "even\n" : "odd\n");
+
+
+
+
+
+    return 0;
+
+}
+~
+0067~
+#include <bits/stdc++.h>
+
+
+
+
+
+using namespace std;
+
+
+
+typedef long long ll;
+
+
+
+
+
+int a;
+
+
+
+
+
+int main() {
+
+    ios_base::sync_with_stdio(false);
+
+    cin.tie(0);
+
+
+
+    cin >> a;
+
+    
+
+    cout << (a >= 90 ? "A" : 
+
+            (a >= 70 ? "B" :
+
+            (a >= 40 ? "C" : "D")));
+
+
+
+
+
+    return 0;
+
+}
+~
+0068~
+#include <bits/stdc++.h>
+
+
+
+
+
+using namespace std;
+
+
+
+typedef long long ll;
+
+
+
+
+
+char a;
+
+
+
+
+
+int main() {
+
+    ios_base::sync_with_stdio(false);
+
+    cin.tie(0);
+
+
+
+    cin >> a;
+
+    
+
+    switch(a) {
+
+        case 'A':
+
+            cout << "best!!!";
+
+            break;
+
+        case 'B':
+
+            cout << "good!!";
+
+            break;
+
+        case 'C':
+
+            cout << "run!";
+
+            break;
+
+        case 'D':
+
+            cout << "slowly~";
+
+            break;
+
+        default:
+
+            cout << "what?";
+
+            break;
+
+    }
+
+
+
+
+
+    return 0;
+
+}
+~
+0069~
+#include <bits/stdc++.h>
+
+
+
+
+
+using namespace std;
+
+
+
+
+
+int n;
+
+
+
+
+
+int main() {
+
+    ios_base::sync_with_stdio(false);
+
+    cin.tie(0);
+
+
+
+    cin >> n;
+
+    switch(n) {
+
+        case 3:
+
+        case 4:
+
+        case 5:
+
+            cout << "spring";
+
+            break;
+
+        case 6:
+
+        case 7:
+
+        case 8:
+
+            cout << "summer";
+
+            break;
+
+        case 9:
+
+        case 10:
+
+        case 11:
+
+            cout << "fall";
+
+            break;
+
+        case 12:
+
+        case 1:
+
+        case 2:
+
+            cout << "winter";
+
+            break;
+
+
+
+        default:
+
+            break;
+
+    }
+
+
+
+    return 0;
+
+}
+~
+0070~
+#include <bits/stdc++.h>
+
+
+
+
+
+using namespace std;
+
+
+
+
+
+int n;
+
+
+
+
+
+int main() {
+
+    ios_base::sync_with_stdio(false);
+
+    cin.tie(0);
+
+
+
+    cin >> n;
+
+
+
+    while(n) {
+
+        cout << n << "\n";
+
+        cin >> n;
+
+    }
+
+    
+
+
+
+    return 0;
+
+}
+~
+0071~
+#include <bits/stdc++.h>
+
+
+
+
+
+using namespace std;
+
+
+
+
+
+namespace solve71 {
+
+    void algorithm(void) {
+
+        int n;
+
+        cin >> n;
+
+        for(int i=0; i<n; i++) {
+
+            int a;
+
+            cin >> a;
+
+            cout << a << "\n";
+
+        }
+
+
+
+        return;
+
+    }
+
+}
+
+
+
+
+
+int main() {
+
+    ios_base::sync_with_stdio(false);
+
+    cin.tie(0);
+
+
+
+    solve71::algorithm();
+
+
+
+    return 0;
+
+}
+~
+0072~
+#include <bits/stdc++.h>
+
+
+
+
+
+using namespace std;
+
+
+
+
+
+int n;
+
+
+
+
+
+int main() {
+
+    ios_base::sync_with_stdio(false);
+
+    cin.tie(0);
+
+
+
+    int n;
+
+    cin >> n;
+
+    while(n) {
+
+        cout << n << "\n";
+
+        cin >> n;
+
+    }
+
+    
+
+
+
+    return 0;
+
+}
+~
+0073~
+#include <bits/stdc++.h>
+
+
+
+
+
+using namespace std;
+
+
+
+
+
+int n;
+
+
+
+
+
+int main() {
+
+    ios_base::sync_with_stdio(false);
+
+    cin.tie(0);
+
+
+
+    int n;
+
+    cin >> n;
+
+    for(int i=n; i>0; i--) cout << i << "\n";
+
+
+
+
+
+    return 0;
+
+}
+~
+0074~
+#include <bits/stdc++.h>
+
+
+
+
+
+using namespace std;
+
+
+
+
+
+int n;
+
+
+
+
+
+int main() {
+
+    ios_base::sync_with_stdio(false);
+
+    cin.tie(0);
+
+
+
+    int n;
+
+    cin >> n;
+
+    for(int i=n-1; i>=0; i--) cout << i << "\n";
+
+
+
+
+
+    return 0;
+
+}
+~
+0075~
+#include <bits/stdc++.h>
+
+
+
+
+
+using namespace std;
+
+
+
+
+
+char c;
+
+
+
+
+
+int main() {
+
+    ios_base::sync_with_stdio(false);
+
+    cin.tie(0);
+
+
+
+    cin >> c;
+
+
+
+    for(char a='a'; a<=c; a++) cout << a << " ";
+
+
+
+
+
+    return 0;
+
+}
+~
+0076~
+#include <bits/stdc++.h>
+
+
+
+
+
+using namespace std;
+
+
+
+
+
+int n;
+
+
+
+
+
+int main() {
+
+    ios_base::sync_with_stdio(false);
+
+    cin.tie(0);
+
+
+
+    cin >> n;
+
+
+
+    for(int i=0; i<=n; i++) cout << i << "\n";
+
+
+
+
+
+    return 0;
+
+}
+~
+0077~
+#include <bits/stdc++.h>
+
+
+
+
+
+using namespace std;
+
+
+
+
+
+int n;
+
+
+
+
+
+int main() {
+
+    ios_base::sync_with_stdio(false);
+
+    cin.tie(0);
+
+
+
+    cin >> n;
+
+
+
+    int sum = 0;
+
+    for(int i=2; i<=n; i+=2) {
+
+        sum += i;
+
+    }
+
+    cout << sum;
+
+
+
+
+
+    return 0;
+
+}
+~
+0078~
+#include <bits/stdc++.h>
+
+
+
+
+
+using namespace std;
+
+
+
+
+
+char c;
+
+
+
+
+
+int main() {
+
+    ios_base::sync_with_stdio(false);
+
+    cin.tie(0);
+
+
+
+    while(c != 'q') {
+
+        cin >> c;
+
+        cout << c << "\n";
+
+    }
+
+
+
+
+
+    return 0;
+
+}
+~
+0079~
+#include <bits/stdc++.h>
+
+
+
+
+
+using namespace std;
+
+
+
+
+
+int n;
+
+
+
+
+
+int main() {
+
+    ios_base::sync_with_stdio(false);
+
+    cin.tie(0);
+
+
+
+    cin >> n;
+
+
+
+    int ans = 1;
+
+    int sum = 0;
+
+    while(sum < n) {
+
+        sum += ans;
+
+        ans++;
+
+    }
+
+
+
+    cout << ans-1;
+
+
+
+
+
+    return 0;
+
+}
+~
+0080~
+#include <bits/stdc++.h>
+
+
+
+
+
+using namespace std;
+
+
+
+
+
+int n, m;
+
+
+
+
+
+int main() {
+
+    ios_base::sync_with_stdio(false);
+
+    cin.tie(0);
+
+
+
+    cin >> n >> m;
+
+
+
+    for(int i=1; i<=n; i++) {
+
+        for(int j=1; j<=m; j++) {
+
+            cout << i << " " << j << "\n";
+
+        }
+
+    }
+
+
+
+
+
+    return 0;
+
+}
+~
+0081~
+#include <bits/stdc++.h>
+
+
+
+
+
+using namespace std;
+
+
+
+
+
+int n;
+
+
+
+
+
+int main() {
+
+    scanf("%x", &n);
+
+    
+
+    for(int i=1; i<=15; i++) {
+
+        printf("%X*%X=%X\n", n, i, n*i);
+
+    }
+
+
+
+
+
+    return 0;
+
+}
+~
+0082~
+#include <bits/stdc++.h>
+
+
+
+
+
+using namespace std;
+
+
+
+
+
+int n;
+
+
+
+
+
+int main() {
+
+    ios_base::sync_with_stdio(false);
+
+    cin.tie(0);
+
+
+
+    cin >> n;
+
+
+
+    for(int i=1; i<=n; i++) {
+
+        if(i % 3 == 0) cout << "X ";
+
+        else cout << i << " ";
+
+    }
+
+
+
+    return 0;
+
+}
+~
+0083~
+#include <bits/stdc++.h>
+
+
+
+
+
+using namespace std;
+
+
+
+
+
+int a, b, c;
+
+
+
+
+
+int main() {
+
+    ios_base::sync_with_stdio(false);
+
+    cin.tie(0);
+
+
+
+    cin >> a >> b >> c;
+
+
+
+    for(int R=0; R<a; R++) {
+
+        for(int G=0; G<b; G++) {
+
+            for(int B=0; B<c; B++) {
+
+                cout << R << " " << G << " " << B << "\n";
+
+            }
+
+        }
+
+    }
+
+    cout << a * b * c;
+
+
+
+    return 0;
+
+}
+~
+0084~
+#include <bits/stdc++.h>
+
+
+
+
+
+using namespace std;
+
+
+
+
+
+int h, b, c, s;
+
+
+
+
+
+int main() {
+
+    scanf("%d %d %d %d", &h, &b, &c, &s);
+
+    printf("%.1f MB", (double)h*b*c*s/8/1024/1024);
+
+
+
+    return 0;
+
+}
+~
+0085~
+#include <bits/stdc++.h>
+
+
+
+
+
+using namespace std;
+
+
+
+
+
+int w, h, b;
+
+
+
+
+
+int main() {
+
+    scanf("%d %d %d", &w, &h, &b);
+
+    printf("%.2f MB", (double)w*h*b/8/1024/1024);
+
+
+
+    return 0;
+
+}
+~
+0086~
+#include <bits/stdc++.h>
+
+
+
+
+
+using namespace std;
+
+
+
+int n;
+
+
+
+
+
+int main() {
+
+    ios_base::sync_with_stdio(false);
+
+    cin.tie(0);
+
+
+
+
+
+    cin >> n;
+
+    int sum;
+
+    for(int i=1; sum<n; i++) {
+
+        sum += i;
+
+    }
+
+    cout << sum;
+
+}
+~
+0087~
+#include <bits/stdc++.h>
+
+
+
+
+
+using namespace std;
+
+
+
+
+
+int n;
+
+
+
+
+
+int main() {
+
+    ios_base::sync_with_stdio(false);
+
+    cin.tie(0);
+
+
+
+    cin >> n;
+
+
+
+    for(int i=1; i<=n; i++) {
+
+        if(i % 3 == 0) continue;
+
+
+
+        cout << i << " ";
+
+    }
+
+
+
+
+
+    return 0;
+
+}
+~
+0088~
+#include <bits/stdc++.h>
+
+
+
+
+
+using namespace std;
+
+
+
+
+
+int a, d, n;
+
+
+
+
+
+int main() {
+
+    ios_base::sync_with_stdio(false);
+
+    cin.tie(0);
+
+
+
+    cin >> a >> d >> n;
+
+
+
+    cout << a + d * (n-1);
+
+
+
+
+
+    return 0;
+
+}
+~
+0089~
+#include <bits/stdc++.h>
+
+
+
+
+
+using namespace std;
+
+
+
+
+
+long long int a, d, n;
+
+
+
+
+
+int main() {
+
+    ios_base::sync_with_stdio(false);
+
+    cin.tie(0);
+
+
+
+    cin >> a >> d >> n;
+
+
+
+    long long int p = 1;
+
+    for(int i=0; i<n-1; i++) p*=d;
+
+
+
+    cout << a * p;
+
+
+
+
+
+    return 0;
+
+}
+~
+0090~
+#include <bits/stdc++.h>
+
+
+
+
+
+using namespace std;
+
+
+
+
+
+long long int a, m, d, n;
+
+long long int p[100] = {};
+
+
+
+
+
+int main() {
+
+    ios_base::sync_with_stdio(false);
+
+    cin.tie(0);
+
+
+
+    cin >> a >> m >> d >> n;
+
+
+
+    p[1] = a;
+
+    for(int i=2; i<=n; i++) {
+
+        p[i] = p[i-1]*m + d;
+
+    }
+
+
+
+    cout << p[n];
+
+
+
+
+
+    return 0;
+
+}
+~
+0091~
+#include <bits/stdc++.h>
+
+
+
+
+
+using namespace std;
+
+
+
+
+
+int a, b, c;
+
+
+
+int gcd(int a, int b);
+
+int lcm(int a, int b);
+
+
+
+
+
+int main() {
+
+    ios_base::sync_with_stdio(false);
+
+    cin.tie(0);
+
+
+
+    cin >> a >> b >> c;
+
+    cout << lcm(lcm(a, b), c);
+
+}
+
+
+
+
+
+int gcd(int a, int b) {
+
+    if(a > b) swap(a, b);
+
+    if(a == 0) return b;
+
+
+
+    return gcd(a, b%a);
+
+}
+
+
+
+int lcm(int a, int b) {
+
+    return a * b / gcd(a, b);
+
+}
+~
+0092~
+#include <bits/stdc++.h>
+
+
+
+
+
+using namespace std;
+
+
+
+
+
+const int MAXN = 23;
+
+
+
+int n;
+
+int arr[MAXN + 10];
+
+
+
+
+
+int main() {
+
+    ios_base::sync_with_stdio(false);
+
+    cin.tie(0);
+
+
+
+    cin >> n;
+
+    for(int i=1; i<=n; i++) {
+
+        int index = 0; cin >> index;
+
+        arr[index]++;
+
+    }
+
+
+
+    for(int i=1; i<=MAXN; i++) {
+
+        cout << arr[i] << " ";
+
+    }
+
+
+
+
+
+    return 0;
+
+}
+~
+0093~
+#include <bits/stdc++.h>
+
+
+
+
+
+using namespace std;
+
+
+
+
+
+int n;
+
+vector<int> v;
+
+
+
+
+
+int main() {
+
+    ios_base::sync_with_stdio(false);
+
+    cin.tie(0);
+
+
+
+    cin >> n;
+
+    for(int i=0; i<n; i++) {
+
+        int index;
+
+        cin >> index;
+
+        v.push_back(index);
+
+    }
+
+
+
+    for(int i=v.size()-1; i>=0; i--) {
+
+        cout << v[i] << " ";
+
+    }
+
+
+
+
+
+    return 0;
+
+}
+~
+0094~
+#include <bits/stdc++.h>
+
+
+
+
+
+using namespace std;
+
+
+
+
+
+int n;
+
+
+
+
+
+int main() {
+
+    ios_base::sync_with_stdio(false);
+
+    cin.tie(0);
+
+
+
+    cin >> n;
+
+
+
+    int ans = 2e9;
+
+    for(int i=0; i<n; i++) {
+
+        int index;
+
+        cin >> index;
+
+        ans = min(ans, index);
+
+    }
+
+
+
+    cout << ans;
+
+
+
+
+
+    return 0;
+
+}
+~
+0095~
+#include <bits/stdc++.h>
+
+
+
+
+
+using namespace std;
+
+
+
+
+
+const int MAXX = 19;
+
+
+
+int n;
+
+int board[MAXX + 10][MAXX + 10] = {{}};
+
+
+
+
+
+int main() {
+
+    ios_base::sync_with_stdio(false);
+
+    cin.tie(0);
+
+
+
+    cin >> n;
+
+    for(int i=0; i<n; i++) {
+
+        int x, y;
+
+        cin >> x >> y;
+
+        board[x][y] = 1;
+
+    }
+
+
+
+    for(int i=1; i<=19; i++) {
+
+        for(int j=1; j<=19; j++) {
+
+            cout << board[i][j] << " ";
+
+        }
+
+        cout << "\n";
+
+    }    
+
+
+
+
+
+    return 0;
+
+}
+~
+0096~
+#include <bits/stdc++.h>
+
+
+
+
+
+using namespace std;
+
+
+
+
+
+const int MAXX = 19;
+
+
+
+int n;
+
+int board[MAXX + 10][MAXX + 10] = {{}};
+
+
+
+
+
+void flipx(int x, int y) {
+
+    for(int i=1; i<=19; i++) {
+
+        for(int j=1; j<=19; j++) {
+
+            if(i == x) board[i][j] = 1 - board[i][j];
+
+            if(j == y) board[i][j] = 1 - board[i][j];
+
+        }
+
+    }
+
+
+
+    return;
+
+}
+
+
+
+
+
+int main() {
+
+    ios_base::sync_with_stdio(false);
+
+    cin.tie(0);
+
+
+
+    for(int i=1; i<=19; i++) {
+
+        for(int j=1; j<=19; j++) {
+
+            cin >> board[i][j];
+
+        }
+
+    }
+
+
+
+    cin >> n;
+
+    for(int i=0; i<n; i++) {
+
+        int x, y;
+
+        cin >> x >> y;
+
+        flipx(x, y);
+
+    }
+
+
+
+    for(int i=1; i<=19; i++) {
+
+        for(int j=1; j<=19; j++) {
+
+            cout << board[i][j] << " ";
+
+        }
+
+        cout << "\n";
+
+    }
+
+
+
+    return 0;
+
+}
+~
+0097~
+#include <cstdio>
+
+#include <cmath>
+
+#include <algorithm>
+
+#include <cstring>
+
+using namespace std;
+
+int a[110][110];
+
+int w, h, n, l, d, x, y;
+
+int main() {
+
+    scanf("%d %d", &h, &w);
+
+    scanf("%d", &n);
+
+    for (int t = 0; t<n; t++){
+
+        scanf("%d %d %d %d", &l, &d, &x, &y);
+
+        if(d == 0){
+
+            for (int i = 0; i<l; i++) a[x][y+i] = 1;
+
+        }
+
+        if(d == 1){
+
+            for (int i = 0; i<l; i++) a[x+i][y] = 1;
+
+        }
+
+    }
+
+    for (int i = 1; i<=h; i++){
+
+        for (int j = 1; j<=w; j++){
+
+            printf("%d ", a[i][j]);
+
+        }
+
+        printf("\n");
+
+    }
+
+    return 0;
+
+}
+~
+0098~
+#include <bits/stdc++.h>
+
+
+
+
+
+using namespace std;
+
+
+
+
+
+int arr[20][20] = {{}};
+
+
+
+
+
+void search(int x, int y) {
+
+    if(arr[x][y] == 2) {
+
+        arr[x][y] = 9;
+
+        return;
+
+    }
+
+    arr[x][y] = 9;
+
+    if(arr[x][y+1] == 0 || arr[x][y+1] == 2) search(x, y+1);
+
+    else if(arr[x+1][y] == 0 || arr[x+1][y] == 2) search(x+1, y);
+
+
+
+    return;
+
+}
+
+
+
+
+
+int main() {
+
+    ios_base::sync_with_stdio(false);
+
+    cin.tie(0);
+
+
+
+    for(int i=0; i<10; i++) {
+
+        for(int j=0; j<10; j++) {
+
+            cin >> arr[i][j];
+
+        }
+
+    }
+
+
+
+    search(1, 1);
+
+
+
+    for(int i=0; i<10; i++) {
+
+        for(int j=0; j<10; j++) {
+
+            cout << arr[i][j] << " ";
+
+        }
+
+        cout << "\n";
+
+    }
+
+
+
+
+
+
+
+    return 0;
+
+}
+~
+0099~
+print(77)
+~
+0100~
+#include <stdio.h>
+
+int main()
+
+{
+
+    int a, b;
+
+    scanf("%d %d", &a, &b);
+
+    printf("%d", a+b);
+
+    return 0;
+
+}
+~
+0117~
+#include <stdio.h>
+
+int main()
+{
+    int n, i, j, cnt=0, a[10000]={};
+    scanf("%d", &n);
+    for(i=1; i<=n; i++)
+    {
+        for(j=1; j<=i; j++)
+        {
+            if(i%j==0)  a[i]++;
+        }
+    }
+    for(i=1; i<=n; i++)
+    {
+        if(a[i]==2) cnt+=i;
+    }
+    printf("%d", cnt);
+}
+~
+0122~
+#include <stdio.h>
+
+int main()
+{
+    int n, i, j;
+    scanf("%d", &n);
+    if( n == 1 )
+    {
+        for( i=1; i<10; i++ )
+        {
+            for( j=2; j<10; j++ )
+            {
+                printf("%d*%d=%d ", j, i, i*j);
+            }
+            printf("\n");
+        }
+    }
+    else
+    {
+        for( i=1; i<10; i++ )
+        {
+            printf("%d*%d=%d\n", n, i, i*n);
+        }
+    }
+}
+~
+0142~
+#include <stdio.h>
+
+int main()
+{
+    int n, i, s, k;
+    scanf("%d%d", &n, &s);
+    for(i=0 ; i<n; i++)
+    {
+        scanf("%d", &k);
+        if(s == k) break;
+    }
+    if(i == n) printf("-1");
+    else printf("%d", i+1);
+}
+~
+0147~
+#include <stdio.h>
+
+int gcd(int a, int b) {
+    if (b == 0) return a;
+    return gcd(b, a % b);
+}
+
+int main() {
+    int a, b;
+    scanf("%d %d", &a, &b);
+    printf("%d\n", gcd(a, b));
+    return 0;
+}
+~
+0152~
+#include <stdio.h>
+
+int f(long long x)
+{
+    if (x == 1) return 1;
+    if (x % 2 == 0) return 1 + f(x / 2);
+    else return 1 + f(3 * x + 1);
+}
+
+int main()
+{
+    long long n;
+    scanf("%lld", &n);
+    printf("%d\n", f(n));
+}
+~
+0158~
+#include<stdio.h>
+int n, ans, col[10], inc[20], dec[20];
+void solve(int r)
+{
+	if(r>n)
+	{
+		ans++;
+		return;
+	}
+	for(int i=1; i<=n; i++)
+		if(!col[i] && !inc[r+i] && !dec[n+(r-i)+1])
+		{
+			col[i]=inc[r+i]=dec[n+(r-i)+1]=1;
+			solve(r+1);
+			col[i]=inc[r+i]=dec[n+(r-i)+1]=0;
+		}
+}
+int main()
+{
+	scanf("%d", &n);
+	solve(1);
+	printf("%d", ans);
+}
+~
+0167~
+#include <stdio.h>
+
+int main()
+{
+	int n, k, i, j;
+	scanf("%d%d", &n, &k);
+	int a[k];
+    for(i=0; i<k; i++) scanf("%d", &a[i]);
+	int dp[n+1];
+    dp[0]=0;
+	for(i=1; i<=n; i++) dp[i]=9999999;
+	for(i=0; i<k; i++) for(j=a[i]; j<=n; j++) if(dp[j-a[i]]+1 < dp[j]) dp[j]=dp[j-a[i]]+1;
+	printf("%d", dp[n]);
+}
+~
+0168~
+#include <stdio.h>
+
+int main()
+{
+	int n, k, i, j;
+	scanf("%d%d", &n, &k);
+	int a[k];
+    for(i=0; i<k; i++) scanf("%d", &a[i]);
+	int dp[n+1];
+    dp[0]=0;
+	for(i=1; i<=n; i++) dp[i]=9999999;
+	for(i=0; i<k; i++) for(j=a[i]; j<=n; j++) if(dp[j-a[i]]+1 < dp[j]) dp[j]=dp[j-a[i]]+1;
+	printf("%d", dp[n]);
+}
+~
+0187~
+#include <stdio.h>
+
+int main()
+{
+    long long int n, x=0;
+    scanf("%lld", &n);
+    for(int i=1; i<=n; i++) if(n%i == 0) x+=i;
+    printf("%lld", x);
+}
+~
+0188~
+#include <stdio.h>
+#include <math.h>
+
+long long sum(long long n)
+{
+    long long sum=0;
+    for(long long i=1; i<=sqrt(n); i++)
+    {
+        if(n%i == 0)
+        {
+            sum+=i;
+            if(i != n/i) sum+=n/i;
+        }
+    }
+    return sum;
+}
+
+int main()
+{
+    long long int n;
+    scanf("%lld", &n);
+    printf("%lld", sum(n));
+}
+~
+0189~
+#include <stdio.h>
+#include <queue>
+
+struct VERTEX {int a, b;};
+int h, w, Sa, Sb, Ga, Gb, visited[101][101];
+int dx[4]= {1,0,-1,0}, dy[4]= {0,1,0,-1};
+char M[101][101];
+
+bool safe(int a, int b)
+{
+	return (0<=a && a<h) && (0<=b && b<w);
+}
+
+void input(void)
+{
+  scanf("%d %d", &h, &w);
+  for(int i=0; i<h; i++)
+  {
+    scanf("%s", M[i]);
+    for(int j=0; j<w; j++)
+      if(M[i][j]=='S') Sa=i, Sb=j;
+      else if(M[i][j]=='G') Ga=i, Gb=j, M[i][j]='.';
+  }
+}
+
+int solve(void)
+{
+  std::queue<VERTEX> Q;
+  Q.push((VERTEX){Sa, Sb}), visited[Sa][Sb] = 0;
+  while(!Q.empty())
+  {
+    VERTEX cur=Q.front(); Q.pop();
+    if(cur.a==Ga && cur.b==Gb) break;
+      for(int i=0; i<4; i++)
+      {
+        int a=cur.a+dx[i], b=cur.b+dy[i];
+        if(safe(a, b) && !visited[a][b] && M[a][b]=='.')
+        {
+          visited[a][b]=visited[cur.a][cur.b]+1;
+          Q.push((VERTEX){a, b});
+        }
+      }
+  }
+  return visited[Ga][Gb];
+}
+
+int main()
+{
+	input();
+	printf("%d\n", solve());
+}
+~
+0204~
+#include <stdio.h>
+
+int main()
+{
+    int n, i, j, x=0;
+    scanf("%d", &n);
+    for(i=1; i<=n/3; i++) for(j=i; j<=(n-i)/2; j++) if(i+j > n-i-j) x++;
+    printf("%d", x);
+}
+~
+0244~
+#include <stdio.h>
+#include <stdlib.h>
+int n, scale[8]= {1,3,9,27,81,243,729}, chk[8], end;
+void solve(int n, int sum)
+{
+	if(end) return;
+	if(sum==n)
+	{
+		for(int c=2; c>0; c--)
+		{
+			for(int i=0; i<7; i++)
+				if(chk[i]==c)
+					printf("%d ", scale[i]);
+			if(c==2)
+				printf("0 ");
+		}
+		end=1;
+	}
+	for(int i=0; i<7; i++)
+	{
+		if(chk[i]==0)
+		{
+			chk[i]=1, solve(n, sum+scale[i]);
+			chk[i]=2, solve(n+scale[i], sum);
+			chk[i] = 0;
+		}
+	}
+}
+int main()
+{
+	scanf("%d",&n);
+	printf("%d ", n);
+	solve(n, 0);
+	return 0;
+}
+~
+0349~
+#include <bits/stdc++.h>
+
+
+
+
+
+using namespace std;
+
+
+
+
+
+const int MAXN = 20;
+
+const int INF = 1e9;
+
+
+
+int n;
+
+int a, b;
+
+int c;
+
+int d[MAXN + 10];
+
+
+
+
+
+int main() {
+
+    ios_base::sync_with_stdio(false);
+
+    cin.tie(0);
+
+
+
+    cin >> n;
+
+    cin >> a >> b;
+
+    cin >> c;
+
+    for (int i = 0; i < c; i++) {
+
+        cin >> d[i];
+
+    }
+
+
+
+    int minimum = INF;
+
+    for(int mask=0; mask<(1<<(c)); mask++) {
+
+        int sum = 0;
+
+        int p=a, q=b;
+
+        for(int i=0; i<c; i++) {
+
+            if(mask & (1<<i)) {
+
+                sum += abs(p - d[i]);
+
+                p = d[i];
+
+            }else {
+
+                sum += abs(q - d[i]);
+
+                q = d[i];
+
+            }
+
+        }
+
+        minimum = min(minimum, sum);
+
+    }
+
+
+
+    cout << minimum << endl;
+
+
+
+    
+
+
+
+    return 0;
+
+}
+~
+0698~
+#include <stdio.h>
+int n, a[101], x = -100000;
+
+int main()
+{
+    scanf("%d", &n);
+    for(int i=1; i<=n; i++)
+    {
+        scanf("%d", &a[i]);
+        a[i] += a[i-1];
+    }
+    for(int i=1; i<=n; i++) for(int j=i; j<=n; j++) if(a[j]-a[j-i] > x) x = a[j]-a[j-i];
+    printf("%d", x);
+}
+~
+0706~
+#include <stdio.h>
+int n, m, G[31][31], sol, chk[11], greedy_chk[11];
+void greedy_ans(int V)
+{
+	int W=0, t;
+	greedy_chk[V]=1;
+	while(V!=n)
+	{
+		int min=0x7fffffff;
+		for(int i=1; i<=n; i++)
+			if(!greedy_chk[i] && G[V][i] && G[V][i]<min)
+			{
+				greedy_chk[i]=1;
+				min=G[V][i];
+				t=i;
+			}
+		sol+=G[V][t];
+		V=t;
+	}
+}
+void solve(int V, int W)
+{
+	if(W>sol) return;
+	if(V==n)
+	{
+		if(W<sol) sol=W;
+		return;
+	}
+	for(int i=1; i<=n; i++)
+		if(!chk[i] && G[V][i])
+		{
+			chk[i]=1;
+			solve(i, W+G[V][i]);
+			chk[i]=0;
+		}
+}
+int main(void)
+{
+	scanf("%d %d", &n, &m);
+	for(int i=0; i<m; i++)
+	{
+		int s, e, w;
+		scanf("%d %d %d", &s, &e, &w);
+		G[s][e]=G[e][s]=w;
+	}
+	greedy_ans(1);
+	solve(1, 0);
+	printf("%d\n", sol==0x7fffffff ? -1:sol);
+	return 0;
+}
+~
+0710~
+#include <stdio.h>
+
+int m[21][21];
+int dp[1 << 20];
+int n;
+
+void input(void)
+{
+    scanf("%d", &n);
+    for (int i = 0; i < n; i++)
+        for (int j = 0; j < n; j++)
+            scanf("%d", &m[i][j]);
+}
+
+int solve(int mask)
+{
+    if (mask == (1 << n) - 1)
+        return 0;
+    if (dp[mask] != -1)
+        return dp[mask];
+    int res = 0x7fffffff;
+    for (int i = 0; i < n; i++)
+    {
+        if (!(mask & (1 << i)))
+        {
+            int nm = mask | (1 << i);
+            res = (res < solve(nm) + m[__builtin_popcount(mask)][i]) ? res : solve(nm) + m[__builtin_popcount(mask)][i];
+        }
+    }
+    return dp[mask] = res;
+}
+
+int main()
+{
+    input();
+    for (int i = 0; i < (1 << n); i++)
+        dp[i] = -1;
+    printf("%d", solve(0));
+    return 0;
+}
+~
+0711~
+#include <stdio.h>
+
+int m[21][21];
+int dp[1 << 20];
+int n;
+
+void input(void)
+{
+    scanf("%d", &n);
+    for (int i = 0; i < n; i++)
+        for (int j = 0; j < n; j++)
+            scanf("%d", &m[i][j]);
+}
+
+int solve(int mask)
+{
+    if (mask == (1 << n) - 1)
+        return 0;
+    if (dp[mask] != -1)
+        return dp[mask];
+    int result = 0x7fffffff;
+    for (int i = 0; i < n; i++)
+    {
+        if (!(mask & (1 << i)))
+        {
+            int new_mask = mask | (1 << i);
+            result = (result < solve(new_mask) + m[__builtin_popcount(mask)][i]) ? result : solve(new_mask) + m[__builtin_popcount(mask)][i];
+        }
+    }
+    return dp[mask] = result;
+}
+
+int main()
+{
+    input();
+    for (int i = 0; i < (1 << n); i++)
+        dp[i] = -1;
+    printf("%d", solve(0));
+    return 0;
+}
+~
+0860~
+#include <stdio.h>
+
+int findKthprime(int k)
+{
+    int p[k], cnt=1, c=3, i;
+    p[0]=2;
+    while(cnt < k)
+    {
+        int x=1;
+        for(i=0; i<cnt; i++)
+        {
+            if(p[i]*p[i] > c) break;
+            if(c%p[i] == 0)
+            {
+                x=0;
+                break;
+            }
+        }
+        if(x)
+        {
+            p[cnt]=c;
+            cnt++;
+        }
+        c+=2;
+    }
+    return p[k-1];
+}
+
+int main()
+{
+    int k;
+    scanf("%d", &k);
+    printf("%d", findKthprime(k));
+}
+~
+0960~
+#include <stdio.h>
+
+int main()
+{
+    int n, i, j, x=0;
+    scanf("%d", &n);
+    for(i=1; i<=n/3; i++) for(j=i; j<=(n-i)/2; j++) if(i+j > n-i-j) x++;
+    printf("%d", x);
+}
+~
+1017~
+#include <stdio.h>
+#define MAX_W 100000
+
+int rowSum[MAX_W];
+int data[3000][MAX_W];
+int N, M, H, W, res = 0;
+
+int main()
+{
+    scanf("%d %d", &N, &M);
+    scanf("%d %d", &H, &W);
+    for (int i = 0; i < N; i++) {
+        for (int j = 0; j < M; j++) {
+            scanf("%d", &data[i][j]);
+        }
+    }
+    for (int i = 0; i <= N - H; i++)
+    {
+        for (int j = 0; j < M; j++)
+        {
+            rowSum[j] = 0;
+            for (int k = 0; k < H; k++)
+            {
+                rowSum[j] += data[i + k][j];
+            }
+        }
+        int currentSum = 0;
+        for (int j = 0; j < W; j++)
+        {
+            currentSum += rowSum[j];
+        }
+        if (currentSum > res) res = currentSum;
+        for (int j = W; j < M; j++)
+        {
+            currentSum += rowSum[j];
+            currentSum -= rowSum[j - W];
+            if (currentSum > res) res = currentSum;
+        }
+    }
+    printf("%d", res);
+    return 0;
+}
+~
+1057~
+#include <stdio.h>
+
+int main()
+{
+    int n, i, k;
+    scanf("%d", &n);
+    int a[n];
+    for(i=0; i<n; i++) scanf("%d", &a[i]);
+    scanf("%d", &k);
+    for(i=0; i<n; i++) if(a[i] >= k) break;
+    printf("%d", i+1);
+}
+~
+1058~
+#include <stdio.h>
+
+int main()
+{
+    int n, i, k;
+    scanf("%d", &n);
+    int a[n];
+    for(i=0; i<n; i++) scanf("%d", &a[i]);
+    scanf("%d", &k);
+    for(i=0; i<n; i++) if(a[i] > k) break;
+    printf("%d", i+1);
+}
+~
+1167~
+#include <stdio.h>
+
+int n, x;
+void f(int c)
+{
+    if(c == n)
+    {
+        x++;
+        return;
+    }
+    if(c > n)   return;
+    f(c+1), f(c+2);
+    return;
+}
+
+int main()
+{
+    scanf("%d", &n);
+    f(0);
+    printf("%d", x);
+}
+~
+1709~
+#include <stdio.h>
+
+int main()
+{
+   int n;
+   scanf("%d", &n);
+   for(int i=0; i<n; i++)
+   {
+       for(int j=1; j<=n; j++)
+       {
+           printf("%d ", i*n+j);
+       }
+       printf("\n");
+   }
+}
+~
+1710~
+#include <stdio.h>
+
+int main()
+{
+   int n;
+   scanf("%d", &n);
+   for(int i=0; i<n; i++)
+   {
+       for(int j=n; j>=1; j--)
+       {
+           printf("%d ", i*n+j);
+       }
+       printf("\n");
+   }
+}
+~
+1711~
+#include <stdio.h>
+
+int main()
+{
+   int n;
+   scanf("%d", &n);
+   for(int i=1; i<=n; i++)
+   {
+       for(int j=0; j<n; j++)
+       {
+           printf("%d ", i+j*n);
+       }
+       printf("\n");
+   }
+}
+~
+1712~
+#include <stdio.h>
+
+int main()
+{
+   int n;
+   scanf("%d", &n);
+   for(int i=0; i<n; i++)
+   {
+       for(int j=1; j<=n; j++)
+       {
+           printf("%d ", j*n-i);
+       }
+       printf("\n");
+   }
+}
+~
+1713~
+#include <stdio.h>
+
+int main()
+{
+   int n, m;
+   scanf("%d%d", &n, &m);
+   for(int i=n; i>0; i--)
+   {
+       for(int j=0; j<m; j++)
+       {
+           printf("%d ", i*m-j);
+       }
+       printf("\n");
+   }
+}
+~
+1714~
+#include <stdio.h>
+
+int main()
+{
+   int n, m;
+   scanf("%d%d", &n, &m);
+   for(int i=n; i>0; i--)
+   {
+       for(int j=m; j>0; j--)
+       {
+           printf("%d ", i*m-j+1);
+       }
+       printf("\n");
+   }
+}
+~
+1715~
+#include <stdio.h>
+
+int main()
+{
+   int n, m;
+   scanf("%d%d", &n, &m);
+   for(int i=n; i>0; i--)
+   {
+       for(int j=m; j>0; j--)
+       {
+           printf("%d ", (j-1)*n+i);
+       }
+       printf("\n");
+   }
+}
+~
+1716~
+#include <stdio.h>
+
+int main()
+{
+   int n, m;
+   scanf("%d%d", &n, &m);
+   for(int i=0; i<n; i++)
+   {
+       for(int j=m; j>0; j--)
+       {
+           printf("%d ", (j-1)*n+i+1);
+       }
+       printf("\n");
+   }
+}
+~
+1717~
+#include <stdio.h>
+
+int main()
+{
+   int n;
+   scanf("%d", &n);
+
+   for (int i=0; i<n; i++)
+   {
+      if (i%2==0)
+      {
+         for (int j=0; j<n; j++)
+         {
+            printf("%d ", i*n+j+1);
+         }
+      }
+      else
+      {
+         for (int j=n-1; j>=0; j--)
+         {
+            printf("%d ", i*n+j+1);
+         }
+      }
+      printf("\n");
+   }
+}
+~
+1718~
+#include <stdio.h>
+
+int main()
+{
+   int n;
+   scanf("%d", &n);
+
+   for (int i=0; i<n; i++)
+   {
+      if (i%2==1)
+      {
+         for (int j=0; j<n; j++)
+         {
+            printf("%d ", i*n+j+1);
+         }
+      }
+      else
+      {
+         for (int j=n-1; j>=0; j--)
+         {
+            printf("%d ", i*n+j+1);
+         }
+      }
+      printf("\n");
+   }
+}
+~
+1719~
+#include <stdio.h>
+
+int main()
+{
+   int n;
+   scanf("%d", &n);
+    int array[n][n];
+   for (int i = 0; i < n; i++)
+   {
+      for (int j = 0; j < n; j++)
+      {
+         if (j % 2 == 0)
+         {
+            array[i][j] = j*n+i+1;
+         }
+         else
+         {
+            array[i][j] = (j+1)*n-i;
+         }
+         printf("%d ", array[i][j]);
+      }
+      printf("\n");
+   }
+}
+~
+1720~
+#include <stdio.h>
+
+int main()
+{
+   int n;
+   scanf("%d", &n);
+    int array[n][n];
+   for (int i=0; i<n; i++)
+   {
+      for (int j=0; j<n; j++)
+      {
+         if (j%2==1)
+         {
+            array[i][j]=j*n+i+1;
+         }
+         else
+         {
+            array[i][j]=(j+1)*n-i;
+         }
+         printf("%d ", array[i][j]);
+      }
+      printf("\n");
+   }
+}
+~
+1721~
+#include <stdio.h>
+
+int main()
+{
+   int n, m, array[100][100];
+   scanf("%d%d", &n, &m);
+   for (int i=n; i>0; i--)
+   {
+      for (int j=m; j>0; j--)
+      {
+         if ((n-i)%2==n%2)
+         {
+            array[i][j]=i*m-j+1;
+         }
+         else
+         {
+            array[i][j]=(i-1)*m+j;
+         }
+         printf("%d ", array[i][j]);
+      }
+      printf("\n");
+   }
+}
+~
+1722~
+#include <stdio.h>
+
+int main()
+{
+   int n, m, array[100][100];
+   scanf("%d%d", &n, &m);
+   for (int i=n; i>0; i--)
+   {
+      for (int j=m; j>0; j--)
+      {
+         if ((n-i)%2!=n%2)
+         {
+            array[i][j]=i*m-j+1;
+         }
+         else
+         {
+            array[i][j]=(i-1)*m+j;
+         }
+         printf("%d ", array[i][j]);
+      }
+      printf("\n");
+   }
+}
+~
+1723~
+#include <stdio.h>
+
+int main()
+{
+   int n, m, array[100][100];
+   scanf("%d%d", &n, &m);
+   for (int i=n; i>0; i--)
+   {
+      for (int j=m; j>0; j--)
+      {
+         if ((m-j)%2!=m%2)
+         {
+            array[i][j]=(j-1)*n+i;
+         }
+         else
+         {
+            array[i][j]=j*n-i+1;
+         }
+         printf("%d ", array[i][j]);
+      }
+      printf("\n");
+   }
+}
+~
+1724~
+#include <stdio.h>
+
+int main()
+{
+   int n, m, array[100][100];
+   scanf("%d%d", &n, &m);
+   for (int i=n; i>0; i--)
+   {
+      for (int j=m; j>0; j--)
+      {
+         if ((m-j)%2==m%2)
+         {
+            array[i][j]=(j-1)*n+i;
+         }
+         else
+         {
+            array[i][j]=j*n-i+1;
+         }
+         printf("%d ", array[i][j]);
+      }
+      printf("\n");
+   }
+}
+~
+1725~
+#include <stdio.h>
+
+int main()
+{
+    int n, m, i, j, x=1;
+    scanf("%d%d", &n, &m);
+    int a[n][m];
+    for(i=0; i<n; i++)
+        for(j=0; j<=i && j<m; j++)
+            a[i-j][j] = x++;
+    for(j=1; j<m; j++)
+        for(i=0; i<n && i+j<m; i++)
+            a[n-1-i][j+i] = x++;
+    for(i=0; i<n; i++)
+    {
+        for(j=0; j<m; j++)
+            printf("%d ", a[i][j]);
+        printf("\n");
+    }
+}
+~
+1726~
+#include <stdio.h>
+
+int main()
+{
+    int n, m, i, j, x=1;
+    scanf("%d%d", &n, &m);
+    int a[n][m];
+    for(j=0; j<m; j++)
+        for(i=0; i<=j && i<n; i++)
+            a[i][j-i] = x++;
+    for(i=1; i<n; i++)
+        for(j=0; j<m && i+j<n; j++)
+            a[i+j][m-1-j] = x++;
+    for(i=0; i<n; i++)
+    {
+        for(j=0; j<m; j++)
+            printf("%d ", a[i][j]);
+        printf("\n");
+    }
+}
+~
+1727~
+#include <stdio.h>
+
+int main()
+{
+    int n, m, i, j, x=1;
+    scanf("%d%d", &n, &m);
+    int a[n][m];
+    for(j=0; j<m; j++)
+        for(i=0; i<=j && i<n; i++)
+            a[i][m-1-j+i] = x++;
+    for(i=1; i<n; i++)
+        for(j=0; j<m && i+j<n; j++)
+            a[i+j][j] = x++;
+    for(i=0; i<n; i++)
+    {
+        for(j=0; j<m; j++)
+            printf("%d ", a[i][j]);
+        printf("\n");
+    }
+}
+~
+1728~
+#include <stdio.h>
+
+int main()
+{
+    int n, m, i, j, x=1;
+    scanf("%d%d", &n, &m);
+    int a[n][m];
+    for(j=m-1; j>=-(n-1); j--)
+    {
+        for(i=n-1; i>=0; i--)
+        {
+            if(j+i >= 0 && j+i < m)
+                a[i][j+i] = x++;
+        }
+    }
+    for(i=0; i<n; i++)
+    {
+        for(j=0; j<m; j++)
+            printf("%d ", a[i][j]);
+        printf("\n");
+    }
+}
+~
+1729~
+#include <stdio.h>
+
+int main()
+{
+    int n, m, i, j;
+    scanf("%d%d", &n, &m);
+    int a[n][m], x=n*m;
+    for(i=0; i<n; i++)
+        for(j=0; j<=i && j<m; j++)
+            a[i-j][j] = x--;
+    for(j=1; j<m; j++)
+        for(i=0; i<n && i+j<m; i++)
+            a[n-1-i][j+i] = x--;
+    for(i=0; i<n; i++)
+    {
+        for(j=0; j<m; j++)
+            printf("%d ", a[i][j]);
+        printf("\n");
+    }
+}
+~
+1730~
+#include <stdio.h>
+
+int main()
+{
+    int n, m, i, j;
+    scanf("%d%d", &n, &m);
+    int a[n][m], x=n*m;
+    for(j=0; j<m; j++)
+        for(i=0; i<=j && i<n; i++)
+            a[i][j-i] = x--;
+    for(i=1; i<n; i++)
+        for(j=0; j<m && i+j<n; j++)
+            a[i+j][m-1-j] = x--;
+    for(i=0; i<n; i++)
+    {
+        for(j=0; j<m; j++)
+            printf("%d ", a[i][j]);
+        printf("\n");
+    }
+}
+~
+1731~
+#include <stdio.h>
+
+int main()
+{
+    int n, m, i, j;
+    scanf("%d%d", &n, &m);
+    int a[n][m], x=n*m;
+    for(j=0; j<m; j++)
+        for(i=0; i<=j && i<n; i++)
+            a[i][m-1-j+i] = x--;
+    for(i=1; i<n; i++)
+        for(j=0; j<m && i+j<n; j++)
+            a[i+j][j] = x--;
+    for(i=0; i<n; i++)
+    {
+        for(j=0; j<m; j++)
+            printf("%d ", a[i][j]);
+        printf("\n");
+    }
+}
+~
+1732~
+#include <stdio.h>
+
+int main()
+{
+    int n, m, i, j;
+    scanf("%d%d", &n, &m);
+    int a[n][m], x=n*m;
+    for(j=m-1; j>=-(n-1); j--)
+    {
+        for(i=n-1; i>=0; i--)
+        {
+            if(j+i >= 0 && j+i < m)
+                a[i][j+i] = x--;
+        }
+    }
+    for(i=0; i<n; i++)
+    {
+        for(j=0; j<m; j++)
+            printf("%d ", a[i][j]);
+        printf("\n");
+    }
+}
+~
+1733~
+#include <stdio.h>
+
+int a[100][100], i, j, n, m, d, cnt = 1;
+int dx[4] = {0, 1, 0, -1};
+int dy[4] = {1, 0, -1, 0};
+
+int main() {
+    scanf("%d%d", &n, &m);
+    while (cnt <= n * m) {
+        a[i][j] = cnt++;
+        int ni = i+dx[d], nj = j+dy[d];
+        if (ni < 0 || ni >= n || nj < 0 || nj >= m || a[ni][nj]) d = (d+1)%4;
+        i += dx[d];
+        j += dy[d];
+    }
+    for (i = 0; i < n; i++) {
+        for (j = 0; j < m; j++) printf("%d ", a[i][j]);
+        printf("\n");
+    }
+}
+~
+1734~
+#include <stdio.h>
+
+int a[100][100], i, j, n, m, d;
+int dx[4] = {0, 1, 0, -1};
+int dy[4] = {1, 0, -1, 0};
+
+int main() {
+    scanf("%d%d", &n, &m);
+    int cnt = n*m;
+    while (cnt > 0) {
+        a[i][j] = cnt--;
+        int ni = i + dx[d], nj = j + dy[d];
+        if (ni < 0 || ni >= n || nj < 0 || nj >= m || a[ni][nj]) d = (d + 1) % 4;
+        i += dx[d];
+        j += dy[d];
+    }
+    for (i = 0; i < n; i++) {
+        for (j = 0; j < m; j++) printf("%d ", a[i][j]);
+        printf("\n");
+    }
+}
+~
+1735~
+#include <stdio.h>
+
+int a[100][100], n, m, cnt = 1, dir, dx[] = {0, 1, 0, -1}, dy[] = {1, 0, -1, 0};
+
+void f(int x, int y)
+{
+    if(x < 0 || x >= n || y < 0 || y >= m || a[x][y] != 0) 
+    {
+        dir = (dir+1)%4;
+        return; //맵 이탈
+    }
+    
+    a[x][y] = cnt;
+    cnt++;
+    
+    while(cnt <= n*m) f(x+dx[dir], y+dy[dir]);
+}
+
+int main()
+{
+    scanf("%d %d", &n, &m);
+    f(0, m-1);
+    
+    for(int i = 0; i < n; i++)
+    {
+        for(int j = 0; j < m; j++)
+        {
+            printf("%d ", a[i][j]);
+        }
+        printf("\n");
+    }
+}
+~
+1736~
+#include <stdio.h>
+
+int a[100][100], n, m, cnt, dir, dx[] = {0, 1, 0, -1}, dy[] = {1, 0, -1, 0};
+
+void f(int x, int y)
+{
+    if(cnt == 0) return;
+    
+    if(x < 0 || x >= n || y < 0 || y >= m || a[x][y] != 0) 
+    {
+        dir = (dir+1)%4;
+        x = x-dx[(dir+3)%4]+dx[dir];
+        y = y-dy[(dir+3)%4]+dy[dir]; //맵 이탈 또는 이미 방문
+    }
+    
+    if(a[x][y] == 0 && !(x < 0 || x >= n || y < 0 || y >= m))
+    {
+        a[x][y] = cnt;
+        cnt--;
+    }
+    
+    f(x+dx[dir], y+dy[dir]);
+}
+
+int main()
+{
+    scanf("%d %d", &n, &m);
+    cnt = n*m;
+    f(0, m-1);
+    
+    for(int i = 0; i < n; i++)
+    {
+        for(int j = 0; j < m; j++)
+        {
+            printf("%d ", a[i][j]);
+        }
+        printf("\n");
+    }
+}
+~
+1737~
+#include <stdio.h>
+
+int a[100][100], n, m, cnt, dir = 0, dx[] = {0, 1, 0, -1}, dy[] = {1, 0, -1, 0};
+
+void f(int x, int y)
+{
+    if(cnt > n*m) return;
+    
+    if(x < 0 || x >= n || y < 0 || y >= m || a[x][y] != 0) 
+    {
+        dir = (dir+1)%4;
+        return; //맵 이탈 또는 이미 방문
+    }
+    
+    if(a[x][y] == 0 && !(x < 0 || x >= n || y < 0 || y >= m))
+    {
+        a[x][y] = cnt;
+        cnt++;
+    }
+    
+    while(cnt <= n*m) f(x+dx[dir], y+dy[dir]);
+}
+
+int main()
+{
+    scanf("%d %d", &n, &m);
+    cnt = 1;
+    f(n-1, m-1);
+    
+    for(int i = 0; i < n; i++)
+    {
+        for(int j = 0; j < m; j++)
+        {
+            printf("%d ", a[i][j]);
+        }
+        printf("\n");
+    }
+}
+~
+1738~
+#include <stdio.h>
+
+int a[100][100], n, m, cnt, dir = 0, dx[] = {0, 1, 0, -1}, dy[] = {1, 0, -1, 0};
+
+void f(int x, int y)
+{
+    if(cnt > n*m) return;
+    
+    if(x < 0 || x >= n || y < 0 || y >= m || a[x][y] != 0) 
+    {
+        dir = (dir+1)%4;
+        return; //맵 이탈 또는 이미 방문
+    }
+    
+    if(a[x][y] == 0 && !(x < 0 || x >= n || y < 0 || y >= m))
+    {
+        a[x][y] = n*m-cnt+1;
+        cnt++;
+    }
+    
+    while(cnt <= n*m) f(x+dx[dir], y+dy[dir]);
+}
+
+int main()
+{
+    scanf("%d %d", &n, &m);
+    cnt = 1;
+    f(n-1, m-1);
+    
+    for(int i = 0; i < n; i++)
+    {
+        for(int j = 0; j < m; j++)
+        {
+            printf("%d ", a[i][j]);
+        }
+        printf("\n");
+    }
+}
+~
+1739~
+#include <stdio.h>
+
+int a[100][100], n, m, cnt, dir = 0, dx[] = {0, -1, 0, 1}, dy[] = {-1, 0, 1, 0};
+
+void f(int x, int y)
+{
+    if(cnt > n*m) return;
+    
+    if(x < 0 || x >= n || y < 0 || y >= m || a[x][y] != 0) 
+    {
+        dir = (dir+1)%4;
+        return; //맵 이탈 또는 이미 방문
+    }
+    
+    if(a[x][y] == 0 && !(x < 0 || x >= n || y < 0 || y >= m))
+    {
+        a[x][y] = cnt;
+        cnt++;
+    }
+    
+    while(cnt <= n*m) f(x+dx[dir], y+dy[dir]);
+}
+
+int main()
+{
+    scanf("%d %d", &n, &m);
+    cnt = 1;
+    f(n-1, 0);
+    
+    for(int i = 0; i < n; i++)
+    {
+        for(int j = 0; j < m; j++)
+        {
+            printf("%d ", a[i][j]);
+        }
+        printf("\n");
+    }
+}
+~
+1740~
+#include <stdio.h>
+
+int a[100][100], n, m, cnt, dir = 0, dx[] = {0, -1, 0, 1}, dy[] = {-1, 0, 1, 0};
+
+void f(int x, int y)
+{
+    if(cnt > n*m) return;
+    
+    if(x < 0 || x >= n || y < 0 || y >= m || a[x][y] != 0) 
+    {
+        dir = (dir+1)%4;
+        return; //맵 이탈 또는 이미 방문
+    }
+    
+    if(a[x][y] == 0 && !(x < 0 || x >= n || y < 0 || y >= m))
+    {
+        a[x][y] = n*m-cnt+1;
+        cnt++;
+    }
+    
+    while(cnt <= n*m) f(x+dx[dir], y+dy[dir]);
+}
+
+int main()
+{
+    scanf("%d %d", &n, &m);
+    cnt = 1;
+    f(n-1, 0);
+    
+    for(int i = 0; i < n; i++)
+    {
+        for(int j = 0; j < m; j++)
+        {
+            printf("%d ", a[i][j]);
+        }
+        printf("\n");
+    }
+}
+~
+1741~
+#include <stdio.h>
+
+int main()
+{
+    int n, a[101] = {0};
+    scanf("%d", &n);
+    for(int i=1; i<=n; i++)
+    {
+        scanf("%d", &a[i]);
+        a[i] = a[i-1]+a[i];
+        printf("%d ", a[i]);
+    }
+}
+~
+1742~
+#include <stdio.h>
+
+int n, m, i, j, a[101][101], b[101][101];
+
+int main()
+{
+    scanf("%d%d", &n, &m);
+    for(i=1; i<=n; i++)
+    {
+        for(j=1; j<=m; j++)
+        {
+            scanf("%d", &a[i][j]);
+            a[i][j] = a[i-1][j] + a[i][j];
+        }
+    }
+    for(i=1; i<=n; i++)
+    {
+        for(j=1; j<=m; j++)
+        {
+            a[i][j] = a[i][j-1] + a[i][j];
+            printf("%d ", a[i][j]);
+        }
+        printf("\n");
+    }
+}
+~
+1743~
+#include <stdio.h>
+
+#define MAX_SIZE 101
+
+int main() {
+    int n, k;
+    int d[MAX_SIZE] = {0};  // 배열 초기화
+    int sum[MAX_SIZE] = {0};  // 누적 합 배열
+
+    // 입력 받기
+    scanf("%d %d", &n, &k);
+
+    // k개의 구간 처리
+    for (int i = 0; i < k; i++) {
+        int s, e, u;
+        scanf("%d %d %d", &s, &e, &u);
+        d[s] += u;
+        if (e + 1 <= n) d[e + 1] -= u;
+    }
+
+    // 누적 합 계산 및 출력
+    for (int i = 1; i <= n; i++) {
+        printf("%d ", d[i]);
+        sum[i] = sum[i-1] + d[i];
+    }
+    printf("\n");
+
+    for (int i = 1; i <= n; i++) {
+        printf("%d ", sum[i]);
+    }
+    printf("\n");
+
+    return 0;
+}
+~
+1746~
+#include <bits/stdc++.h>
+using namespace std;
+
+int main() {
+    ios::sync_with_stdio(false);
+    cin.tie(NULL);
+
+    int n; cin >> n;
+    vector<int> v(n);
+    for (int i = 0; i < n; ++i) cin >> v[i];
+    vector<int> res;
+    for (int i = 0; i < n; i += 2) {
+        res.push_back(max(v[i], v[i+1]));
+    }
+    for (int i = 0; i < (int)res.size(); ++i) {
+        cout << res[i] << (i == (int)res.size() - 1 ? '\n' : ' ');
+    }
+}
+~
+1841~
+void f()
+{
+    printf("hello");
+    return;
+}
+~
+1842~
+void f()
+{
+    printf("123");
+    return;
+}
+~
+1843~
+void f()
+{
+    printf("%c", '*');
+    return;
+}
+~
+1844~
+void f()
+{
+    printf("%c%c", '*', '*');
+    return;
+}
+~
+1845~
+char f()
+{
+    return 'A';
+}
+~
+1846~
+int f()
+{
+    return 1;
+}
+~
+1847~
+long long int f()
+{
+    return -2147483649LL;
+}
+~
+1848~
+float f()
+{
+    return 3.14F;
+}
+~
+1849~
+double f()
+{
+    return 3.1415926535897;
+}
+~
+1850~
+int f()
+{
+    int x = 0;
+    for(int i=0; i<n; i++)
+    {
+        if(d[i] > d[x]) x = i;
+    }
+    return x+1;
+}
+~
+1851~
+long long int f()
+{
+    long long int x = d[1];
+    for(int i=1; i<=n; i++)
+    {
+        if(d[i] < x) x = d[i];
+    }
+    return x;
+}
+~
+1852~
+void f(int x)
+{
+   if(x == 1) printf("hello\n");
+   else if(x == 2) printf("world\n");
+   else printf("\n");
+   return;
+}
+~
+1853~
+void f(int k)
+{
+   if( n%2 == 0 )  printf("even");
+   else    printf("odd");
+}
+~
+1854~
+void f(int n)
+{
+    if( n == 0 )    printf("false");
+    else    printf("true");
+}
+~
+1855~
+void f(int n)
+{
+    if( n == 0 )    printf("zero");
+    else    printf("non zero");
+}
+~
+1856~
+void f(int n)
+{
+    if( n == 0 )    printf("zero");
+    else if( n < 0 )    printf("negative");
+    else    printf("positive");
+}
+~
+1857~
+void f(int n)
+{
+    int x=0;
+    for( int i=1; i<n; i++ )
+    {
+        if( n%i == 0 )  x++;
+    }
+    if( x == 1 )    printf("prime");
+    else    printf("composite");
+}
+~
+1858~
+void f(int n)
+{
+    for( int i=0; i<n; i++ )    printf("love\n");
+}
+~
+1859~
+void f(int n)
+{
+    for( int i=0; i<n; i++ )    printf("%c", '*');
+}
+~
+1860~
+bool zero(int k)
+{
+    return !k;
+}
+~
+1861~
+bool zero(int k)
+{
+    return !k;
+}
+
+bool plus(int k)
+{
+    return k>0;
+}
+~
+1862~
+bool prime(int k)
+{
+   int i;
+   for(i=2; i<k; i++)
+      if(k%i == 0)
+         break;
+   return i==k;
+}
+~
+1863~
+char grade(int k)
+{
+  if( k < 60 ) return 'F';
+  if( k < 70 ) return 'D';
+  if( k < 80 ) return 'C';
+  if( k < 90 ) return 'B';
+  return 'A';
+}
+~
+1864~
+long long int abs(long long int x)
+{
+    if (x < 0) return -x;
+    return x;
+}
+~
+1865~
+int sqrt(long long int n)
+{
+    if (n == 1) return n;
+    
+    long long int x = n;
+    long long int prev_x = 0;
+
+    while (x != prev_x) {
+        prev_x = x;
+        x = (x + n / x) / 2;
+    }
+    
+    return x;
+}
+~
+1866~
+int f(int p)
+
+{
+
+    int ans = -1;
+
+    for (int i = n; i>=1; i--){
+
+        if(d[i] == p) ans = i;
+
+    }
+
+    return ans;
+
+}
+~
+1867~
+int f(float x)
+
+{
+
+  return (int)x;
+
+}
+~
+1868~
+double f(double x)
+
+{
+
+  return x-(long long int)x;
+
+}
+~
+1869~
+long long int f(double x)
+
+{
+
+  long long int t=(long long int)x;
+
+
+
+  if(t<x)
+
+    return x+1;
+
+  else
+
+    return x;
+
+}
+~
+1871~
+long long int f(int k)
+
+{
+
+    long long int sum = 0;
+
+    for (int i = 1; i<=k; i++){
+
+        sum += i;
+
+    }
+
+    return sum;
+
+}
+~
+1872~
+long long int f(int k)
+
+{
+
+    long long int gop = 1;
+
+    for (int i = 1; i<=k; i++) gop *= i;
+
+    return gop;
+
+}
+~
+1873~
+int f(int k)
+
+{
+
+    int sum =0;
+
+    for (int i = 1; i<=k; i++){
+
+        if(k % i == 0) sum ++;
+
+    }
+
+    return sum;
+
+}
+~
+1875~
+long long int f(int n, int m)
+
+{
+
+    return (long long int)n+m;
+
+}
+~
+1876~
+long long int f(long long int n, long long int m)
+
+{
+
+    if(n>m) return (long long int)n-m;
+
+    else return (long long int) m-n;
+
+}
+~
+1877~
+int max(int p, int q)
+{
+    return p >= q ? p : q;
+}
+~
+1878~
+int min(int p, int q)
+{
+    return p <= q ? p : q;
+}
+~
+1879~
+int mid(int p, int q, int r)
+
+{
+
+    return min(min(max(p, q), max(q, r)), max(p, r));
+
+}
+~
+1880~
+int gcd(int n, int m)
+
+{
+
+    int flag;
+
+    for (int i = 1; i<=n; i++){
+
+        if(n%i == 0 && m%i == 0) flag = i;
+
+    }
+
+    return flag;
+
+}
+~
+1881~
+long long int lcm(int a, int b)
+
+{
+
+    return (long long int)a*b/gcd(a, b);
+
+}
+~
+1883~
+long long int subsetsum(int a, int b)
+
+{
+
+    long long int sum = 0;
+
+    for (int i = a; i<=b; i++){
+
+        sum += d[i];
+
+    }
+
+    return sum;
+
+}
+~
+1884~
+int maxi(int a, int b)
+
+{
+
+    int maxval = d[a];
+
+    int maxindex = a;
+
+    for (int i = a + 1; i <= b; i++) {
+
+        if (d[i] > maxval) {
+
+            maxval = d[i];
+
+            maxindex = i;
+
+        }
+
+    }
+
+    return maxindex;
+
+}
+~
+1888~
+#include <stdio.h>
+
+void f(int n) {
+
+    if(n == 0) return;
+
+   printf("*");
+
+   f(n-1);
+
+   return;
+
+}
+
+int main()
+
+{
+
+    int n;
+
+    scanf("%d", &n);
+
+    f(n);
+
+    return 0;
+
+}
+~
+1889~
+#include <stdio.h>
+
+void f(int n) {
+
+    if(n == 0) return;
+
+    f(n-1);
+
+   printf("%d ", n);
+
+   return;
+
+}
+
+int main()
+
+{
+
+    int n;
+
+    scanf("%d", &n);
+
+    f(n);
+
+    return 0;
+
+}
+~
+1890~
+#include <stdio.h>
+
+
+
+int n;
+
+
+
+int f(int k)
+
+{
+
+  if(k <= 1) return 1;
+
+  return f(k-1)+k;
+
+}
+
+
+
+int main()
+
+{
+
+  scanf("%d", &n);
+
+  printf("%d\n", f(n));
+
+}
+~
+1891~
+#include <stdio.h>
+
+
+
+long long n, sum = 0;
+
+
+
+void f(long long k)
+
+{
+
+    if(k == 0) return;
+
+    sum += k%10;
+
+    f(k/10);
+
+}
+
+
+
+int main()
+
+{
+
+  scanf("%lld", &n);
+
+  f(n);
+
+  printf("%lld\n", sum);
+
+}
+~
+1892~
+#include <stdio.h>
+
+int n;
+
+long long int f(int k)
+
+{
+
+  if(k <= 2) return 1;
+
+  return f(k-2)+f(k-1);
+
+}
+
+int main()
+
+{
+
+  scanf("%d", &n);
+
+  printf("%lld\n", f(n));
+
+}
+~
+1893~
+#include <stdio.h>
+
+int n, sum = 0;
+
+void f(int now)
+
+{
+
+    if(now > n) return;
+
+    if(now == n){
+
+        sum++;
+
+        return;
+
+    }
+
+    f(now+1);
+
+    f(now+2);
+
+    f(now+3);
+
+}
+
+int main()
+
+{
+
+    scanf("%d", &n);
+
+    f(0);
+
+    printf("%d", sum);
+
+    return 0;
+
+}
+~
+1896~
+#include <stdio.h>
+
+void printStars(int k) {
+    if (k <= 0) return;
+    printStars(k - 1);
+    printf("*");
+}
+
+void printTriangle(int k) {
+    if (k <= 0) return;
+    printTriangle(k - 1);
+    printStars(k);
+    printf("\n");
+}
+
+int main() {
+    int n;
+    scanf("%d", &n);
+    printTriangle(n);
+    return 0;
+}
+~
+1897~
+#include <stdio.h>
+
+void g(int n)
+
+{
+
+    if(n == 0) return;
+
+    g(n-1);
+
+    printf("%d ", n);
+
+}
+
+void f(int n) {
+
+    if(n == 0) return;
+
+    f(n-1);
+
+    g(n);
+
+   printf("\n");
+
+   return;
+
+}
+
+int main()
+
+{
+
+    int n;
+
+    scanf("%d", &n);
+
+    f(n);
+
+    return 0;
+
+}
+~
+2647~
+#include <stdio.h>
+
+int main() {
+    int n;
+    scanf("%d", &n);
+
+    long long a[n];
+    for (int i = 0; i < n; i++)
+        scanf("%lld", &a[i]);
+
+    for (int i = 0; i <= n - 3; i++) {
+        if (a[i] + a[i + 1] > a[i + 2]) {
+            printf("No\n");
+            return 0;
+        }
+    }
+
+    printf("Yes\n");
+    return 0;
+}
+~
+2648~
+#include <stdio.h>
+
+int main()
+{
+	long long x, y, n, k;
+
+	scanf("%lld%lld%lld", &x, &y, &n);
+	k = n - (n - y) % x;
+	printf("%lld\n", k);
+	return 0;
+}
+~
+2649~
+#include <stdio.h>
+
+int main() {
+    long long n;
+    scanf("%lld", &n);
+
+    long long maxGCD = n / 2;
+
+    printf("%lld\n", maxGCD);
+    return 0;
+}
+~
+2650~
+#include <stdio.h>
+
+int main() {
+    long long n;
+    
+    scanf("%lld", &n);
+    if(n%4==0)
+    printf("YES");
+    else
+    printf("NO");
+}
+~
+2653~
+#include <stdio.h>
+
+int main() {
+    long long n;
+    
+    scanf("%lld", &n);
+    if(n%2==0)
+    printf("%lld",n/2-1);
+    else
+    printf("%lld", n/2);
+}
+~
+2660~
+#include <stdio.h>
+
+int main() {
+    long long n;
+    
+    scanf("%lld", &n);
+    printf("%lld", (n+1)/2);
+}
+~
+2662~
+#include <stdio.h>
+
+int main()
+{
+	long long n, odd=0, even=0;
+
+	scanf("%lld", &n);
+    if (n <= 0) {
+        printf("-1");
+        return 0;
+    }
+    
+	long long a[n];
+
+	for(int i=0; i<n; i++)
+	{
+		scanf("%lld", &a[i]);
+		if(a[i]%2==0 && i%2==1)
+			even++;
+		else if(a[i]%2==1 && i%2==0)
+			odd++;
+	}
+
+	if(even==odd)
+		printf("%lld", even);
+	else
+		printf("-1");
+}
+~
+2664~
+#include <stdio.h>
+
+int main()
+{
+	long long n, m;
+
+	scanf("%lld%lld", &n, &m);
+	
+	if(n==2 && m==2)
+	    printf("YES");
+	else if(n==1 || m==1)
+	    printf("YES");
+	else
+	    printf("NO");
+}
+~
+2672~
+#include <stdio.h>
+
+int main() 
+{
+    long long n, count;
+    scanf("%lld", &n);
+    
+    long long a[n];
+    for(long long i=0; i<n; i++)
+    {
+        scanf("%lld", &a[i]);
+        if(a[i]!=1)
+            break;
+        else
+            count++;
+    }
+    
+    if(count%2==0 && count!=n)
+        printf("G");
+    else if(count==n && n%2==1)
+        printf("G");
+    else if(count==n && n%2==0)
+        printf("S");
+    else
+        printf("S");
+}
+~
+2699~
+#include <stdio.h>
+
+int main() 
+{
+    long long a, b;
+    scanf("%lld%lld", &a, &b);
+    
+    if(a==b)
+        printf("%lld", a);
+    else
+        printf("%lld", b*(b-1));
+}
+~
+2795~
+print("17")
+~
+2815~
+n = int(input())
+
+print("======")
+
+print("%d Dan" % n)
+
+print("======")
+
+for i in range(1, 10):
+
+    print("%d*%d=%d" % (n, i, n*i))
+
+print("======")
+~
+2855~
+print('Welcome to Koistudy')
+~
+2856~
+print('Welcome to "Koistudy"')
+~
+2857~
+print("OO@OO")
+
+print("O@O@O")
+
+print("@OOO@")
+
+print("@@@@@")
+
+print("@OOO@")
+~
+2858~
+print("@@@@O")
+
+print("@OOO@")
+
+print("@@@@O")
+
+print("@OOO@")
+
+print("@@@@O")
+~
+2863~
+#include <stdio.h>
+
+int main()
+
+{
+
+    int n, c;
+
+    scanf("%d", &n);
+
+    for (int i = 0; i<n; i++) {
+
+        scanf("%d", &c);
+
+        printf("%d\n", c);
+
+    }
+
+    return 0;
+
+}
+~
+2864~
+#include <stdio.h>
+
+int main()
+
+{
+
+    int n, a[101];
+
+    scanf("%d", &n);
+
+    for (int i = 0; i<n; i++) {
+
+        scanf("%d", &a[i]);
+
+    }
+
+    for (int i = n-1; i>=0; i--) printf("%d\n", a[i]);
+
+    return 0;
+
+}
+~
+2865~
+#include <stdio.h>
+
+int main()
+
+{
+
+    int n, a[101];
+
+    scanf("%d", &n);
+
+    for (int i = 0; i<n; i++) {
+
+        scanf("%d", &a[i]);
+
+    }
+
+    for (int i = 1; i<n; i += 2) printf("%d\n", a[i]);
+
+    return 0;
+
+}
+~
+2866~
+#include <stdio.h>
+
+int main()
+
+{
+
+    int n, a[101];
+
+    scanf("%d", &n);
+
+    for (int i = 0; i<n; i++) {
+
+        scanf("%d", &a[i]);
+
+    }
+
+    for (int i = 0; i<n; i += 2) printf("%d\n", a[i]);
+
+    return 0;
+
+}
+~
+2867~
+#include <stdio.h>
+
+int main()
+
+{
+
+    int n, a[101], m, q[101];
+
+    scanf("%d", &n);
+
+    for (int i = 0; i<n; i++) {
+
+        scanf("%d", &a[i]);
+
+    }
+
+    scanf("%d", &m);
+
+    for (int i = 0; i<m; i++){
+
+        scanf("%d", &q[i]);
+
+        printf("%d\n", a[q[i]-1]);
+
+    }
+
+    return 0;
+
+}
+~
+2868~
+#include <stdio.h>
+
+int main()
+
+{
+
+    int n, m, a[101], s, e;
+
+    scanf("%d", &n);
+
+    for (int i = 1; i<=n; i++) scanf("%d", &a[i]);
+
+    scanf("%d", &m);
+
+    for (int i = 1; i<=m; i++){
+
+        scanf("%d %d", &s, &e);
+
+        int sum = 0;
+
+        for (int j = s; j<=e; j++) sum += a[j];
+
+        printf("%d\n", sum);
+
+    }
+
+    return 0;
+
+}
+~
+2869~
+#include <stdio.h>
+
+int isprime(int p)
+
+{
+
+    for (int i = 2; i*i <= p; i++){
+
+        if(p % i == 0) return 0;
+
+    }
+
+    return 1;
+
+}
+
+int main()
+
+{
+
+    int n, cnt = 0, p = 2;
+
+    scanf("%d", &n);
+
+    while(cnt < n){
+
+        if(isprime(p)) cnt++;
+
+        if(cnt == n) printf("%d", p);
+
+        p++;
+
+    }
+
+    return 0;
+
+}
+~
+2870~
+#include <stdio.h>
+
+int m, n[100001];
+
+int isprime(int p)
+
+{
+
+    for (int i = 2; i*i <= p; i++){
+
+        if(p % i == 0) return 0;
+
+    }
+
+    return 1;
+
+}
+
+int main()
+
+{
+
+    scanf("%d", &m);
+
+    for(int i = 1; i<=m; i++){
+
+        scanf("%d", &n[i]);
+
+        int cnt = 0, p = 2;
+
+        while(cnt < n[i]){
+
+            if(isprime(p)) cnt++;
+
+            if(cnt == n[i]) printf("%d\n", p);
+
+            p++;
+
+        }
+
+    }
+
+    return 0;
+
+}
+~
+2953~
+print("YES")
+~
+2954~
+#include <stdio.h>
+
+void printNumbers(int current, int n) {
+    if (current > n) return;
+    printf("%d\n", current);
+    printNumbers(current + 1, n);
+}
+
+int main() {
+    int n;
+    scanf("%d", &n);
+    printNumbers(1, n);
+    return 0;
+}
+~
+2955~
+#include <stdio.h>
+
+int n;
+int main()
+{
+   scanf("%d", &n);
+   for (int i = 1; i <= n; i++)
+      if (i % 2 == 0)
+         printf("%d\n", i);
+   return 0;
+}
+~
+2956~
+#include <cstdio>
+
+#include <cmath>
+
+#include <algorithm>
+
+#include <cstring>
+
+using namespace std;
+
+int main() {
+
+    int n;
+
+    scanf("%d", &n);
+
+    for (int i = 1; i<=n; i++){
+
+        if(i%2 == 1) printf("%d\n", i);
+
+    }
+
+    return 0;
+
+}
+~
+2957~
+a, b = map(int, input().split( ))
+
+print(b-a+1)
+~
+2958~
+#include <cstdio>
+
+#include <cmath>
+
+#include <algorithm>
+
+#include <cstring>
+
+using namespace std;
+
+int main() {
+
+    int a, b, flag = 0;
+
+    scanf("%d %d", &a, &b);
+
+    for (int i = a; i<=b; i++){
+
+        if(i%2 == 1) flag++;
+
+    }
+
+    printf("%d", flag);
+
+    return 0;
+
+}
+~
+2959~
+#include <cstdio>
+
+#include <cmath>
+
+#include <algorithm>
+
+#include <cstring>
+
+using namespace std;
+
+int main() {
+
+    int a, b, flag = 0;
+
+    scanf("%d %d", &a, &b);
+
+    for (int i = a; i<=b; i++){
+
+        if(i%2 == 0) flag++;
+
+    }
+
+    printf("%d", flag);
+
+    return 0;
+
+}
+~
+2965~
+#include <stdio.h>
+
+void printDescending(int n) {
+    if (n <= 0) return;
+    printf("%d\n", n);
+    printDescending(n - 1);
+}
+
+int main() {
+    int n;
+    scanf("%d", &n);
+    printDescending(n);
+    return 0;
+}
+~
+2966~
+#include <stdio.h>
+
+void printEvenDescending(int n) {
+    if (n <= 0) return;
+    if (n % 2 == 0) printf("%d\n", n);
+    printEvenDescending(n - 1);
+}
+
+int main() {
+    int n;
+    scanf("%d", &n);
+    printEvenDescending(n);
+    return 0;
+}
+~
+2967~
+#include <stdio.h>
+int n;
+int main()
+{
+   scanf("%d", &n);
+   for(int i = n; i >= 1; i--)
+      if(i % 2 == 1)
+         printf("%d\n", i);
+   return 0;
+}
+~
+2968~
+#include <stdio.h>
+
+int main() {
+    int a, b, sum = 0;
+    scanf("%d %d", &a, &b);
+    for (int i = a; i <= b; i++)
+        sum += i;
+    printf("%d\n", sum);
+    return 0;
+}
+~
+2969~
+#include <stdio.h>
+
+int main() {
+    int a, b, sum = 0;
+    scanf("%d %d", &a, &b);
+    for (int i = a; i <= b; i++)
+        if (i % 2 == 1)
+            sum += i;
+    printf("%d\n", sum);
+    return 0;
+}
+~
+2970~
+#include <stdio.h>
+
+int a, b, sum = 0;
+
+int main()
+{
+   scanf("%d %d", &a, &b);
+   for(int i = a; i <= b; i++)
+      if(i % 2 == 0)
+         sum = sum + i;
+   printf("%d\n", sum);
+   return 0;
+}
+~
+2971~
+#include <stdio.h>
+
+int a, b;
+
+int main() {
+    scanf("%d %d", &a, &b);
+    for (int i = 0; i < b; i++) {
+        for (int j = 0; j < a; j++) {
+            printf("@");
+        }
+        printf("\n");
+    }
+    return 0;
+}
+~
+2972~
+#include <stdio.h>
+
+int main() {
+    int a, b;
+    scanf("%d %d", &a, &b);
+    for (int i = 1; i <= b; i++) {
+        if (i == 1 || i == b) {
+            for (int j = 0; j < a; j++) printf("@");
+        } else {
+            if (a == 1) {
+                printf("@");
+            } else {
+                printf("@");
+                for (int j = 0; j < a - 2; j++) printf(" ");
+                printf("@");
+            }
+        }
+        printf("\n");
+    }
+    return 0;
+}
+~
+3014~
+print("Hello")
+~
+3015~
+print("Hello World")
+~
+3016~
+print("Hello")
+print("World")
+~
+3017~
+print("'Hello'")
+~
+3018~
+print('"Hello World"')
+~
+3019~
+print('"!@#$%^&*()"')
+~
+3020~
+print('"C:\Download\hello.py"')
+~
+3021~
+print('print("Hello World")')
+~
+3022~
+n = input()
+print(n)
+~
+3023~
+c = input()
+print(c)
+~
+3024~
+f = input()
+print(f)
+~
+3025~
+a = input()
+b = input()
+print(a)
+print(b)
+~
+3026~
+a = input()
+b = input()
+print(b)
+print(a)
+~
+3027~
+a = input()
+print(a)
+print(a)
+print(a)
+~
+3028~
+a, b = input().split(":")
+print(a, b, sep = ":")
+~
+3029~
+y, m, d = input().split(".")
+print(d, m, y, sep = "-")
+~
+3030~
+s = input()
+print(s.replace("-", ""))
+~
+3031~
+s = input()
+print(s[0])
+print(s[1])
+print(s[2])
+print(s[3])
+print(s[4])
+~
+3032~
+s = input()
+print(s[0:2], s[2:4], s[4:6])
+~
+3033~
+t = input()
+print(int(t.split(":")[1]))
+~
+3034~
+a, b = input().split()
+print(a + b)
+~
+3035~
+a, b = input().split()
+print(int(a) + int(b))
+~
+3036~
+a = input()
+b = input()
+print(float(a) + float(b))
+~
+3037~
+a = int(input())
+print("%x" % a)
+~
+3038~
+n = int(input())
+print(("%X") % n)
+~
+3039~
+a = input()
+n = int(a, 16)
+print("%o" % n)
+~
+3040~
+a = ord(input())
+print(a)
+~
+3041~
+c = int(input())
+
+print(chr(c))
+~
+3042~
+a = int(input())
+print(-a)
+~
+3043~
+a = ord(input())
+print(chr(a+1))
+~
+3044~
+a, b = input().split()
+print(int(a)-int(b))
+~
+3045~
+a, b = input().split()
+print(float(a)*float(b))
+~
+3046~
+a, b = input().split()
+print(a*int(b))
+~
+3047~
+a = input()
+b = input()
+print(b*int(a))
+~
+3048~
+a, b = input().split()
+print(int(a)**int(b))
+~
+3049~
+a, b = map(float, input().split( ))
+
+c = a**b
+
+print(c)
+~
+3050~
+a, b = input().split()
+print(int(a) // int(b))
+~
+3051~
+a, b = map(int, input().split())
+print(a % b)
+~
+3052~
+print(round(float(input()), 2))
+~
+3053~
+a, b = map(float, input().split())
+print(round(a/b, 3))
+~
+3054~
+a, b = map(int, input().split())
+print(a+b, a-b, a*b, a//b, a%b, round(a/b, 2), sep = "\n")
+~
+3055~
+a, b, c = map(int, input().split())
+print(a+b+c, round((a+b+c)/3, 2))
+~
+3056~
+a = int(input())
+print(a<<1)
+~
+3057~
+a, b = map(int, input().split())
+print(a<<b)
+~
+3058~
+a, b = map(int, input().split())
+print(a<b)
+~
+3059~
+a, b = map(int, input().split())
+print(a==b)
+~
+3060~
+a, b = map(int, input().split())
+print(a<=b)
+~
+3061~
+a, b = map(int, input().split())
+print(a!=b)
+~
+3062~
+a = int(input())
+print(bool(a))
+~
+3063~
+a = int(input())
+print(not bool(a))
+~
+3064~
+a, b = map(bool, map(int, input().split()))
+print(a and b)
+~
+3065~
+a, b = map(bool, map(int, input().split()))
+print(a or b)
+~
+3066~
+a, b = map(bool, map(int, input().split()))
+print(a and not b or not a and b)
+~
+3067~
+a, b = map(bool, map(int, input().split()))
+print(not(a ^ b))
+~
+3068~
+a, b = map(bool, map(int, input().split()))
+print(not(a or b))
+~
+3069~
+a = int(input())
+print(~a)
+~
+3070~
+a, b = map(int, input().split())
+print(a&b)
+~
+3071~
+a, b = map(int, input().split())
+print(a|b)
+~
+3072~
+a, b = map(int, input().split())
+print(a^b)
+~
+3073~
+a, b = map(int, input().split())
+print(a if(a>=b) else b)
+~
+3074~
+a, b, c = map(int, input().split())
+print((a if(a<=b) else b) if ((a if(a<=b) else b)<=c) else c)
+~
+3075~
+a, b, c = map(int, input().split())
+for num in [a, b, c]:
+    if num%2==0:
+print(num)
+~
+3076~
+a = map(int, input().split())
+for num in a :
+    if num%2==0 :
+        print('even')
+    else :
+print('odd')
+~
+3077~
+n = int(input())
+
+print(
+    "A" if n < 0 and n % 2 == 0 else
+    "B" if n < 0 and n % 2 != 0 else
+    "C" if n > 0 and n % 2 == 0 else
+    "D"
+)
+~
+3078~
+n = int(input())
+
+if n >= 90:
+    print("A")
+elif n >= 70:
+    print("B")
+elif n >= 40:
+    print("C")
+else:
+print("D")
+~
+3079~
+grade = input()
+
+if grade == 'A':
+    print("best!!!")
+elif grade == 'B':
+    print("good!!")
+elif grade == 'C':
+    print("run!")
+elif grade == 'D':
+    print("slowly~")
+else:
+print("what?")
+~
+3080~
+month = int(input())
+
+seasons = ["winter", "spring", "summer", "fall"]
+print(seasons[(month % 12) // 3])
+~
+3081~
+while True:
+    n = int(input())
+    if n == 0:
+        break
+print(n)
+~
+3082~
+n = int(input())
+
+while n != 0:
+    print(n)
+n -= 1
+~
+3083~
+n = int(input())
+
+while n > 0:
+    n -= 1
+print(n)
+~
+3084~
+c = ord(input())  # 입력된 문자의 아스키 코드 값
+t = ord('a')      # 'a'의 아스키 코드 값
+
+while t <= c:
+    print(chr(t), end=' ')
+t += 1
+~
+3085~
+n = int(input())
+i = 0
+while i <= n:
+    print(i)
+i += 1
+~
+3086~
+n = int(input())
+for i in range(n + 1):
+print(i)
+~
+3087~
+n = int(input())
+s = 0
+for i in range(1, n + 1):
+    if i % 2 == 0:
+        s += i
+print(s)
+~
+3088~
+while True:
+    c = input()
+    print(c)
+    if c == 'q':
+break
+~
+3092~
+n = int(input())
+for i in range(1, n + 1):
+    if '3' in str(i) or '6' in str(i) or '9' in str(i):
+        print("X", end=" ")
+    else:
+print(i, end=" ")
+~
+3093~
+r, g, b = map(int, input().split())
+count = 0
+for i in range(r):
+    for j in range(g):
+        for k in range(b):
+            print(i, j, k)
+            count += 1
+print(count)
+~
+3094~
+h, b, c, s = map(int, input().split())
+size = h * b * c * s / 8 / 1024 / 1024
+print("{:.1f} MB".format(size))
+~
+3095~
+w, h, b = map(int, input().split())
+size = w * h * b / 8 / 1024 / 1024
+rounded = round(size + 1e-8, 2)
+
+if rounded * 100 % 100 == 0:
+    print("{:.1f} MB".format(rounded))
+else:
+print("{:.2f} MB".format(rounded))
+~
+3096~
+n = int(input())
+s = 0
+c = 1
+while True:
+    s += c
+    c += 1
+    if s >= n:
+        break
+print(s)
+~
+3097~
+n = int(input())
+for i in range(1, n + 1):
+    if i % 3 == 0:
+        continue
+print(i, end=" ")
+~
+3098~
+a, d, n = map(int, input().split())
+print(a + d * (n - 1))
+~
+3099~
+a, r, n = map(int, input().split())
+print(a * r ** (n - 1))
+~
+3100~
+a, m, d, n = map(int, input().split())
+x = a
+for _ in range(n-1):
+    x = x * m + d
+print(x)
+~
+3101~
+a, b, c = map(int, input().split())
+d = 1
+while d % a != 0 or d % b != 0 or d % c != 0:
+    d += 1
+print(d)
+~
+3102~
+n = int(input())
+a = list(map(int, input().split()))
+d = [0] * 24
+for i in range(n):
+    d[a[i]] += 1
+for i in range(1, 24):
+print(d[i], end=' ')
+~
+3103~
+n = int(input())
+a = list(map(int, input().split()))
+for i in range(n - 1, -1, -1):
+print(a[i], end=' ')
+~
+3104~
+n = int(input())
+a = list(map(int, input().split()))
+print(min(a))
+~
+3106~
+d = [list(map(int, input().split())) for _ in range(19)]
+n = int(input())
+for _ in range(n):
+    x, y = map(int, input().split())
+    x -= 1
+    y -= 1
+    for i in range(19):
+        d[x][i] = 1 - d[x][i]
+        d[i][y] = 1 - d[i][y]
+for row in d:
+print(*row)
+~
+3107~
+h, w = map(int, input().split())
+n = int(input())
+board = [[0]*w for _ in range(h)]
+
+for _ in range(n):
+    l, d, x, y = map(int, input().split())
+    x -= 1
+    y -= 1
+    for i in range(l):
+        if d == 0:
+            board[x][y + i] = 1
+        else:
+            board[x + i][y] = 1
+
+for row in board:
+print(*row)
+~
+3108~
+maze = [list(map(int, input().split())) for _ in range(10)]
+x, y = 1, 1
+
+while True:
+    if maze[x][y] == 2:
+        maze[x][y] = 9
+        break
+    if maze[x][y] == 0:
+        maze[x][y] = 9
+    if maze[x][y + 1] != 1:
+        y += 1
+    elif maze[x + 1][y] != 1:
+        x += 1
+    else:
+        break
+
+for row in maze:
+print(*row)
+~
+3109~
+a, b = input().split()
+print(a)
+print(b)
+~
+3110~
+c1, c2 = input().split()
+print(c2, c1)
+~
+3111~
+s = input()
+print(s, s, s)
+~
+3119~
+#include <stdio.h>
+
+int n, x;
+void f(int c)
+{
+    if(c == n)
+    {
+        x++;
+        return;
+    }
+    if(c > n)   return;
+    f(c+1);
+    f(c+2);
+    return;
+}
+
+int main()
+{
+    scanf("%d", &n);
+    f(0);
+    printf("%d", x);
+}
+~
+3120~
+#include <stdio.h>
+
+int n, x;
+void f(int c)
+{
+    if(c == n)
+    {
+        x++;
+        return;
+    }
+    if(c > n)   return;
+    f(c+1), f(c+2), f(c+3);
+    return;
+}
+
+int main()
+{
+    scanf("%d", &n);
+    f(0);
+    printf("%d", x);
+}
+~
+3121~
+#include <stdio.h>
+
+int n, x;
+void f(int a, int b)
+{
+    if(a == n && b == n)
+    {
+        x++;
+        return;
+    }
+    if(a > n || b > n)   return;
+    f(a+1, b+1), f(a+1, b+2), f(a+2, b+1), f(a+2, b+2);
+    return;
+}
+
+int main()
+{
+    scanf("%d", &n);
+    f(0, 0);
+    printf("%d", x);
+}
+~
+3122~
+#include <stdio.h>
+
+int n, x;
+void f(int c, int pre)
+{
+    if(c == n)
+    {
+        x++;
+        return;
+    }
+    if(c > n)   return;
+    if(pre != 1)    f(c+1, 1);
+    if(pre != 2)    f(c+2, 2);
+    if(pre != 3)    f(c+3, 3);
+    return;
+}
+
+int main()
+{
+    scanf("%d", &n);
+    f(0, 0);
+    printf("%d", x);
+}
+~
+3124~
+#include <stdio.h>
+
+int n, m, x;
+void f(int c)
+{
+    if(c == n)
+    {
+        x++;
+        return;
+    }
+    if(c > n)   return;
+    if(c+1 != m) f(c+1);
+    if(c+2 != m) f(c+2);
+    if(c+3 != m) f(c+3);
+    return;
+}
+
+int main()
+{
+    scanf("%d%d", &n, &m);
+    f(0);
+    printf("%d", x);
+}
+~
+3125~
+#include <stdio.h>
+
+int n, x;
+void f(int c, int a)
+{
+    if((c == n && a == 1 && c%3 != 0) || (c == n && a == 0 && c%3 == 0))
+    {
+        x++;
+        return;
+    }
+    if(c > n)   return;
+    if(c%3 == 0 && !a && c > 0)  f(c+1, 1), f(c+2, 1);
+    if(c%3 != 0 || c == 0) f(c+1, a), f(c+2, a), f(c+3, a);
+    return;
+}
+
+int main()
+{
+    scanf("%d", &n);
+    f(0, 0);
+    printf("%d", x);
+}
+~
+3126~
+#include <stdio.h>
+
+int n, x;
+void f(int a, int b)
+{
+    if(a == n && b == n)
+    {
+        x++;
+        return;
+    }
+    if(a > n || b > n)   return;
+    for(int i=1; i<4; i++)
+    {
+        for(int j=1; j<4; j++)
+        {
+            if((a+i != b+j) || ((a+i == n) && (b+j == n)))  f(a+i, b+j);
+        }
+    }
+    return;
+}
+
+int main()
+{
+    scanf("%d", &n);
+    f(0, 0);
+    printf("%d", x);
+}
+~
+3127~
+#include <stdio.h>
+
+int n, cnt;
+void f(int o, int x, int o3, int x3) {
+    if (o == n && x == n && o3 == 1 && x3 == 1) {
+        cnt++;
+        return;
+    }
+    if (o > n || x > n) return;
+
+    f(o + 1, x + 1, o3 + ((o + 1) % 3 == 0), x3 + ((x + 1) % 3 == 0));
+    f(o + 1, x + 2, o3 + ((o + 1) % 3 == 0), x3 + ((x + 2) % 3 == 0));
+    f(o + 2, x + 1, o3 + ((o + 2) % 3 == 0), x3 + ((x + 1) % 3 == 0));
+    f(o + 2, x + 2, o3 + ((o + 2) % 3 == 0), x3 + ((x + 2) % 3 == 0));
+}
+
+int main() {
+    scanf("%d", &n);
+    f(0, 0, 0, 0);
+    printf("%d\n", cnt);
+}
+~
+3128~
+#include <stdio.h>
+
+int n, x;
+void f(int c, int pre)
+{
+    if(c == n)
+    {
+        x++;
+        return;
+    }
+    if(c > n)   return;
+    if(pre < 2) f(c+1, 1);
+    if(pre < 3) f(c+2, 2);
+    if(pre < 4) f(c+3, 3);
+    f(c+4, 4);
+    return;
+}
+
+int main()
+{
+    scanf("%d", &n);
+    f(0, 0);
+    printf("%d", x);
+}
+~
+3129~
+#include <stdio.h>
+
+int n, x;
+void f(int c)
+{
+    if(c == n)
+    {
+        x++;
+        return;
+    }
+    if(c > n)   return;
+    f(c+1), f(c+2);
+    return;
+}
+
+int main()
+{
+    scanf("%d", &n);
+    f(0), f(2);
+    printf("%d", x);
+}
+~
+3130~
+#include <stdio.h>
+
+int n, x;
+void f(int c, int pre)
+{
+    if(c == n)
+    {
+        x++;
+        return;
+    }
+    if(c > n)   return;
+    if(pre != 1)    f(c+1, 1);
+    if(pre != 2)    f(c+2, 2);
+    if(pre != 3)    f(c+3, 3);
+    return;
+}
+
+int main()
+{
+    scanf("%d", &n);
+    f(0, 0), f(2, 0);
+    printf("%d", x);
+}
+~
+3131~
+#include <stdio.h>
+
+int n, x;
+void f(int c, int pre, int cnt)
+{
+    if(c == n)
+    {
+        x++;
+        return;
+    }
+    if(c > n)   return;
+    if(pre == 1 && cnt<2)    f(c+1, 1, cnt+1), f(c+2, 2, 1), f(c+3, 3, 1);
+    else if(pre == 2 && cnt<2)    f(c+2, 2, cnt+1), f(c+1, 1, 1), f(c+3, 3, 1);
+    else if(pre == 3 && cnt<2)    f(c+3, 3, cnt+1), f(c+1, 1, 1), f(c+2, 2, 1);
+    else if(pre == 1)    f(c+2, 2, 1), f(c+3, 3, 1);
+    else if(pre == 2)    f(c+1, 1, 1), f(c+3, 3, 1);
+    else if(pre == 3)    f(c+1, 1, 1), f(c+2, 2, 1);
+    else    f(c+1, 1, 1), f(c+2, 2, 1), f(c+3, 3, 1);
+    return;
+}
+
+int main()
+{
+    scanf("%d", &n);
+    f(0, 0, 0);
+    printf("%d", x);
+}
+~
+3150~
+#include <stdio.h>
+#include <stdlib.h>
+int main() {
+	int n, s=0;
+	scanf("%d", &n);
+	char a[n+1], b[n+1];
+	scanf("%s", a);
+	scanf("%s", b);
+	for (int i = 0; i < n; i++) {
+        int x = a[i] - '0';
+        int y = b[i] - '0';
+        int d = abs(x - y);
+        s+=d<5? d:10-d;
+    }
+    printf("%d", s);
+}
+~
+3151~
+#include <stdio.h>
+int main() {
+	int n, m, a, b, c, d;
+	scanf("%d%d%d%d%d%d", &n, &m, &a, &c, &b, &d);
+	int potato=(c-a)*n*m;
+	int corn=(d-b)*(n*m/2);
+	if(potato>=corn && potato>=0) printf("%d", potato);
+	else if(corn>potato && corn>=0) {
+		if ((n*m)%2==1) {
+		    if(potato>=0) printf("%d", corn+(c-a));
+		    else printf("%d", corn);
+		}
+		else printf("%d", corn);
+	}
+	else printf("0");
+}
+~
+3169~
+#include <stdio.h>
+int main()
+{
+    int a, b;
+    scanf("%d%d", &a, &b);
+    printf("%d", 1500*a+900*b);
+}
+~
+3170~
+#include <stdio.h>
+int main()
+{
+    int a, b, A, B;
+    scanf("%d%d%d%d", &a, &b, &A, &B);
+    printf("%d", a*A+b*B);
+}
+~
+3171~
+#include <stdio.h>
+int main()
+{
+    int a, b, A, B;
+    scanf("%d%d%d%d", &a, &b, &A, &B);
+    if(a*A+b*B<10000)
+    printf("%d", a*A+b*B);
+    else
+    printf("%d", a*A+b*B-1000);
+}
+~
+3172~
+#include <stdio.h>
+int main()
+{
+    int n, i, price;
+    scanf("%d", &n);
+    int a[n], A[n];
+    for(i=0; i<n; i++) scanf("%d", &a[i]);
+    for(i=0; i<n; i++) scanf("%d", &A[i]);
+    for(i=0; i<n; i++) price+=a[i]*A[i];
+    printf("%d", price);
+}
+~
+3173~
+#include <stdio.h>
+int main()
+{
+    int n, i, price;
+    scanf("%d", &n);
+    int a[n], A[n];
+    for(i=0; i<n; i++) scanf("%d", &a[i]);
+    for(i=0; i<n; i++) scanf("%d", &A[i]);
+    for(i=0; i<n; i++) price+=a[i]*A[i];
+    if(price<10000) printf("%d", price);
+    else printf("%d", price-1000);
+}
+~
+3219~
+print("@@@")
+~
+3220~
+print("###")
+~
+3221~
+print("$$$")
+~
+3222~
+print("!!!")
+~
+3223~
+print("@")
+print("@@")
+print("@@@")
+print("@@@@")
+~
+3224~
+print("#")
+print("##")
+print("###")
+print("####")
+~
+3225~
+for i in range(1,5): print("$"*i)
+~
+3226~
+for i in range(1, 5):
+print("!" * i)
+~
+3227~
+print("@@@@@\n@ @ @\n@@@@@\n@ @ @\n@@@@@")
+~
+3228~
+print("#####\n# # #\n#####\n# # #\n#####")
+~
+3229~
+print("$$$$$\n$ $ $\n$$$$$\n$ $ $\n$$$$$")
+~
+3230~
+print("!!!!!\n! ! !\n!!!!!\n! ! !\n!!!!!")
+~
+3265~
+#include <stdio.h>
+int main()
+{
+    int h;
+    scanf("%d", &h);
+    for (int i=0; i<h; i++)
+    {
+        for (int j=0; j<h-i-1; j++) printf(".");
+        for (int j=0; j<2*i+1; j++) printf("*");
+        for (int j=0; j<h-i-1; j++) printf(".");
+        printf("\n");
+    }
+    return 0;
+}
+~
+3450~
+#include <stdio.h>
+
+int main()
+{
+    int n, m, i, t=1, count;
+    scanf("%d", &n);
+    int a[1000001];
+    for(i=0; i<n; i++)
+        scanf("%d", &a[i]);
+    scanf("%d", &m);
+    int b[1000001];
+    for(i=0; i<m; i++)
+        scanf("%d", &b[i]);
+    for(i=0; i<n-1; i++)
+    {
+        if(t<a[i+1]-a[i])
+            t=a[i+1]-a[i];
+    }
+    for(i=0; i<m; i++)
+    {
+        if(b[i]>=t)
+            count++;
+    }
+    printf("%d", count);
+}
+~
+4004~
+#include <stdio.h>
+
+int main()
+{
+    int n;
+    scanf("%d", &n);
+    
+    int dp[21] = {};
+    dp[0] = 1;
+    for(int i = 1; i <= n; i++)
+    {
+        if(i >= 1) dp[i] += dp[i - 1];
+        if(i >= 2) dp[i] += dp[i - 2];
+        if(i >= 3) dp[i] += dp[i - 3];
+    }
+    printf("%d\n", dp[n]);
+}
+~
