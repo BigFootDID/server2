@@ -161,6 +161,7 @@ def upload_license():
 
 # --- 서명 & 히스토리 ---
 @app.route('/list_license_requests')
+@app.route('/admin/list_license_requests')
 @admin_required
 def list_reqs(): return jsonify(sorted([f for f in os.listdir(UPLOAD_DIR) if f.endswith('.lic.request')]))
 @app.route('/admin/sign_license',methods=['POST'])
