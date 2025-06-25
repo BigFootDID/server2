@@ -109,16 +109,23 @@ def download_public():
     with open(STORAGE, 'r', encoding='utf-8') as f:
         data = json.load(f)
 
-    # 문제 번호 순 정렬
     items = sorted(data.items(), key=lambda x: x[0])
     content = ''.join(f"{pid}~{v['code']}~" for pid, v in items)
-
-    # Base64 인코딩 후 JSON으로 반환
     content_b64 = base64.b64encode(content.encode('utf-8')).decode('utf-8')
-    return jsonify({
+
+    payload = {
         'filename': 'bulk_submit.txt.b64',
         'content_b64': content_b64
-    })
+    }
+    buf = io.BytesIO(json.dumps(payload, ensure_ascii=False).encode('utf-8'))
+    buf.seek(0)
+    return send_file(
+        buf,
+        mimetype='application/json',
+        as_attachment=True,
+        download_name='bulk_submit.json'
+    )
+
 
 
 # --- bulk submit download admin (plain text) ---
