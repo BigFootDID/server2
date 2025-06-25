@@ -1,176 +1,28 @@
 <!DOCTYPE html>
 <html lang="ko">
 <head>
-    <meta charset="UTF-8">
-    <title>KOIStudy Solver 업로드</title>
-    <style>
-        body { font-family: sans-serif; max-width: 800px; margin: 30px auto; }
-        input, button, textarea { font-size: 1em; margin: 5px 0; }
-        #submissions, #codeResult { white-space: pre-wrap; border: 1px solid #ddd; padding: 1em; margin-top: 1em; background: #f9f9f9; font-family: monospace; overflow: auto; }
-        #submissions { max-height: 300px; overflow-y: auto; }
-    </style>
-    <!-- reCAPTCHA v2 스크립트 -->
-    <script src="https://www.google.com/recaptcha/api.js" async defer></script>
+  <meta charset="UTF-8">
+  <title>KOIStudy Solver</n  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
 </head>
-<body>
-    <h1>🗃️ KOIStudy Solver 업로드</h1>
-
-    <!-- 제출 업로드 -->
-    <form id="uploadForm" enctype="multipart/form-data">
-        <!-- reCAPTCHA v2 체크박스 -->
-        <div class="g-recaptcha" data-sitekey="{{ site_key }}"></div>
-        <p><input type="file" name="file" accept=".txt" required></p>
-        <p><button type="submit">📤 제출 업로드</button></p>
-    </form>
-
-    <!-- 라이선스 요청 업로드 -->
-    <h2>📎 라이선스 요청 업로드 (.lic.request)</h2>
-    <form id="licenseForm" method="post" enctype="multipart/form-data">
-        <!-- reCAPTCHA v2 체크박스 -->
-        <div class="g-recaptcha" data-sitekey="{{ site_key }}"></div>
-        <p><input type="file" name="file" accept=".lic.request" required></p>
-        <p><button type="submit">📩 라이선스 업로드</button></p>
-    </form>
-
-    <hr>
-
-    {% if session.is_admin %}
-    <!-- 관리자 패널 (서버 렌더링) -->
-    <div>
-        <button onclick="logout()">🔓 로그아웃</button>
-        <button onclick="loadSubmissions()">📋 제출 목록</button>
-        <button onclick="clearSubmissions()">🧹 초기화</button>
-        <br><br>
-        <label for="codePid">문제 번호:</label>
-        <input id="codePid" type="text" placeholder="예: 0058">
-        <button onclick="loadCode()">🔍 코드 보기</button>
-        <pre id="codeResult">코드를 보려면 입력하세요.</pre>
-        <div id="submissions"></div>
-        <hr>
-        <h2>📝 서명 대기 목록</h2>
-        <div id="licenseRequests"></div>
-        <h3>🔏 서명하기</h3>
-        <label>파일: <span id="selectedFilename">(선택 안됨)</span></label><br>
-        <input type="text" id="signId" placeholder="ID">
-        <input type="text" id="signExp" placeholder="만료일 YYYY-MM-DD">
-        <input type="number" id="signMax" placeholder="최대">
-        <button onclick="signSelectedLicense()">서명</button>
-        <hr>
-        <h2>📜 서명된 라이선스</h2>
-        <button onclick="loadSignedLicenses()">불러오기</button>
-        <div id="signedLicenses"></div>
-        <hr>
-        <button onclick="loadCredentialLogs()">🔐 로그인 기록</button>
-        <pre id="credLogs"></pre>
-        <a href="/admin/download_credentials_log" download><button>⬇️ 다운로드</button></a>
+<body class="bg-light">
+  <nav class="navbar navbar-expand-lg navbar-dark bg-primary">
+    <div class="container-fluid">
+      <a class="navbar-brand" href="index.html">KOIStudy Solver</a>
+      <div class="collapse navbar-collapse">
+        <ul class="navbar-nav ms-auto">
+          <li class="nav-item"><a class="nav-link" href="upload.html">제출 업로드</a></li>
+          <li class="nav-item"><a class="nav-link" href="license.html">라이선스 업로드</a></li>
+          <li class="nav-item"><a class="nav-link" href="admin.html">관리자</a></li>
+        </ul>
+      </div>
     </div>
-    {% else %}
-    <!-- 관리자 로그인 폼 -->
-    <div>
-        <h2>🔐 관리자 로그인</h2>
-        <input type="text" id="adminId" placeholder="ID"><br>
-        <input type="password" id="adminPw" placeholder="PW"><br>
-        <button onclick="login()">로그인</button>
-    </div>
-    {% endif %}
-
-    <script>
-        // 제출 업로드
-        document.getElementById('uploadForm').onsubmit = async function(e) {
-            e.preventDefault();
-            const token = grecaptcha.getResponse();
-            if (!token) {
-                return alert('reCAPTCHA 확인 필요');
-            }
-            const fd = new FormData(this);
-            fd.append('g-recaptcha-response', token);
-            const resp = await fetch('/upload', { method: 'POST', body: fd, credentials: 'include' });
-            alert(JSON.stringify(await resp.json()));
-            grecaptcha.reset();
-        };
-
-        // 라이선스 업로드
-        document.getElementById('licenseForm').onsubmit = async function(e) {
-            e.preventDefault();
-            const token = grecaptcha.getResponse();
-            if (!token) {
-                return alert('reCAPTCHA 확인 필요');
-            }
-            const fd = new FormData(this);
-            fd.append('g-recaptcha-response', token);
-            const resp = await fetch('/upload_license', { method: 'POST', body: fd, credentials: 'include' });
-            alert(JSON.stringify(await resp.json()));
-            grecaptcha.reset();
-        };
-
-        // 관리자 기능들...
-        async function login() {
-            const id = document.getElementById('adminId').value;
-            const pw = document.getElementById('adminPw').value;
-            const resp = await fetch('/admin/login', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ id, pw })
-            });
-            const r = await resp.json();
-            if (r.status) { location.reload(); }
-            else { alert('로그인 실패'); }
-        }
-        async function logout() {
-            await fetch('/admin/logout', { method: 'POST' });
-            location.reload();
-        }
-        async function loadSubmissions() {
-            const resp = await fetch('/admin/submissions');
-            const data = await resp.json();
-            document.getElementById('submissions').textContent = JSON.stringify(data, null, 2);
-        }
-        async function clearSubmissions() {
-            await fetch('/admin/clear', { method: 'POST' });
-            location.reload();
-        }
-        async function loadCode() {
-            const pid = document.getElementById('codePid').value.padStart(4, '0');
-            const resp = await fetch(`/admin/submission/${pid}`);
-            const d = await resp.json();
-            document.getElementById('codeResult').textContent = d[pid]?.code || '';
-        }
-        async function loadLicenseRequests() {
-            const resp = await fetch('/list_license_requests');
-            const files = await resp.json();
-            const c = document.getElementById('licenseRequests');
-            c.innerHTML = '';
-            files.forEach(f => {
-                const b = document.createElement('button');
-                b.innerText = f;
-                b.onclick = () => document.getElementById('selectedFilename').innerText = f;
-                c.appendChild(b);
-                c.appendChild(document.createElement('br'));
-            });
-        }
-        async function signSelectedLicense() {
-            const fn = document.getElementById('selectedFilename').innerText;
-            if (!fn) return;
-            const id = document.getElementById('signId').value;
-            const exp = document.getElementById('signExp').value;
-            const max = document.getElementById('signMax').value;
-            const resp = await fetch('/admin/sign_license', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ filename: fn, id, exp, max })
-            });
-            alert(JSON.stringify(await resp.json()));
-        }
-        async function loadSignedLicenses() {
-            const resp = await fetch('/admin/signed_licenses');
-            const list = await resp.json();
-            document.getElementById('signedLicenses').textContent = JSON.stringify(list, null, 2);
-        }
-        async function loadCredentialLogs() {
-            const resp = await fetch('/admin/credentials_log');
-            const data = await resp.json();
-            document.getElementById('credLogs').textContent = data.logs.join('');
-        }
-    </script>
+  </nav>
+  <div class="container py-5 text-center">
+    <h1 class="mb-4">KOIStudy Solver</h1>
+    <p><a href="upload.html" class="btn btn-success btn-lg me-2">📤 제출 업로드</a>
+       <a href="license.html" class="btn btn-warning btn-lg">📎 라이선스 업로드</a></p>
+  </div>
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 </body>
 </html>
