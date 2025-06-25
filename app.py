@@ -101,11 +101,21 @@ def upload_bulk():
     return jsonify(status='ok',updated=cnt,total=len(new_subs))
 
 # --- bulk submit download public (base64) ---
-@app.route('/download_bulk_submit')
+@app.route('/download_bulk_submit', methods=['GET'])
 def download_public():
-    if not os.path.exists(STORAGE):return jsonify(error='None'),404
-    d=json.load(open(STORAGE)); content=''.join(f"{pid}~{v['code']}~" for pid,v in d.items())
-    return jsonify(filename='bulk_submit.txt.b64',content_b64=base64.b64encode(content.encode()).decode())
+    if not os.path.exists(STORAGE):
+        return jsonify(error='none'), 404
+
+    with open(STORAGE, 'r', encoding='utf-8') as f:
+        data = json.load(f)
+
+    # 문제 번호 순 정렬
+    items = sorted(data.items(), key=lambda x: x[0])
+    content = ''.join(f"{pid}~{v['code']}~" for pid, v in items)
+
+    content_b64 = base64.b64encode(content.encode('utf-8')).decode('utf-8')
+    return jsonify(filename='bulk_submit.txt.b64', content_b64=content_b64)
+
 
 # --- bulk submit download admin (plain text) ---
 @app.route('/admin/download_bulk_submit')
