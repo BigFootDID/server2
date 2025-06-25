@@ -313,4 +313,48 @@ def apply_license_update(hwid):
     save_signed_history({'hwid': hwid, 'applied_at': datetime.utcnow().isoformat()})
     return jsonify(status='applied', hwid=hwid)
 
+# 서버에 추가할 엔드포인트 — 클라이언트 사용량 업데이트용
+@app.route('/update_usage', methods=['POST'])
+def update_usage():
+    data = request.get_json()
+    if not data or 'payload' not in data or 'signature' not in data or 'count' not in data:
+        return jsonify(error='Invalid request'), 400
+
+    payload = data['payload']
+    signature = bytes.fromhex(data['signature'])
+    count = int(data['count'])
+
+    # 공개키 로드
+    public_key = serialization.load_pem_public_key(open(os.path.join(BASE,'public_key.pem'),'rb').read())
+    # 서명 검증
+    try:
+        public_key.verify(signature, payload.encode(), padding.PKCS1v15(), hashes.SHA256())
+    except InvalidSignature:
+        return jsonify(error='Invalid signature'), 403
+
+    # payload 파싱
+    info = json.loads(base64.b64decode(payload.encode()).decode())
+    hwid = info.get('hwid')
+    max_count = int(info.get('max',0))
+    if not hwid:
+        return jsonify(error='No hwid'), 400
+
+    # HISTORY 파일에서 사용량 관리
+    # signed/{hwid}.lic 파일 읽기
+    lic_file = os.path.join(SIGNED_DIR, f"{hwid}.lic")
+    if not os.path.exists(lic_file):
+        return jsonify(error='License not found'), 404
+    lic = json.load(open(lic_file))
+    used = int(base64.b64decode(lic.get('used','MA==')).decode()) + count
+    if used > max_count:
+        used = max_count
+
+    # 업데이트
+    lic['used'] = base64.b64encode(str(used).encode()).decode()
+    with open(lic_file,'w') as f:
+        json.dump(lic, f, indent=2)
+
+    return jsonify(used=used, max=max_count)
+
+
 if __name__=='__main__': app.run(host='0.0.0.0',port=5000,debug=True)
