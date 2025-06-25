@@ -60,6 +60,12 @@
     <pre id="credLogs" class="border p-3 bg-white"></pre>
     <a href="/admin/download_credentials_log" class="btn btn-outline-primary">로그 기록 다운로드</a>
 
+    <hr>
+    <h3>📊 라이선스 사용 현황</h3>
+    <div id="usageList" class="mb-2"></div>
+    <button class="btn btn-sm btn-outline-success me-2" onclick="loadUsage()">사용량 새로고침</button>
+
+
   {% else %}
     <h2>관리자 로그인</h2>
     <form onsubmit="event.preventDefault();login()" class="mb-3">
@@ -72,6 +78,32 @@
 
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
   <script>
+    // 실시간 사용량 불러오기
+    function loadUsage(){
+      fetch('/admin/license_usage', {credentials:'same-origin'})
+        .then(r=>r.json())
+        .then(data=>{
+          const c=document.getElementById('usageList');
+          c.innerHTML='';
+          if(!data.length) return c.textContent='사용량 데이터 없음';
+          const tbl=document.createElement('table');
+          tbl.className='table table-sm';
+          tbl.innerHTML='<tr><th>HWID</th><th>사용</th><th>최대</th></tr>';
+          data.forEach(e=>{
+            const row=`<tr>
+              <td>${e.hwid}</td>
+              <td>${e.used}</td>
+              <td>${e.max}</td>
+            </tr>`;
+            tbl.innerHTML+=row;
+          });
+          c.append(tbl);
+        })
+        .catch(err=>console.error(err));
+    }
+    document.addEventListener('DOMContentLoaded',()=>{
+      loadUsage();
+    });
     function loadLicenseRequests() {
       fetch('/admin/list_license_requests', {credentials:'same-origin'})
         .then(res => res.json())
