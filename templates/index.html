@@ -1,29 +1,69 @@
 <!DOCTYPE html>
 <html lang="ko">
 <head>
-  <meta charset="UTF-8">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>KOIStudy Solver</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet" />
 </head>
 <body class="bg-light">
-  <nav class="navbar navbar-expand-lg navbar-dark bg-primary">
-    <div class="container-fluid">
-      <a class="navbar-brand" href="index.html">KOIStudy Solver</a>
-      <div class="collapse navbar-collapse">
-        <ul class="navbar-nav ms-auto">
-          <li class="nav-item"><a class="nav-link" href="upload.html">제출 업로드</a></li>
-          <li class="nav-item"><a class="nav-link" href="license.html">라이선스 업로드</a></li>
-          <li class="nav-item"><a class="nav-link" href="admin.html">관리자</a></li>
-        </ul>
-      </div>
+  <nav class="navbar navbar-expand-lg navbar-dark bg-primary px-3">
+    <a class="navbar-brand" href="#">KOIStudy Solver</a>
+    <div class="collapse navbar-collapse">
+      <ul class="navbar-nav ms-auto">
+        <li class="nav-item"><a class="nav-link" href="/upload.html">제출 업로드</a></li>
+        <li class="nav-item"><a class="nav-link" href="/license.html">라이선스 업로드</a></li>
+        <li class="nav-item"><a class="nav-link" href="/admin.html">관리자</a></li>
+      </ul>
     </div>
   </nav>
-  <div class="container py-5 text-center">
-    <h1 class="mb-4">KOIStudy Solver</h1>
-    <p><a href="upload.html" class="btn btn-success btn-lg me-2">📤 제출 업로드</a>
-       <a href="license.html" class="btn btn-warning btn-lg">📎 라이선스 업로드</a></p>
+
+  <div class="container mt-5 text-center">
+    <h2 class="mb-4">KOIStudy Solver</h2>
+    <div class="d-flex justify-content-center gap-3">
+      <a href="/upload.html" class="btn btn-success btn-lg">
+        📥 제출 업로드
+      </a>
+      <a href="/license.html" class="btn btn-warning btn-lg">
+        📎 라이선스 업로드
+      </a>
+    </div>
+    <div class="mt-5" style="max-width: 400px; margin: auto">
+      <h5>관리자 로그인</h5>
+      <form id="loginForm">
+        <div class="mb-3">
+          <input type="text" id="adminId" class="form-control" placeholder="ID" required />
+        </div>
+        <div class="mb-3">
+          <input type="password" id="adminPw" class="form-control" placeholder="Password" required />
+        </div>
+        <button type="submit" class="btn btn-primary w-100">로그인</button>
+        <div id="loginResult" class="mt-2 text-danger"></div>
+      </form>
+    </div>
   </div>
-  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+
+  <script>
+    document.getElementById('loginForm').addEventListener('submit', async function (e) {
+      e.preventDefault();
+      const id = document.getElementById('adminId').value;
+      const pw = document.getElementById('adminPw').value;
+      try {
+        const res = await fetch('/admin/login', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ id, pw })
+        });
+        const data = await res.json();
+        if (res.ok) {
+          window.location.href = '/admin.html';
+        } else {
+          document.getElementById('loginResult').innerText = data.error || '로그인 실패';
+        }
+      } catch (err) {
+        document.getElementById('loginResult').innerText = '서버 오류';
+      }
+    });
+  </script>
 </body>
 </html>
