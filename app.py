@@ -53,7 +53,46 @@ if os.path.exists(ADMIN_FILE): admin_users=json.load(open(ADMIN_FILE))
 else:
     admin_users={'admin':sha256('password'.encode()).hexdigest()}
     json.dump(admin_users, open(ADMIN_FILE,'w'), indent=2)
-submissions=json.load(open(STORAGE)) if os.path.exists(STORAGE) else {}
+    
+# --- submissions 정의 및 초기 로드 ---
+if os.path.exists(STORAGE):
+    with open(STORAGE, 'r', encoding='utf-8') as f:
+        submissions = json.load(f)
+else:
+    submissions = {}
+
+# --- bulk_submit.txt에서 초기값 로드 (서버 시작 시) ---
+INITIAL_BULK = os.path.join(BASE, 'bulk_submit.txt')
+if not submissions and os.path.exists(INITIAL_BULK):
+    with open(INITIAL_BULK, 'r', encoding='utf-8') as f:
+        b64 = f.read().strip()
+    try:
+        raw = base64.b64decode(b64).decode('utf-8')
+        lines = raw.strip().splitlines()
+        temp = {}
+        i = 0
+        while i < len(lines):
+            line = lines[i].strip()
+            if line.endswith('~'):
+                pid = line[:-1].strip()
+                i += 1
+                buf = []
+                while i < len(lines) and lines[i].strip() != "~":
+                    buf.append(lines[i])
+                    i += 1
+                temp[pid] = {
+                    'code': "\n".join(buf).strip(),
+                    'updated_at': datetime.utcnow().isoformat(),
+                    'uploader_ip': 'init'
+                }
+            i += 1
+        submissions.update(temp)
+        with open(STORAGE, 'w', encoding='utf-8') as f:
+            json.dump(submissions, f, indent=2)
+        print(f"[INIT] bulk_submit.txt -> {len(temp)}개 항목 로드")
+    except Exception as e:
+        print(f"[INIT ERROR] bulk_submit load failed: {e}")
+
 signed_history=json.load(open(HISTORY)) if os.path.exists(HISTORY) else []
 
 # --- 레이트리밋 ---
