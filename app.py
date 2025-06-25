@@ -356,5 +356,17 @@ def update_usage():
 
     return jsonify(used=used, max=max_count)
 
+@app.route('/admin/license_usage')
+@admin_required
+def license_usage():
+    out=[]
+    for fn in os.listdir(SIGNED_DIR):
+        if fn.endswith('.lic'):
+            path=os.path.join(SIGNED_DIR,fn)
+            lic=json.load(open(path))
+            info=json.loads(base64.b64decode(lic['payload']).decode())
+            used=int(base64.b64decode(lic.get('used','MA==')).decode())
+            out.append({'hwid':info['hwid'],'used':used,'max':int(info['max'])})
+    return jsonify(out)
 
 if __name__=='__main__': app.run(host='0.0.0.0',port=5000,debug=True)
