@@ -369,4 +369,22 @@ def license_usage():
             out.append({'hwid':info['hwid'],'used':used,'max':int(info['max'])})
     return jsonify(out)
 
+@app.route('/check_license/<hwid>', methods=['GET'])
+def check_license(hwid):
+    lic_path = os.path.join(SIGNED_DIR, f"{hwid}.lic")
+    if not os.path.exists(lic_path):
+        return jsonify(error='License not found'), 404
+
+    try:
+        lic = json.load(open(lic_path, 'r', encoding='utf-8'))
+        # payload에서 max 추출
+        info = json.loads(base64.b64decode(lic['payload']).decode('utf-8'))
+        max_count = int(info.get('max', 0))
+        used = int(base64.b64decode(lic.get('used', base64.b64encode(b'0').decode())).decode())
+    except Exception as e:
+        return jsonify(error=f'Parsing error: {e}'), 500
+
+    return jsonify(used=used, max=max_count)
+
+
 if __name__=='__main__': app.run(host='0.0.0.0',port=5000,debug=True)
