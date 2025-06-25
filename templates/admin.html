@@ -11,26 +11,24 @@
     {% if session.is_admin %}
     <h2>🔧 관리자 패널</h2>
     <ul class="list-group mb-4">
-      <li class="list-group-item">
-        <button class="btn btn-sm btn-outline-secondary me-2" onclick="loadSubmissions()">제출 목록</button>
-      </li>
-      <li class="list-group-item">
-        <button class="btn btn-sm btn-outline-danger me-2" onclick="clearSubmissions()">목록 초기화</button>
-      </li>
-      <li class="list-group-item">
-        <a href="/admin/download_bulk_submit" class="btn btn-sm btn-outline-primary">
-          bulk_submit.txt 다운로드
-        </a>
-      </li>
+      <li class="list-group-item"><button class="btn btn-sm btn-outline-secondary me-2" onclick="loadSubmissions()">제출 목록</button></li>
+      <li class="list-group-item"><button class="btn btn-sm btn-outline-danger me-2" onclick="clearSubmissions()">목록 초기화</button></li>
+      <li class="list-group-item"><a href="/admin/download_bulk_submit" class="btn btn-sm btn-outline-primary">bulk_submit.txt 다운로드</a></li>
     </ul>
 
     <div class="mb-3">
-      <label>문제 번호</label><input id="codePid" class="form-control d-inline-block w-auto" placeholder="0058">
+      <label>문제 번호</label>
+      <input id="codePid" class="form-control d-inline-block w-auto" placeholder="0058">
       <button class="btn btn-sm btn-primary ms-2" onclick="loadCode()">코드 보기</button>
     </div>
     <pre id="codeResult" class="border p-3 bg-white" style="height:200px;overflow:auto;"></pre>
     <hr>
-    <h3>📝 서명 대기</h3><div id="licenseRequests"></div><hr>
+
+    <h3>📝 서명 대기</h3>
+    <div id="licenseRequests" class="mb-4"></div>
+    <button class="btn btn-sm btn-outline-info mb-4" onclick="loadLicenseRequests()">대기 라이선스 새로고침</button>
+    <hr>
+
     <h3>🔏 서명하기</h3>
     <div class="mb-3"><label>파일:</label><span id="selectedFilename">(선택 안됨)</span></div>
     <div class="row g-2 mb-3">
@@ -40,9 +38,13 @@
       <div class="col-auto"><button class="btn btn-success" onclick="signSelectedLicense()">서명</button></div>
     </div>
     <hr>
-    <h3>📜 서명된 라이선스</h3><div id="signedLicenses"></div>
+
+    <h3>📜 서명된 라이선스</h3>
+    <div id="signedLicenses"></div>
     <hr>
-    <h3>🔐 로그인 기록</h3><pre id="credLogs" class="border p-3 bg-white"></pre>
+
+    <h3>🔐 로그인 기록</h3>
+    <pre id="credLogs" class="border p-3 bg-white"></pre>
     <a href="/admin/download_credentials_log" class="btn btn-outline-primary">로그 기록 다운로드</a>
     {% else %}
     <h2>관리자 로그인</h2>
@@ -54,6 +56,34 @@
     {% endif %}
   </div>
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+  <script>
+    function loadLicenseRequests() {
+      fetch('/admin/list_license_requests')
+        .then(res => res.json())
+        .then(data => {
+          const container = document.getElementById('licenseRequests');
+          container.innerHTML = '';
+          if (!data.length) {
+            container.textContent = '대기 중인 요청이 없습니다.';
+            return;
+          }
+          const list = document.createElement('ul');
+          list.className = 'list-group';
+          data.forEach(fn => {
+            const li = document.createElement('li');
+            li.className = 'list-group-item d-flex justify-content-between align-items-center';
+            li.textContent = fn;
+            li.onclick = () => document.getElementById('selectedFilename').textContent = fn;
+            list.appendChild(li);
+          });
+          container.appendChild(list);
+        })
+        .catch(err => console.error(err));
+    }
+
+    // 초기 로드
+    document.addEventListener('DOMContentLoaded', loadLicenseRequests);
+  </script>
   <script src="admin.js"></script>
 </body>
 </html>
