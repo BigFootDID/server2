@@ -172,4 +172,3 @@ def sign_license():
 def signed_list(): return jsonify(json.load(open(HISTORY)) if os.path.exists(HISTORY) else [])
 
 if __name__=='__main__': app.run(host='0.0.0.0',port=5000,debug=True)
-    app.run(host="0.0.0.0", port=5000, debug=True)
