@@ -199,4 +199,58 @@ def sign_license():
 @admin_required
 def signed_list(): return jsonify(json.load(open(HISTORY)) if os.path.exists(HISTORY) else [])
 
+# --- Public endpoint: upload license update (.lic.update) ---
+@app.route('/upload_license_update', methods=['POST'])
+def upload_license_update():
+    # Rate-limit by IP
+    client_ip = ip()
+    now = time.time()
+    recent = [f for f in os.listdir(UPLOAD_DIR)
+              if f.endswith('.lic.update') and now - os.path.getmtime(os.path.join(UPLOAD_DIR, f)) < WINDOW]
+    # count uploads for this IP (filename prefix is client_ip)
+    ip_uploads = [f for f in recent if f.split('_')[0] == client_ip]
+    if len(ip_uploads) >= MAX:
+        return jsonify(error='Rate limit exceeded'), 429
+
+    if 'file' not in request.files:
+        return jsonify(error='No file'), 400
+    f = request.files['file']
+    raw_b64 = f.read().decode('utf-8').strip()
+    # decode payload to get hwid
+    try:
+        payload_json = base64.b64decode(raw_b64.encode('utf-8')).decode('utf-8')
+        info = json.loads(payload_json)
+        hwid = info.get('hwid', 'unknown')
+    except:
+        return jsonify(error='Invalid payload'), 400
+    # save update file named <hwid>_<client_ip>.lic.update to allow per-IP
+    out_name = f"{hwid}_{client_ip}.lic.update"
+    out_path = os.path.join(UPLOAD_DIR, secure_filename(out_name))
+    with open(out_path, 'w', encoding='utf-8') as wf:
+        wf.write(raw_b64)
+    return jsonify(status='uploaded', filename=out_name)
+
+# --- Admin endpoint: apply license update ---
+@app.route('/admin/apply_license_update/<hwid>', methods=['POST'])
+@admin_required
+def apply_license_update(hwid):
+    # find latest update file for hwid
+    files = [f for f in os.listdir(UPLOAD_DIR) if f.startswith(f"{hwid}_") and f.endswith('.lic.update')]
+    if not files:
+        return jsonify(error='No update file'), 404
+    latest = max(files, key=lambda f: os.path.getmtime(os.path.join(UPLOAD_DIR, f)))
+    raw_b64 = open(os.path.join(UPLOAD_DIR, latest), 'r', encoding='utf-8').read().strip()
+    try:
+        data = json.loads(base64.b64decode(raw_b64).decode('utf-8'))
+        payload = data['payload']
+        signature = data['signature']
+    except:
+        return jsonify(error='Invalid update file'), 400
+    # overwrite signed license
+    out_path = os.path.join(SIGNED_DIR, f"{hwid}.lic")
+    with open(out_path, 'w', encoding='utf-8') as sf:
+        json.dump({'payload': payload, 'signature': signature, 'used': base64.b64encode(b'0').decode()}, sf, indent=2)
+    save_signed_history({'hwid': hwid, 'applied_at': datetime.utcnow().isoformat()})
+    return jsonify(status='applied', hwid=hwid)
+
 if __name__=='__main__': app.run(host='0.0.0.0',port=5000,debug=True)
