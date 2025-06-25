@@ -230,6 +230,16 @@ def upload_license_update():
         wf.write(raw_b64)
     return jsonify(status='uploaded', filename=out_name)
 
+# --- Server: download signed license endpoint ---
+@app.route('/download_signed_license/<hwid>.lic', methods=['GET'])
+def download_signed_license(hwid):
+    # 파일 경로
+    signed_path = os.path.join(SIGNED_DIR, f"{hwid}.lic")
+    if not os.path.exists(signed_path):
+        return jsonify(error='Not found'), 404
+    # 인증된 라이선스 파일 전송
+    return send_file(signed_path, as_attachment=True, download_name=f"{hwid}.lic")
+
 # --- Admin endpoint: apply license update ---
 @app.route('/admin/apply_license_update/<hwid>', methods=['POST'])
 @admin_required
