@@ -26,7 +26,7 @@ os.makedirs(SIGNED_DIR, exist_ok=True)
 # --- 상태 ---
 BLACK, REQ = {}, {}
 LOCK = Lock()
-MAX = 100; WINDOW=300; BLOCK=3600
+MAX = 100; WINDOW=5; BLOCK=3600
 
 # --- 헬퍼 ---
 def ip():
