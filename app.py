@@ -210,18 +210,21 @@ def upload_bulk():
     return jsonify(status='ok', updated=cnt, total=len(new))
 
 # --- Bulk download public ---
+# 서버 download_bulk_submit 핸들러 수정
 @app.route('/download_bulk_submit', methods=['GET'])
 @require_app
 def download_public():
     if not os.path.exists(INITIAL_BULK):
-        return jsonify(error='no bulk file'), 404
-
-    with open(INITIAL_BULK, 'r', encoding='utf-8') as f:
-        encoded = f.read().strip()
-    payload = {'filename': 'bulk_submit.txt.b64', 'content_b64': encoded}
+        return jsonify(error='bulk not found'), 404
+    raw = open(INITIAL_BULK, 'r', encoding='utf-8').read().strip()
+    payload = {
+        'filename': 'bulk_submit.txt.b64',
+        'content_b64': raw  # 이미 인코딩된 상태
+    }
     buf = io.BytesIO(json.dumps(payload, ensure_ascii=False).encode())
     buf.seek(0)
     return send_file(buf, mimetype='application/json', as_attachment=True, download_name='bulk_submit.json')
+
 
 
 # --- Bulk download admin ---
