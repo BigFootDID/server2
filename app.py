@@ -109,7 +109,26 @@ else:
     git_commit_and_push('Init admin_users')
 submissions=json.load(open(STORAGE,'r')) if os.path.exists(STORAGE) else {}
 signed_history=json.load(open(HISTORY,'r')) if os.path.exists(HISTORY) else []
-
+# --- If submissions.json is empty but bulk_submit.txt exists, restore from it ---
+if not submissions and os.path.exists(INITIAL_BULK):
+    try:
+        decoded = base64.b64decode(open(INITIAL_BULK, 'r', encoding='utf-8').read().strip()).decode()
+        lines = decoded.splitlines()
+        new_subs = {}; temp = None; buf = []; now = datetime.utcnow().isoformat(); client = 'auto-recovered'
+        for line in lines:
+            s = line.strip()
+            if s.endswith('~') and temp is None:
+                temp = s[:-1].strip(); buf = []
+            elif s.endswith('~') and temp:
+                new_subs[temp] = {'code': '\n'.join(buf), 'updated_at': now, 'uploader_ip': client}
+                temp = None
+            elif temp:
+                buf.append(line)
+        submissions.update(new_subs)
+        json.dump(submissions, open(STORAGE, 'w'), indent=2)
+        git_commit_and_push("Recovered submissions from bulk_submit.txt")
+    except Exception as e:
+        print(f"[WARN] Failed to recover from bulk_submit.txt: {e}")
 # Global rate limit for all endpoints
 @app.before_request
 def global_rate_limit():
