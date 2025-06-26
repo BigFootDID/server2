@@ -73,7 +73,10 @@ def git_track(msg):
 # Initialization
 try: git_init_and_remote(); git_pull(); git_commit_and_push('Initialize repository')
 except: pass
-
+    
+def save_signed_history(entry):
+    signed_history.append(entry)
+    json.dump(signed_history, open(HISTORY, 'w'), indent=2)
 # Utility functions
 
 def ip():
