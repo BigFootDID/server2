@@ -43,7 +43,12 @@ os.makedirs(UPLOAD_DIR, exist_ok=True)
 os.makedirs(SIGNED_DIR, exist_ok=True)
 LOCK = Lock()
 BLACK, REQ = {}, {}
-MAX, WINDOW, BLOCK = 100, 5, 3600
+MAX, WINDOW, BLOCK = 1, 5, 3600
+# DDoS 방어용 IP별 업로드 제한
+LICENSE_REQ = {}
+LIC_WINDOW = 60   # 제한 시간(초)
+LIC_MAX = 5       # 해당 시간 내 최대 업로드 횟수
+
 
 # --- Git Helpers ---
 
@@ -221,19 +226,36 @@ def clear_subs():
 @app.route('/upload_license', methods=['POST'])
 @git_track("save .lic.request")
 def upload_license():
-    if 'file' not in request.files: return jsonify(error='No file'),400
+    # 1) IP별 rate limit 검사
+    client = ip()
+    now = time.time()
+    LICENSE_REQ.setdefault(client, []).append(now)
+    # 윈도우 범위 내 타임스탬프만 남김
+    LICENSE_REQ[client] = [t for t in LICENSE_REQ[client] if now - t <= LIC_WINDOW]
+    if len(LICENSE_REQ[client]) > LIC_MAX:
+        return jsonify(error='Rate limit exceeded'), 429
+
+    # 2) 기존 payload·UID 기반 재요청 제한
+    if 'file' not in request.files:
+        return jsonify(error='No file'), 400
     raw = request.files['file'].read().decode().strip()
     try:
-        info=json.loads(base64.b64decode(raw.encode()).decode())
-        uid=info.get('id','unknown'); hwid=info.get('hwid','')
+        info = json.loads(base64.b64decode(raw.encode()).decode())
+        uid = info.get('id', 'unknown')
+        hwid = info.get('hwid', '')
     except:
-        return jsonify(error='Invalid payload'),400
-    now=time.time()
+        return jsonify(error='Invalid payload'), 400
+
+    now_ts = time.time()
     for ex in os.listdir(UPLOAD_DIR):
-        if ex.startswith(f"{uid}_") and now-os.path.getmtime(os.path.join(UPLOAD_DIR,ex))<WINDOW:
-            return jsonify(error='Retry later'),429
-    out=f"{uid}_{hwid}.lic.request"; path=os.path.join(UPLOAD_DIR,secure_filename(out))
-    open(path,'w',encoding='utf-8').write(raw)
+        if ex.startswith(f"{uid}_") and now_ts - os.path.getmtime(os.path.join(UPLOAD_DIR, ex)) < WINDOW:
+            return jsonify(error='Retry later'), 429
+
+    # 3) 정상 처리
+    out = f"{uid}_{hwid}.lic.request"
+    path = os.path.join(UPLOAD_DIR, secure_filename(out))
+    with open(path, 'w', encoding='utf-8') as wf:
+        wf.write(raw)
     return jsonify(status='uploaded', filename=out)
 
 # --- List requests ---
