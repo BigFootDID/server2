@@ -611,17 +611,17 @@ def download_signed_license(hwid):
     
 @app.route('/download_installer', methods=['GET'])
 def download_installer():
-    exe_path = os.path.join(BASE, 'installer.exe')
-    if not os.path.exists(exe_path):
-        return jsonify(error='installer.exe not found'), 404
-    return send_file(
-        exe_path,
-        as_attachment=True,
-        download_name='installer.exe',
-        mimetype='application/octet-stream'
-    )
+    from flask import after_this_request
 
+    @after_this_request
+    def redirect_after(response):
+        response.headers["Refresh"] = "0; url=/"
+        return response
 
+    path = os.path.join(BASE, 'Installer.exe')
+    if not os.path.exists(path):
+        return jsonify(error="Installer.exe not found"), 404
+    return send_file(path, as_attachment=True, download_name="KoistudySolver_Installer.exe")
 
 if __name__=='__main__':
     app.run(host='0.0.0.0', port=5000, debug=True)
