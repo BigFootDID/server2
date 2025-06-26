@@ -340,12 +340,13 @@ def admin_logout():
     session.clear()
     return jsonify(status='ok')
 # --- Admin: List license request uploads ---
-@app.route('/admin/list_license_requests', methods=['GET'])
+@app.route('/admin/list_update_requests', methods=['GET'])
 @admin_required
-@git_track("listed .lic.request files")
-def list_license_requests():
-    files = sorted([f for f in os.listdir(UPLOAD_DIR) if f.endswith('.lic.request')])
+@git_track("listed .lic.update files")
+def list_license_update_requests():
+    files = sorted([f for f in os.listdir(UPLOAD_DIR) if f.endswith('.lic.update')])
     return jsonify(files)
+
 
 if __name__=='__main__':
     app.run(host='0.0.0.0', port=5000, debug=True)
