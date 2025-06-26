@@ -219,8 +219,9 @@
 
 
     async function applySelectedUpdate(){
-      const sel = document.getElementById('selectedRequest').textContent;
-      const hwid = sel.split('_')[0];
+      const sel = document.getElementById('selectedUpdateRequest').textContent;
+      if (sel === '(선택 안됨)') return alert('업데이트 요청 선택 필요');
+      const hwid = sel.split('_')[1];
       const exp = document.getElementById('updateExp').value.trim();
       const max = document.getElementById('updateMax').value.trim();
       await fetch(`/admin/apply_license_update/${hwid}`, {
@@ -231,6 +232,7 @@
       });
       loadUpdateRequests();
     }
+
 
     async function deleteLicense(hwid){
       if(!confirm(`${hwid} 삭제?`)) return;
