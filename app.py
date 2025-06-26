@@ -618,10 +618,17 @@ def download_installer():
         response.headers["Refresh"] = "0; url=/"
         return response
 
-    path = os.path.join(BASE, 'Installer.exe')
-    if not os.path.exists(path):
-        return jsonify(error="Installer.exe not found"), 404
-    return send_file(path, as_attachment=True, download_name="KoistudySolver_Installer.exe")
+    zip_path = os.path.join(BASE, 'KoistudySolver_Installer.zip')
+    if not os.path.exists(zip_path):
+        # zip 생성
+        exe_path = os.path.join(BASE, 'Installer.exe')
+        if not os.path.exists(exe_path):
+            return jsonify(error="Installer.exe not found"), 404
+        import zipfile
+        with zipfile.ZipFile(zip_path, 'w') as zipf:
+            zipf.write(exe_path, arcname="KoistudySolver_Installer.exe")
+
+    return send_file(zip_path, as_attachment=True, download_name="KoistudySolver_Installer.zip")
 
 if __name__=='__main__':
     app.run(host='0.0.0.0', port=5000, debug=True)
