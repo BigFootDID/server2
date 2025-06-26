@@ -670,5 +670,22 @@ def upload_installer():
 
     return jsonify(status="uploaded", version=version)
 
+# 업로드 폴더 리스트
+@app.route('/admin/list_upload_files')
+@admin_required
+def list_upload_files():
+    files = sorted(os.listdir(UPLOAD_DIR))
+    return jsonify(files)
+
+# 특정 파일 삭제
+@app.route('/admin/delete_upload_file/<filename>', methods=['POST'])
+@admin_required
+def delete_upload_file(filename):
+    path = os.path.join(UPLOAD_DIR, secure_filename(filename))
+    if os.path.exists(path):
+        os.remove(path)
+        return jsonify(status='deleted')
+    return jsonify(error='파일 없음'), 404
+
 if __name__=='__main__':
     app.run(host='0.0.0.0', port=5000, debug=True)
