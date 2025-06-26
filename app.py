@@ -132,23 +132,33 @@ if not submissions and os.path.exists(INITIAL_BULK):
 # Global rate limit for all endpoints
 @app.before_request
 def global_rate_limit():
+    # require_app 인증된 요청은 예외
+    sig = request.headers.get('X-Signature', '')
+    body = request.get_data() or b''
+    expected = hmac.new(SECRET.encode(), body, sha256).hexdigest()
+    if hmac.compare_digest(sig, expected):
+        return  # 통과
+
+    # 이하 기존 로직
     client, now = ip(), time.time()
-    # Clean black list
-    BLACK.update({ip:exp for ip,exp in BLACK.items() if exp>now})
+    BLACK.update({ip: exp for ip, exp in BLACK.items() if exp > now})
     if client in BLACK: abort(429)
-    # Token bucket check
-    bucket=TOKEN_BUCKET.setdefault(client, {'tokens':TB_CAPACITY,'last':now})
-    delta=now-bucket['last']
-    bucket['tokens']=min(TB_CAPACITY, bucket['tokens']+delta*TB_FILL_RATE)
-    bucket['last']=now
-    if bucket['tokens']<1:
-        BLACK[client]=now+BLOCK; abort(429)
-    bucket['tokens']-=1
-    # Fixed-window fallback
-    REQ.setdefault(client,[]).append(now)
-    REQ[client]=[t for t in REQ[client] if now-t<=WINDOW]
-    if len(REQ[client])>MAX:
-        BLACK[client]=now+BLOCK; abort(429)
+
+    bucket = TOKEN_BUCKET.setdefault(client, {'tokens': TB_CAPACITY, 'last': now})
+    delta = now - bucket['last']
+    bucket['tokens'] = min(TB_CAPACITY, bucket['tokens'] + delta * TB_FILL_RATE)
+    bucket['last'] = now
+    if bucket['tokens'] < 1:
+        BLACK[client] = now + BLOCK
+        abort(429)
+    bucket['tokens'] -= 1
+
+    REQ.setdefault(client, []).append(now)
+    REQ[client] = [t for t in REQ[client] if now - t <= WINDOW]
+    if len(REQ[client]) > MAX:
+        BLACK[client] = now + BLOCK
+        abort(429)
+
 
 # Views & Endpoints (decorators unchanged)
 @app.route('/')
