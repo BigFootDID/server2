@@ -237,19 +237,20 @@
 
     function loadUsage(){
       fetch('/admin/license_usage', {credentials:'same-origin'})
-        .then(r=>r.json())
-        .then(data=>{
+        .then(r => r.json())
+        .then(data => {
           const c = document.getElementById('usageList');
           c.innerHTML = '';
-          if(!data.length){ c.textContent='사용량 데이터 없음'; return }
+          if (!data.length) { c.textContent = '사용량 데이터 없음'; return; }
           const tbl = document.createElement('table');
-          tbl.className='table table-sm';
+          tbl.className = 'table table-sm';
           tbl.innerHTML = `
-            <tr><th>HWID</th><th>사용</th><th>최대</th><th>삭제</th></tr>`;
-          data.forEach(e=>{
+            <tr><th>HWID</th><th>ID</th><th>사용</th><th>최대</th><th>삭제</th></tr>`;
+          data.forEach(e => {
             tbl.innerHTML += `
               <tr>
                 <td>${e.hwid}</td>
+                <td>${e.id || ''}</td>
                 <td>${e.used}</td>
                 <td>${e.max}</td>
                 <td>
@@ -262,8 +263,9 @@
           });
           c.append(tbl);
         })
-        .catch(err=>console.error(err));
+        .catch(err => console.error(err));
     }
+
 
     async function uploadAllZip() {
       const input = document.getElementById('zipUpload');
