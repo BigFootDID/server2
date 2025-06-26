@@ -373,23 +373,32 @@ def upload_license_update():
 @git_track("update usage count")
 @require_app
 def update_usage():
-    data=request.get_json() or {}
-    if not all(k in data for k in ('payload','signature','count')):
-        return jsonify(error='Invalid request'),400
+    data = request.get_json() or {}
+    if not all(k in data for k in ('payload', 'signature', 'count')):
+        return jsonify(error='Invalid request'), 400
+
     payload, signature_hex, count = data['payload'], data['signature'], int(data['count'])
-    signature=bytes.fromhex(signature_hex)
-    public_key=serialization.load_pem_public_key(open(os.path.join(BASE,'public_key.pem'),'rb').read())
+    signature = bytes.fromhex(signature_hex)
+    public_key = serialization.load_pem_public_key(open(os.path.join(BASE, 'public_key.pem'), 'rb').read())
+
     try:
-        public_key.verify(signature, payload.encode(), padding.PKCS1v15(),hashes.SHA256())
+        json_bytes = base64.b64decode(payload.encode())
+        public_key.verify(signature, json_bytes, padding.PKCS1v15(), hashes.SHA256())
     except InvalidSignature:
-        return jsonify(error='Invalid signature'),403
-    info=json.loads(base64.b64decode(payload).decode()); hwid=info.get('hwid'); max_c=int(info.get('max',0))
-    lic_file=os.path.join(SIGNED_DIR,f"{hwid}.lic")
-    if not os.path.exists(lic_file): return jsonify(error='License not found'),404
-    lic=json.load(open(lic_file)); used=int(base64.b64decode(lic.get('used','MA==')).decode())+count
-    used=min(used, max_c)
-    lic['used']=base64.b64encode(str(used).encode()).decode()
-    json.dump(lic, open(lic_file,'w'), indent=2)
+        return jsonify(error='Invalid signature'), 403
+
+    info = json.loads(json_bytes.decode())
+    hwid = info.get('hwid')
+    max_c = int(info.get('max', 0))
+    lic_file = os.path.join(SIGNED_DIR, f"{hwid}.lic")
+    if not os.path.exists(lic_file):
+        return jsonify(error='License not found'), 404
+
+    lic = json.load(open(lic_file))
+    used = int(base64.b64decode(lic.get('used', 'MA==')).decode()) + count
+    used = min(used, max_c)
+    lic['used'] = base64.b64encode(str(used).encode()).decode()
+    json.dump(lic, open(lic_file, 'w'), indent=2)
     return jsonify(used=used, max=max_c)
 
 # --- License usage ---
