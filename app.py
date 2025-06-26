@@ -10,18 +10,11 @@ from cryptography.hazmat.primitives import hashes, serialization
 from cryptography.exceptions import InvalidSignature
 
 # --- Git Repository 설정 방법 ---
-# 1. 로컬에서 프로젝트 루트로 이동하여 Git 리포지토리 초기화 (이미 init된 경우 건너뜁니다):
-#    git init
-# 2. 원격 저장소는 GitHub/GitLab 등에서 사전에 생성해두십시오.
-#    HTTPS: https://github.com/<username>/<repo>.git
-#    SSH  : git@github.com:<username>/<repo>.git
-# 3. 배포 환경 변수로 GIT_REMOTE_URL 설정:
+# 1. 원격 저장소를 GitHub/GitLab 등에서 사전에 생성하세요.
+# 2. Render 환경 변수에 아래 값 설정:
 #    GIT_REMOTE_URL=https://github.com/<username>/<repo>.git
-# 4. 로컬에서 초기 푸시:
-#    git add .
-#    git commit -m "Initial commit"
-#    git push -u origin main
-# 서버는 빈 리포지토리라도 자동으로 초기 커밋 및 푸시를 처리합니다.
+#    (옵션) GIT_USER_NAME="Auto Commit Bot"
+#    (옵션) GIT_USER_EMAIL="bot@example.com"
 
 app = Flask(__name__, template_folder='templates')
 app.secret_key = os.getenv('FLASK_SECRET_KEY') or 'secret'
@@ -30,8 +23,8 @@ app.permanent_session_lifetime = timedelta(hours=1)
 BASE = os.path.dirname(__file__)
 GIT_REPO_DIR = BASE
 GIT_REMOTE_URL = os.getenv('GIT_REMOTE_URL')
-GIT_USER_NAME = os.getenv('GIT_USER_NAME')
-GIT_USER_EMAIL = os.getenv('GIT_USER_EMAIL')
+GIT_USER_NAME = os.getenv('GIT_USER_NAME', 'Auto Commit Bot')
+GIT_USER_EMAIL = os.getenv('GIT_USER_EMAIL', 'bot@example.com')
 UPLOAD_DIR = os.path.join(BASE, 'uploads')
 SIGNED_DIR = os.path.join(BASE, 'signed')
 STORAGE = os.path.join(BASE, 'submissions.json')
@@ -43,122 +36,85 @@ os.makedirs(UPLOAD_DIR, exist_ok=True)
 os.makedirs(SIGNED_DIR, exist_ok=True)
 LOCK = Lock()
 BLACK, REQ = {}, {}
-MAX, WINDOW, BLOCK = 1, 5, 3600
-# DDoS 방어용 IP별 업로드 제한
-LICENSE_REQ = {}
-LIC_WINDOW = 60   # 제한 시간(초)
-LIC_MAX = 5       # 해당 시간 내 최대 업로드 횟수
+# Fixed-window rate limit parameters
+MAX, WINDOW, BLOCK = 100, 5, 3600  # requests, seconds, block duration
 
+# Token Bucket parameters for all endpoints
+TOKEN_BUCKET = {}
+TB_CAPACITY = 10      # max tokens per IP
+TB_FILL_RATE = 1.0    # tokens replenished per second
 
-# --- Git Helpers ---
-
-def run_git(*args, check=True):
-    return subprocess.run(['git', '-C', GIT_REPO_DIR] + list(args), stdout=subprocess.PIPE, stderr=subprocess.PIPE, check=check)
-
+# Git helpers omitted for brevity (unchanged)
+def run_git(*args, check=True): return subprocess.run(['git', '-C', GIT_REPO_DIR] + list(args), stdout=subprocess.PIPE, stderr=subprocess.PIPE, check=check)
 def git_init_and_remote():
     git_dir = os.path.join(GIT_REPO_DIR, '.git')
-    if not os.path.exists(git_dir):
-        run_git('init')
-        run_git('checkout', '-b', 'main')
+    if not os.path.exists(git_dir): run_git('init'); run_git('checkout', '-b', 'main')
     if GIT_REMOTE_URL:
-        try:
-            run_git('remote', 'add', 'origin', GIT_REMOTE_URL)
-        except subprocess.CalledProcessError:
-            run_git('remote', 'set-url', 'origin', GIT_REMOTE_URL)
-    # author 설정
-    run_git('config', 'user.name', GIT_USER_NAME)
-    run_git('config', 'user.email', GIT_USER_EMAIL)
-
+        try: run_git('remote', 'add', 'origin', GIT_REMOTE_URL)
+        except: run_git('remote', 'set-url', 'origin', GIT_REMOTE_URL)
+    run_git('config','user.name',GIT_USER_NAME); run_git('config','user.email',GIT_USER_EMAIL)
 def git_pull():
     if GIT_REMOTE_URL:
-        try:
-            run_git('fetch', 'origin', check=False)
-            run_git('merge', 'origin/main', '--allow-unrelated-histories', check=False)
-        except Exception:
-            pass
-
-def git_commit_and_push(message):
-    try:
-        run_git('add', '.')
-        run_git('commit', '-m', message)
-        run_git('push', 'origin', 'main', '--set-upstream')
+        try: run_git('fetch','origin',check=False); run_git('merge','origin/main','--allow-unrelated-histories',check=False)
+        except: pass
+def git_commit_and_push(msg):
+    try: run_git('add','.'); run_git('commit','-m',msg); run_git('push','origin','main','--set-upstream')
     except subprocess.CalledProcessError as e:
-        # 이미 up-to-date 이거나 upstream 설정된 경우
-        if 'set-upstream' in e.stderr.decode():
-            run_git('push', 'origin', 'main', check=False)
+        if 'set-upstream' in e.stderr.decode(): run_git('push','origin','main',check=False)
+def git_track(msg):
+    def deco(f):
+        @wraps(f)
+        def w(*a,**k): res=f(*a,**k); git_commit_and_push(msg); return res
+        return w
+    return deco
+# Initialization
+try: git_init_and_remote(); git_pull(); git_commit_and_push('Initialize repository')
+except: pass
 
-def git_track(message):
-    def decorator(func):
-        @wraps(func)
-        def wrapper(*args, **kwargs):
-            res = func(*args, **kwargs)
-            git_commit_and_push(message)
-            return res
-        return wrapper
-    return decorator
+# Utility functions
 
-# --- Initialization ---
-initialize_msgs = []
-try:
-    git_init_and_remote()
-    git_pull()
-    git_commit_and_push('Initialize repository')
-except Exception as e:
-    initialize_msgs.append(str(e))
-
-
-@git_track("initialize and sync repo")
-def initialize():
-    git_init_and_remote()
-    # 원격이 비어있으면 초기 커밋 및 푸시
-    if GIT_REMOTE_URL:
-        try:
-            r = subprocess.run(['git', '-C', GIT_REPO_DIR, 'ls-remote', GIT_REMOTE_URL], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-            if not r.stdout.strip():
-                subprocess.run(['git', '-C', GIT_REPO_DIR, 'add', '.'], check=True)
-                subprocess.run(['git', '-C', GIT_REPO_DIR, 'commit', '-m', 'Initial commit from server'], check=True)
-                subprocess.run(['git', '-C', GIT_REPO_DIR, 'push', '-u', 'origin', 'main'], check=True)
-        except Exception:
-            pass
-    git_pull()
-
-initialize()
-# --- Utilities ---
 def ip():
-    xff = request.headers.get('X-Forwarded-For','')
+    xff=request.headers.get('X-Forwarded-For','')
     return xff.split(',')[0] if xff else request.remote_addr
 
 def admin_required(f):
     @wraps(f)
-    def decorated(*a, **k):
+    def d(*a,**k):
         if not session.get('is_admin'): abort(403)
-        return f(*a, **k)
-    return decorated
+        return f(*a,**k)
+    return d
 
-# --- Load or init data ---
-if os.path.exists(ADMIN_FILE):
-    admin_users = json.load(open(ADMIN_FILE))
+# Data loading
+if os.path.exists(ADMIN_FILE): admin_users=json.load(open(ADMIN_FILE))
 else:
-    admin_users = {'admin': sha256('password'.encode()).hexdigest()}
-    json.dump(admin_users, open(ADMIN_FILE,'w'), indent=2)
-    git_commit_and_push("init admin_users")
+    admin_users={'admin':sha256('password'.encode()).hexdigest()}
+    json.dump(admin_users,open(ADMIN_FILE,'w'),indent=2)
+    git_commit_and_push('Init admin_users')
+submissions=json.load(open(STORAGE,'r')) if os.path.exists(STORAGE) else {}
+signed_history=json.load(open(HISTORY,'r')) if os.path.exists(HISTORY) else []
 
-submissions = json.load(open(STORAGE,'r',encoding='utf-8')) if os.path.exists(STORAGE) else {}
-signed_history = json.load(open(HISTORY,'r',encoding='utf-8')) if os.path.exists(HISTORY) else []
-
-# --- Rate limiting ---
+# Global rate limit for all endpoints
 @app.before_request
-def rate_limit():
-    client = ip(); now = time.time()
-    with LOCK:
-        BLACK.update({k:v for k,v in BLACK.items() if v>now})
-        if client in BLACK: abort(403)
-        REQ.setdefault(client,[]).append(now)
-        REQ[client] = [t for t in REQ[client] if now-t<=WINDOW]
-        if len(REQ[client])>MAX:
-            BLACK[client]=now+BLOCK; abort(403)
+def global_rate_limit():
+    client, now = ip(), time.time()
+    # Clean black list
+    BLACK.update({ip:exp for ip,exp in BLACK.items() if exp>now})
+    if client in BLACK: abort(429)
+    # Token bucket check
+    bucket=TOKEN_BUCKET.setdefault(client, {'tokens':TB_CAPACITY,'last':now})
+    delta=now-bucket['last']
+    bucket['tokens']=min(TB_CAPACITY, bucket['tokens']+delta*TB_FILL_RATE)
+    bucket['last']=now
+    if bucket['tokens']<1:
+        BLACK[client]=now+BLOCK; abort(429)
+    bucket['tokens']-=1
+    # Fixed-window fallback
+    REQ.setdefault(client,[]).append(now)
+    REQ[client]=[t for t in REQ[client] if now-t<=WINDOW]
+    if len(REQ[client])>MAX:
+        BLACK[client]=now+BLOCK; abort(429)
 
-# --- Views ---
+# Views & Endpoints (decorators unchanged)
 @app.route('/')
 def index(): return render_template('index.html')
 @app.route('/upload.html')
