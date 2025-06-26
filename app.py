@@ -324,5 +324,21 @@ def check_license(hwid):
         return jsonify(error=f'Parsing error: {e}'),500
     return jsonify(used=used, max=max_c)
 
+# --- Admin Authentication Endpoints ---
+@app.route('/admin/login', methods=['POST'])
+def admin_login():
+    data = request.get_json() or {}
+    user = data.get('id'); pw = data.get('pw')
+    if not user or not pw or admin_users.get(user) != sha256(pw.encode()).hexdigest():
+        return jsonify(error='Invalid credentials'), 401
+    session.permanent = True
+    session['is_admin'] = True
+    return jsonify(status='ok')
+
+@app.route('/admin/logout', methods=['POST'])
+def admin_logout():
+    session.clear()
+    return jsonify(status='ok')
+
 if __name__=='__main__':
     app.run(host='0.0.0.0', port=5000, debug=True)
