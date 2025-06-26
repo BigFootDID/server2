@@ -113,6 +113,24 @@
       사용량 새로고침
     </button>
 
+    <hr>
+    <h3>🛠️ 인스톨러 업로드</h3>
+    <div class="row g-2 mb-3">
+      <div class="col">
+        <label>버전</label>
+        <input id="installerVersion" class="form-control" placeholder="예: 1.2.3">
+      </div>
+      <div class="col">
+        <label>파일 선택</label>
+        <input type="file" id="installerFile" accept=".exe" class="form-control">
+      </div>
+      <div class="col-auto" style="align-self:end;">
+        <button class="btn btn-outline-primary" onclick="uploadInstaller()">
+          업로드
+        </button>
+      </div>
+    </div>
+
     {% else %}
     <h2>관리자 로그인</h2>
     <form onsubmit="event.preventDefault();login()" class="mb-3">
@@ -267,6 +285,33 @@
       loadUpdateRequests();
       loadUsage();
     });
+
+    async function uploadInstaller() {
+      const fileInput = document.getElementById('installerFile');
+      const versionInput = document.getElementById('installerVersion');
+      const file = fileInput.files[0];
+      const version = versionInput.value.trim();
+  
+      if (!file || !version) {
+        alert('파일과 버전을 모두 입력하세요');
+        return;
+      }
+  
+      if (!confirm(`버전 ${version}으로 installer.exe 업로드할까요?`)) return;
+  
+      const form = new FormData();
+      form.append('file', file);
+      form.append('version', version);
+  
+      const res = await fetch('/admin/upload_installer', {
+        method: 'POST',
+        credentials: 'same-origin',
+        body: form
+      });
+      const json = await res.json();
+      if (res.ok) alert(`업로드 성공 (버전: ${json.version})`);
+      else alert('업로드 실패: ' + (json.error || ''));
+    }
   </script>
 </body>
 </html>
