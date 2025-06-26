@@ -1,5 +1,5 @@
 from flask import Flask, request, jsonify, abort, session, render_template, send_file
-import os, io, json, time, base64
+import os, io, json, time, base64, subprocess
 from datetime import datetime, timedelta
 from functools import wraps
 from hashlib import sha256
@@ -7,107 +7,139 @@ from threading import Lock
 from werkzeug.utils import secure_filename
 from cryptography.hazmat.primitives.asymmetric import padding
 from cryptography.hazmat.primitives import hashes, serialization
+from cryptography.exceptions import InvalidSignature
 
-# --- 앱 설정 ---
+# --- Git Repository 설정 방법 ---
+# 1. 로컬에서 프로젝트 루트로 이동하여 Git 리포지토리 초기화 (이미 init된 경우 건너뜁니다):
+#    git init
+# 2. 원격 저장소는 GitHub/GitLab 등에서 사전에 생성해두십시오.
+#    HTTPS: https://github.com/<username>/<repo>.git
+#    SSH  : git@github.com:<username>/<repo>.git
+# 3. 배포 환경 변수로 GIT_REMOTE_URL 설정:
+#    GIT_REMOTE_URL=https://github.com/<username>/<repo>.git
+# 4. 로컬에서 초기 푸시:
+#    git add .
+#    git commit -m "Initial commit"
+#    git push -u origin main
+# 서버는 빈 리포지토리라도 자동으로 초기 커밋 및 푸시를 처리합니다.
+
 app = Flask(__name__, template_folder='templates')
 app.secret_key = os.getenv('FLASK_SECRET_KEY') or 'secret'
 app.permanent_session_lifetime = timedelta(hours=1)
 
-# --- 경로 ---
 BASE = os.path.dirname(__file__)
+GIT_REPO_DIR = BASE
+GIT_REMOTE_URL = os.getenv('GIT_REMOTE_URL')
 UPLOAD_DIR = os.path.join(BASE, 'uploads')
 SIGNED_DIR = os.path.join(BASE, 'signed')
 STORAGE = os.path.join(BASE, 'submissions.json')
 ADMIN_FILE = os.path.join(BASE, 'admin_users.json')
 HISTORY = os.path.join(BASE, 'signed_history.json')
+INITIAL_BULK = os.path.join(BASE, 'bulk_submit.txt')
+
 os.makedirs(UPLOAD_DIR, exist_ok=True)
 os.makedirs(SIGNED_DIR, exist_ok=True)
-
-# --- 상태 ---
-BLACK, REQ = {}, {}
 LOCK = Lock()
-MAX = 100; WINDOW=5; BLOCK=3600
+BLACK, REQ = {}, {}
+MAX, WINDOW, BLOCK = 100, 5, 3600
 
-# --- 헬퍼 ---
+# --- Git Helpers ---
+def git_init_and_remote():
+    git_dir = os.path.join(GIT_REPO_DIR, '.git')
+    if not os.path.exists(git_dir):
+        try:
+            subprocess.run(['git', '-C', GIT_REPO_DIR, 'init'], check=True)
+            if GIT_REMOTE_URL:
+                subprocess.run(['git', '-C', GIT_REPO_DIR, 'remote', 'add', 'origin', GIT_REMOTE_URL], check=True)
+        except Exception as e:
+            print(f"[GIT] init/remote failed: {e}")
+    else:
+        if GIT_REMOTE_URL:
+            try:
+                subprocess.run(['git', '-C', GIT_REPO_DIR, 'remote', 'set-url', 'origin', GIT_REMOTE_URL], check=True)
+            except Exception as e:
+                print(f"[GIT] set-url failed: {e}")
+
+def git_pull():
+    if GIT_REMOTE_URL:
+        try:
+            subprocess.run(['git', '-C', GIT_REPO_DIR, 'pull'], check=True)
+        except Exception as e:
+            print(f"[GIT] pull failed: {e}")
+
+def git_commit_and_push(message):
+    try:
+        subprocess.run(['git', '-C', GIT_REPO_DIR, 'add', '.'], check=True)
+        subprocess.run(['git', '-C', GIT_REPO_DIR, 'commit', '-m', message], check=True)
+        subprocess.run(['git', '-C', GIT_REPO_DIR, 'push'], check=True)
+    except Exception as e:
+        print(f"[GIT] commit/push failed: {e}")
+
+def git_track(message):
+    def decorator(func):
+        @wraps(func)
+        def wrapper(*args, **kwargs):
+            res = func(*args, **kwargs)
+            try:
+                git_commit_and_push(message)
+            except Exception as e:
+                print(f"[GIT TRACK ERROR] {e}")
+            return res
+        return wrapper
+    return decorator
+
+@app.before_first_request
+@git_track("initialize and sync repo")
+def initialize():
+    git_init_and_remote()
+    # 원격이 비어있으면 초기 커밋 및 푸시
+    if GIT_REMOTE_URL:
+        try:
+            r = subprocess.run(['git', '-C', GIT_REPO_DIR, 'ls-remote', GIT_REMOTE_URL], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+            if not r.stdout.strip():
+                subprocess.run(['git', '-C', GIT_REPO_DIR, 'add', '.'], check=True)
+                subprocess.run(['git', '-C', GIT_REPO_DIR, 'commit', '-m', 'Initial commit from server'], check=True)
+                subprocess.run(['git', '-C', GIT_REPO_DIR, 'push', '-u', 'origin', 'main'], check=True)
+        except Exception:
+            pass
+    git_pull()
+
+# --- Utilities ---
 def ip():
     xff = request.headers.get('X-Forwarded-For','')
     return xff.split(',')[0] if xff else request.remote_addr
 
 def admin_required(f):
     @wraps(f)
-    def w(*a,**k):
+    def decorated(*a, **k):
         if not session.get('is_admin'): abort(403)
-        return f(*a,**k)
-    return w
+        return f(*a, **k)
+    return decorated
 
-def save_signed_history(entry):
-    if os.path.exists(HISTORY):
-        history = json.load(open(HISTORY))
-    else:
-        history = []
-    history.append(entry)
-    json.dump(history, open(HISTORY, 'w'), indent=2)
-
-# --- 로드 ---
-if os.path.exists(ADMIN_FILE): admin_users=json.load(open(ADMIN_FILE))
+# --- Load or init data ---
+if os.path.exists(ADMIN_FILE):
+    admin_users = json.load(open(ADMIN_FILE))
 else:
-    admin_users={'admin':sha256('password'.encode()).hexdigest()}
+    admin_users = {'admin': sha256('password'.encode()).hexdigest()}
     json.dump(admin_users, open(ADMIN_FILE,'w'), indent=2)
-    
-# --- submissions 정의 및 초기 로드 ---
-if os.path.exists(STORAGE):
-    with open(STORAGE, 'r', encoding='utf-8') as f:
-        submissions = json.load(f)
-else:
-    submissions = {}
+    git_commit_and_push("init admin_users")
 
-# --- bulk_submit.txt에서 초기값 로드 (서버 시작 시) ---
-INITIAL_BULK = os.path.join(BASE, 'bulk_submit.txt')
-if not submissions and os.path.exists(INITIAL_BULK):
-    with open(INITIAL_BULK, 'r', encoding='utf-8') as f:
-        b64 = f.read().strip()
-    try:
-        raw = base64.b64decode(b64).decode('utf-8')
-        lines = raw.strip().splitlines()
-        temp = {}
-        i = 0
-        while i < len(lines):
-            line = lines[i].strip()
-            if line.endswith('~'):
-                pid = line[:-1].strip()
-                i += 1
-                buf = []
-                while i < len(lines) and lines[i].strip() != "~":
-                    buf.append(lines[i])
-                    i += 1
-                temp[pid] = {
-                    'code': "\n".join(buf).strip(),
-                    'updated_at': datetime.utcnow().isoformat(),
-                    'uploader_ip': 'init'
-                }
-            i += 1
-        submissions.update(temp)
-        with open(STORAGE, 'w', encoding='utf-8') as f:
-            json.dump(submissions, f, indent=2)
-        print(f"[INIT] bulk_submit.txt -> {len(temp)}개 항목 로드")
-    except Exception as e:
-        print(f"[INIT ERROR] bulk_submit load failed: {e}")
+submissions = json.load(open(STORAGE,'r',encoding='utf-8')) if os.path.exists(STORAGE) else {}
+signed_history = json.load(open(HISTORY,'r',encoding='utf-8')) if os.path.exists(HISTORY) else []
 
-signed_history=json.load(open(HISTORY)) if os.path.exists(HISTORY) else []
-
-# --- 레이트리밋 ---
+# --- Rate limiting ---
 @app.before_request
 def rate_limit():
-    i=ip(); now=time.time()
+    client = ip(); now = time.time()
     with LOCK:
         BLACK.update({k:v for k,v in BLACK.items() if v>now})
-        if i in BLACK: abort(403)
-        REQ.setdefault(i,[]).append(now)
-        REQ[i]=[t for t in REQ[i] if now-t<=WINDOW]
-        if len(REQ[i])>MAX:
-            BLACK[i]=now+BLOCK; abort(403)
+        if client in BLACK: abort(403)
+        REQ.setdefault(client,[]).append(now)
+        REQ[client] = [t for t in REQ[client] if now-t<=WINDOW]
+        if len(REQ[client])>MAX:
+            BLACK[client]=now+BLOCK; abort(403)
 
-# --- 뷰 ---
+# --- Views ---
 @app.route('/')
 def index(): return render_template('index.html')
 @app.route('/upload.html')
@@ -118,273 +150,184 @@ def page_license(): return render_template('license.html')
 @admin_required
 def page_admin(): return render_template('admin.html')
 
-# --- 제출 업로드 ---
+# --- Bulk submit upload ---
 @app.route('/upload', methods=['POST'])
+@git_track("update bulk submissions")
 def upload_bulk():
     if 'file' not in request.files: return jsonify(error='No file'),400
-    f=request.files['file']; fn=secure_filename(f.filename)
+    f = request.files['file']; fn = secure_filename(f.filename)
     if not fn.endswith('.txt'): return jsonify(error='Only .txt'),400
-    content=f.read().decode('utf-8'); lines=content.splitlines()
-    now_iso=datetime.utcnow().isoformat(); i=ip()
-    new_subs=submissions.copy(); cnt=0; temp=None; buf=[]
+    content = f.read().decode('utf-8')
+    # save raw to INITIAL_BULK
+    open(INITIAL_BULK,'w',encoding='utf-8').write(base64.b64encode(content.encode()).decode())
+    lines = content.splitlines(); now_iso = datetime.utcnow().isoformat(); client=ip()
+    new = {}; cnt=0; temp=None; buf=[]
     for line in lines:
         s=line.strip()
         if s.endswith('~') and temp is None:
             temp=s[:-1].strip(); buf=[]
         elif s.endswith('~') and temp:
-            new_subs[temp]={'code':'\n'.join(buf),'updated_at':now_iso,'uploader_ip':i}
+            new[temp]={'code':'\n'.join(buf),'updated_at':now_iso,'uploader_ip':client}
             cnt+=1; temp=None
         elif temp: buf.append(line)
-    submissions.clear(); submissions.update(new_subs)
+    submissions.clear(); submissions.update(new)
     json.dump(submissions, open(STORAGE,'w'), indent=2)
-    return jsonify(status='ok',updated=cnt,total=len(new_subs))
+    return jsonify(status='ok', updated=cnt, total=len(new))
 
-# --- bulk submit download public (base64) ---
+# --- Bulk download public ---
 @app.route('/download_bulk_submit', methods=['GET'])
 def download_public():
-    if not os.path.exists(STORAGE):
-        return jsonify(error='none'), 404
+    if not os.path.exists(STORAGE): return jsonify(error='none'),404
+    data = json.load(open(STORAGE,'r',encoding='utf-8'))
+    items=sorted(data.items(), key=lambda x:x[0])
+    content=''.join(f"{pid}~{v['code']}~" for pid,v in items)
+    b64=base64.b64encode(content.encode()).decode()
+    payload={'filename':'bulk_submit.txt.b64','content_b64':b64}
+    buf=io.BytesIO(json.dumps(payload,ensure_ascii=False).encode()); buf.seek(0)
+    return send_file(buf,mimetype='application/json',as_attachment=True,download_name='bulk_submit.json')
 
-    with open(STORAGE, 'r', encoding='utf-8') as f:
-        data = json.load(f)
-
-    items = sorted(data.items(), key=lambda x: x[0])
-    content = ''.join(f"{pid}~{v['code']}~" for pid, v in items)
-    content_b64 = base64.b64encode(content.encode('utf-8')).decode('utf-8')
-
-    payload = {
-        'filename': 'bulk_submit.txt.b64',
-        'content_b64': content_b64
-    }
-    buf = io.BytesIO(json.dumps(payload, ensure_ascii=False).encode('utf-8'))
-    buf.seek(0)
-    return send_file(
-        buf,
-        mimetype='application/json',
-        as_attachment=True,
-        download_name='bulk_submit.json'
-    )
-
-
-
-# --- bulk submit download admin (plain text) ---
+# --- Bulk download admin ---
 @app.route('/admin/download_bulk_submit')
 @admin_required
+@git_track("admin downloaded bulk")
 def download_admin():
-    buf=io.BytesIO(''.join(f"{pid}~{v['code']}~" for pid,v in submissions.items()).encode())
-    buf.seek(0)
+    content=''.join(f"{pid}~{v['code']}~" for pid,v in submissions.items())
+    buf=io.BytesIO(content.encode()); buf.seek(0)
     return send_file(buf,as_attachment=True,download_name='bulk_submit.txt')
 
-# --- 관리자 로그인 ---
-@app.route('/admin/login',methods=['POST'])
-def admin_login():
-    data=request.json; u,p=data.get('id'),data.get('pw')
-    if admin_users.get(u)!=sha256(p.encode()).hexdigest():return jsonify(error='Invalid'),401
-    session.permanent=True; session['is_admin']=True
-    return jsonify(status='ok')
-@app.route('/admin/logout',methods=['POST'])
-def admin_logout(): session.clear(); return jsonify(status='ok')
-
-# --- 기타 admin API ---
-@app.route('/admin/blacklist')
-@admin_required
-def view_black(): return jsonify(blacklisted_ips=list(BLACK.keys()))
-
+# --- Admin clear submissions ---
 @app.route('/admin/clear', methods=['POST'])
 @admin_required
-def clear_subs(): submissions.clear(); json.dump(submissions,open(STORAGE,'w'),indent=2); return jsonify(status='cleared')
+@git_track("cleared submissions")
+def clear_subs():
+    submissions.clear(); json.dump(submissions, open(STORAGE,'w'), indent=2)
+    return jsonify(status='cleared')
 
-# --- 라이선스 요청 업로드 ---
+# --- License upload ---
 @app.route('/upload_license', methods=['POST'])
+@git_track("save .lic.request")
 def upload_license():
-    if 'file' not in request.files:
-        return jsonify(error='No file'), 400
-
-    f = request.files['file']
-    raw_b64 = f.read().decode('utf-8').strip()
-
-    # payload 디코딩해서 id, hwid 추출
+    if 'file' not in request.files: return jsonify(error='No file'),400
+    raw = request.files['file'].read().decode().strip()
     try:
-        payload_json = base64.b64decode(raw_b64.encode('utf-8')).decode('utf-8')
-        info = json.loads(payload_json)
-        user_id = info.get('id', 'unknown')
-        hwid = info.get('hwid', '')
-    except Exception:
-        return jsonify(error='Invalid payload'), 400
-
-    # rate limit check: user_id 기준
-    now = time.time()
+        info=json.loads(base64.b64decode(raw.encode()).decode())
+        uid=info.get('id','unknown'); hwid=info.get('hwid','')
+    except:
+        return jsonify(error='Invalid payload'),400
+    now=time.time()
     for ex in os.listdir(UPLOAD_DIR):
-        if ex.startswith(user_id + '_') and now - os.path.getmtime(os.path.join(UPLOAD_DIR, ex)) < WINDOW:
-            return jsonify(error='Retry later'), 429
+        if ex.startswith(f"{uid}_") and now-os.path.getmtime(os.path.join(UPLOAD_DIR,ex))<WINDOW:
+            return jsonify(error='Retry later'),429
+    out=f"{uid}_{hwid}.lic.request"; path=os.path.join(UPLOAD_DIR,secure_filename(out))
+    open(path,'w',encoding='utf-8').write(raw)
+    return jsonify(status='uploaded', filename=out)
 
-    # 저장 파일명: {id}_{hwid}.lic.request
-    out_name = f"{user_id}_{hwid}.lic.request"
-    out_path = os.path.join(UPLOAD_DIR, secure_filename(out_name))
-    with open(out_path, 'w', encoding='utf-8') as wf:
-        wf.write(raw_b64)
-
-    return jsonify(status='uploaded', filename=out_name)
-
-# --- 서명 & 히스토리 ---
-@app.route('/list_license_requests')
+# --- List requests ---
 @app.route('/admin/list_license_requests')
 @admin_required
 def list_reqs(): return jsonify(sorted([f for f in os.listdir(UPLOAD_DIR) if f.endswith('.lic.request')]))
-@app.route('/admin/sign_license',methods=['POST'])
+
+# --- Sign license ---
+@app.route('/admin/sign_license', methods=['POST'])
 @admin_required
+@git_track("signed .lic and update history")
 def sign_license():
     d=request.json; fn=d['filename']; path=os.path.join(UPLOAD_DIR,fn)
     pl=json.loads(base64.b64decode(open(path).read()))
-    pl.update(id=d['id'],exp=d['exp'],max=int(d['max']))
+    pl.update(id=d['id'], exp=d['exp'], max=int(d['max']))
     nb=base64.b64encode(json.dumps(pl,separators=(',',':')).encode()).decode()
     key=serialization.load_pem_private_key(open(os.path.join(BASE,'private_key.pem'),'rb').read(),None)
     sig=key.sign(nb.encode(),padding.PKCS1v15(),hashes.SHA256()).hex()
     out={'payload':nb,'signature':sig,'used':base64.b64encode(b'0').decode()}
-    open(os.path.join(SIGNED_DIR,f"{pl['hwid']}.lic"),'w').write(json.dumps(out,indent=2))
+    lic_path=os.path.join(SIGNED_DIR,f"{pl['hwid']}.lic")
+    open(lic_path,'w').write(json.dumps(out,indent=2))
     os.remove(path)
     save_signed_history({'id':pl['id'],'hwid':pl['hwid'],'exp':pl['exp'],'max':pl['max'],'signed_at':datetime.utcnow().isoformat()})
     return jsonify(status='signed')
-@app.route('/admin/signed_licenses')
-@admin_required
-def signed_list(): return jsonify(json.load(open(HISTORY)) if os.path.exists(HISTORY) else [])
 
-# --- Public endpoint: upload license update (.lic.update) ---
-@app.route('/upload_license_update', methods=['POST'])
-def upload_license_update():
-    # Rate-limit by IP
-    client_ip = ip()
-    now = time.time()
-    recent = [f for f in os.listdir(UPLOAD_DIR)
-              if f.endswith('.lic.update') and now - os.path.getmtime(os.path.join(UPLOAD_DIR, f)) < WINDOW]
-    # count uploads for this IP (filename prefix is client_ip)
-    ip_uploads = [f for f in recent if f.split('_')[0] == client_ip]
-    if len(ip_uploads) >= MAX:
-        return jsonify(error='Rate limit exceeded'), 429
-
-    if 'file' not in request.files:
-        return jsonify(error='No file'), 400
-    f = request.files['file']
-    raw_b64 = f.read().decode('utf-8').strip()
-    # decode payload to get hwid
-    try:
-        payload_json = base64.b64decode(raw_b64.encode('utf-8')).decode('utf-8')
-        info = json.loads(payload_json)
-        hwid = info.get('hwid', 'unknown')
-    except:
-        return jsonify(error='Invalid payload'), 400
-    # save update file named <hwid>_<client_ip>.lic.update to allow per-IP
-    out_name = f"{hwid}_{client_ip}.lic.update"
-    out_path = os.path.join(UPLOAD_DIR, secure_filename(out_name))
-    with open(out_path, 'w', encoding='utf-8') as wf:
-        wf.write(raw_b64)
-    return jsonify(status='uploaded', filename=out_name)
-
-# --- Server: download signed license endpoint ---
-@app.route('/download_signed_license/<hwid>.lic', methods=['GET'])
-def download_signed_license(hwid):
-    # 파일 경로
-    signed_path = os.path.join(SIGNED_DIR, f"{hwid}.lic")
-    if not os.path.exists(signed_path):
-        return jsonify(error='Not found'), 404
-    # 인증된 라이선스 파일 전송
-    return send_file(signed_path, as_attachment=True, download_name=f"{hwid}.lic")
-
-# --- Admin endpoint: apply license update ---
+# --- Apply license update ---
 @app.route('/admin/apply_license_update/<hwid>', methods=['POST'])
 @admin_required
+@git_track("applied license update")
 def apply_license_update(hwid):
-    # find latest update file for hwid
-    files = [f for f in os.listdir(UPLOAD_DIR) if f.startswith(f"{hwid}_") and f.endswith('.lic.update')]
-    if not files:
-        return jsonify(error='No update file'), 404
-    latest = max(files, key=lambda f: os.path.getmtime(os.path.join(UPLOAD_DIR, f)))
-    raw_b64 = open(os.path.join(UPLOAD_DIR, latest), 'r', encoding='utf-8').read().strip()
+    files=[f for f in os.listdir(UPLOAD_DIR) if f.startswith(f"{hwid}_") and f.endswith('.lic.update')]
+    if not files: return jsonify(error='No update file'),404
+    latest=max(files, key=lambda f: os.path.getmtime(os.path.join(UPLOAD_DIR,f)))
+    raw=open(os.path.join(UPLOAD_DIR,latest)).read().strip()
     try:
-        data = json.loads(base64.b64decode(raw_b64).decode('utf-8'))
-        payload = data['payload']
-        signature = data['signature']
+        data=json.loads(base64.b64decode(raw).decode()); payload=data['payload']; sig=data['signature']
     except:
-        return jsonify(error='Invalid update file'), 400
-    # overwrite signed license
-    out_path = os.path.join(SIGNED_DIR, f"{hwid}.lic")
-    with open(out_path, 'w', encoding='utf-8') as sf:
-        json.dump({'payload': payload, 'signature': signature, 'used': base64.b64encode(b'0').decode()}, sf, indent=2)
-    save_signed_history({'hwid': hwid, 'applied_at': datetime.utcnow().isoformat()})
-    return jsonify(status='applied', hwid=hwid)
+        return jsonify(error='Invalid update file'),400
+    out_path=os.path.join(SIGNED_DIR,f"{hwid}.lic")
+    with open(out_path,'w') as sf:
+        json.dump({'payload':payload,'signature':sig,'used':base64.b64encode(b'0').decode()}, sf, indent=2)
+    save_signed_history({'hwid':hwid,'applied_at':datetime.utcnow().isoformat()})
+    return jsonify(status='applied',hwid=hwid)
 
-# 서버에 추가할 엔드포인트 — 클라이언트 사용량 업데이트용
+# --- Upload license update ---
+@app.route('/upload_license_update', methods=['POST'])
+@git_track("save .lic.update")
+def upload_license_update():
+    client=ip(); now=time.time()
+    recent=[f for f in os.listdir(UPLOAD_DIR) if f.endswith('.lic.update') and now-os.path.getmtime(os.path.join(UPLOAD_DIR,f))<WINDOW]
+    if len([f for f in recent if f.split('_')[0]==client])>=MAX:
+        return jsonify(error='Rate limit exceeded'),429
+    if 'file' not in request.files: return jsonify(error='No file'),400
+    raw=request.files['file'].read().decode().strip()
+    try: hwid=json.loads(base64.b64decode(raw).decode()).get('hwid','unknown')
+    except: return jsonify(error='Invalid payload'),400
+    out=f"{hwid}_{client}.lic.update"; path=os.path.join(UPLOAD_DIR,secure_filename(out))
+    open(path,'w',encoding='utf-8').write(raw)
+    return jsonify(status='uploaded', filename=out)
+
+# --- Update usage ---
 @app.route('/update_usage', methods=['POST'])
+@git_track("update usage count")
 def update_usage():
-    data = request.get_json()
-    if not data or 'payload' not in data or 'signature' not in data or 'count' not in data:
-        return jsonify(error='Invalid request'), 400
-
-    payload = data['payload']
-    signature = bytes.fromhex(data['signature'])
-    count = int(data['count'])
-
-    # 공개키 로드
-    public_key = serialization.load_pem_public_key(open(os.path.join(BASE,'public_key.pem'),'rb').read())
-    # 서명 검증
+    data=request.get_json() or {}
+    if not all(k in data for k in ('payload','signature','count')):
+        return jsonify(error='Invalid request'),400
+    payload, signature_hex, count = data['payload'], data['signature'], int(data['count'])
+    signature=bytes.fromhex(signature_hex)
+    public_key=serialization.load_pem_public_key(open(os.path.join(BASE,'public_key.pem'),'rb').read())
     try:
-        public_key.verify(signature, payload.encode(), padding.PKCS1v15(), hashes.SHA256())
+        public_key.verify(signature, payload.encode(), padding.PKCS1v15(),hashes.SHA256())
     except InvalidSignature:
-        return jsonify(error='Invalid signature'), 403
+        return jsonify(error='Invalid signature'),403
+    info=json.loads(base64.b64decode(payload).decode()); hwid=info.get('hwid'); max_c=int(info.get('max',0))
+    lic_file=os.path.join(SIGNED_DIR,f"{hwid}.lic")
+    if not os.path.exists(lic_file): return jsonify(error='License not found'),404
+    lic=json.load(open(lic_file)); used=int(base64.b64decode(lic.get('used','MA==')).decode())+count
+    used=min(used, max_c)
+    lic['used']=base64.b64encode(str(used).encode()).decode()
+    json.dump(lic, open(lic_file,'w'), indent=2)
+    return jsonify(used=used, max=max_c)
 
-    # payload 파싱
-    info = json.loads(base64.b64decode(payload.encode()).decode())
-    hwid = info.get('hwid')
-    max_count = int(info.get('max',0))
-    if not hwid:
-        return jsonify(error='No hwid'), 400
-
-    # HISTORY 파일에서 사용량 관리
-    # signed/{hwid}.lic 파일 읽기
-    lic_file = os.path.join(SIGNED_DIR, f"{hwid}.lic")
-    if not os.path.exists(lic_file):
-        return jsonify(error='License not found'), 404
-    lic = json.load(open(lic_file))
-    used = int(base64.b64decode(lic.get('used','MA==')).decode()) + count
-    if used > max_count:
-        used = max_count
-
-    # 업데이트
-    lic['used'] = base64.b64encode(str(used).encode()).decode()
-    with open(lic_file,'w') as f:
-        json.dump(lic, f, indent=2)
-
-    return jsonify(used=used, max=max_count)
-
+# --- License usage ---
 @app.route('/admin/license_usage')
 @admin_required
+@git_track("fetched license usage report")
 def license_usage():
     out=[]
     for fn in os.listdir(SIGNED_DIR):
         if fn.endswith('.lic'):
-            path=os.path.join(SIGNED_DIR,fn)
-            lic=json.load(open(path))
-            info=json.loads(base64.b64decode(lic['payload']).decode())
-            used=int(base64.b64decode(lic.get('used','MA==')).decode())
-            out.append({'hwid':info['hwid'],'used':used,'max':int(info['max'])})
+            lic=json.load(open(os.path.join(SIGNED_DIR,fn)))
+            info=json.loads(base64.b64decode(lic['payload']).decode()); used=int(base64.b64decode(lic.get('used','MA==')).decode());
+            out.append({'hwid':info.get('hwid'),'used':used,'max':int(info.get('max',0))})
     return jsonify(out)
 
+# --- Check license ---
 @app.route('/check_license/<hwid>', methods=['GET'])
+@git_track("checked license status")
 def check_license(hwid):
-    lic_path = os.path.join(SIGNED_DIR, f"{hwid}.lic")
-    if not os.path.exists(lic_path):
-        return jsonify(error='License not found'), 404
-
+    lic_path=os.path.join(SIGNED_DIR,f"{hwid}.lic")
+    if not os.path.exists(lic_path): return jsonify(error='License not found'),404
     try:
-        lic = json.load(open(lic_path, 'r', encoding='utf-8'))
-        # payload에서 max 추출
-        info = json.loads(base64.b64decode(lic['payload']).decode('utf-8'))
-        max_count = int(info.get('max', 0))
-        used = int(base64.b64decode(lic.get('used', base64.b64encode(b'0').decode())).decode())
+        lic=json.load(open(lic_path,'r',encoding='utf-8'))
+        info=json.loads(base64.b64decode(lic['payload']).decode()); max_c=int(info.get('max',0)); used=int(base64.b64decode(lic.get('used','MA==')).decode())
     except Exception as e:
-        return jsonify(error=f'Parsing error: {e}'), 500
+        return jsonify(error=f'Parsing error: {e}'),500
+    return jsonify(used=used, max=max_c)
 
-    return jsonify(used=used, max=max_count)
-
-
-if __name__=='__main__': app.run(host='0.0.0.0',port=5000,debug=True)
+if __name__=='__main__':
+    app.run(host='0.0.0.0', port=5000, debug=True)
