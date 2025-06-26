@@ -42,7 +42,7 @@ os.makedirs(SIGNED_DIR, exist_ok=True)
 LOCK = Lock()
 BLACK, REQ = {}, {}
 # Fixed-window rate limit parameters
-MAX, WINDOW, BLOCK = 10, 60, 30  # requests, seconds, block duration
+MAX, WINDOW, BLOCK = 60, 60, 30  # requests, seconds, block duration
 
 # Token Bucket parameters for all endpoints
 TOKEN_BUCKET = {}
