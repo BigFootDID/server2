@@ -430,5 +430,60 @@ def delete_license(hwid):
         return jsonify(status='deleted')
     return jsonify(error='not_found'), 404
 
+@app.route('/admin/upload_all', methods=['POST'])
+@admin_required
+@git_track("uploaded and merged all_data.zip")
+def admin_upload_all():
+    if 'file' not in request.files:
+        return jsonify(error='No file'), 400
+    file = request.files['file']
+    if not file.filename.endswith('.zip'):
+        return jsonify(error='Only .zip file allowed'), 400
+
+    import zipfile
+    import tempfile
+
+    with tempfile.TemporaryDirectory() as tmpdir:
+        zip_path = os.path.join(tmpdir, 'upload.zip')
+        file.save(zip_path)
+
+        with zipfile.ZipFile(zip_path, 'r') as zf:
+            zf.extractall(tmpdir)
+
+        # Restore bulk_submit.txt
+        bulk_path = os.path.join(tmpdir, 'bulk_submit.txt')
+        if os.path.exists(bulk_path):
+            with open(bulk_path, 'r', encoding='utf-8') as bf:
+                raw = bf.read()
+                open(INITIAL_BULK, 'w', encoding='utf-8').write(base64.b64encode(raw.encode()).decode())
+
+            # parse and update submissions
+            lines = raw.splitlines()
+            new_subs = {}; temp=None; buf=[]; now = datetime.utcnow().isoformat(); client = 'admin-upload'
+            for line in lines:
+                s = line.strip()
+                if s.endswith('~') and temp is None:
+                    temp = s[:-1].strip(); buf = []
+                elif s.endswith('~') and temp:
+                    new_subs[temp] = {'code': '\n'.join(buf), 'updated_at': now, 'uploader_ip': client}
+                    temp = None
+                elif temp:
+                    buf.append(line)
+            submissions.update(new_subs)
+            json.dump(submissions, open(STORAGE, 'w'), indent=2)
+
+        # Restore licenses (only if not exist)
+        signed_dir = os.path.join(tmpdir, 'signed')
+        if os.path.isdir(signed_dir):
+            for fname in os.listdir(signed_dir):
+                dest = os.path.join(SIGNED_DIR, fname)
+                if not os.path.exists(dest):
+                    src = os.path.join(signed_dir, fname)
+                    with open(dest, 'wb') as wf, open(src, 'rb') as rf:
+                        wf.write(rf.read())
+
+    return jsonify(status='uploaded', new_submissions=len(new_subs))
+
+
 if __name__=='__main__':
     app.run(host='0.0.0.0', port=5000, debug=True)
