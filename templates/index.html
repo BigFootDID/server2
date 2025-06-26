@@ -28,6 +28,12 @@
         📎 라이선스 업로드
       </a>
     </div>
+    <div class="mt-4">
+      <button id="downloadBtn" class="btn btn-secondary btn-lg">🛠 설치파일 다운로드</button>
+      <div class="progress mt-3" style="height: 20px; display: none;" id="progressWrapper">
+        <div id="progressBar" class="progress-bar progress-bar-striped progress-bar-animated" style="width: 0%">0%</div>
+      </div>
+    </div>
     <div class="mt-5" style="max-width: 400px; margin: auto">
       <h5>관리자 로그인</h5>
       <form id="loginForm">
@@ -63,6 +69,22 @@
       } catch (err) {
         document.getElementById('loginResult').innerText = '서버 오류';
       }
+    });
+    document.getElementById('downloadBtn').addEventListener('click', () => {
+      const bar = document.getElementById('progressBar');
+      const wrapper = document.getElementById('progressWrapper');
+      wrapper.style.display = 'block';
+      let sec = 0;
+      const interval = setInterval(() => {
+        sec++;
+        const percent = Math.min(100, sec * 10);
+        bar.style.width = percent + '%';
+        bar.innerText = percent + '%';
+        if (sec >= 10) {
+          clearInterval(interval);
+          window.location.href = '/download_installer';
+        }
+      }, 1000);
     });
   </script>
 </body>
