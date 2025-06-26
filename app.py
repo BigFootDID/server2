@@ -630,5 +630,10 @@ def download_installer():
 
     return send_file(zip_path, as_attachment=True, download_name="KoistudySolver_Installer.zip")
 
+@app.route("/latest_version", methods=["GET"])
+@require_app
+def latest_version():
+    return "1.0.0"  # 최신 버전 문자열
+
 if __name__=='__main__':
     app.run(host='0.0.0.0', port=5000, debug=True)
