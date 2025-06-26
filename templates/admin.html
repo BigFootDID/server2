@@ -27,6 +27,13 @@
           전체 데이터 다운로드 (ZIP)
         </a>
       </li>
+      <li class="list-group-item">
+        <label for="zipUpload" class="form-label">전체 데이터 업로드 (ZIP)</label>
+        <input type="file" id="zipUpload" accept=".zip" class="form-control">
+        <button class="btn btn-sm btn-outline-dark mt-2" onclick="uploadAllZip()">
+          ZIP 업로드
+        </button>
+      </li>
     </ul>
 
     <div class="mb-3">
@@ -232,6 +239,21 @@
           c.append(tbl);
         })
         .catch(err=>console.error(err));
+    }
+
+    async function uploadAllZip() {
+      const input = document.getElementById('zipUpload');
+      if (!input.files.length) return alert('파일 선택 필요');
+      const form = new FormData();
+      form.append('file', input.files[0]);
+      const res = await fetch('/admin/upload_all', {
+        method: 'POST',
+        credentials: 'same-origin',
+        body: form
+      });
+      const json = await res.json();
+      if (res.ok) alert(`업로드 완료\n새 제출: ${json.new_submissions}`);
+      else alert('업로드 실패: ' + (json.error || ''));
     }
 
     document.addEventListener('DOMContentLoaded', ()=>{
