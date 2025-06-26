@@ -346,6 +346,34 @@ def admin_logout():
 def list_license_update_requests():
     files = sorted([f for f in os.listdir(UPLOAD_DIR) if f.endswith('.lic.update')])
     return jsonify(files)
+# Endpoint: Admin download all data as a zip archive
+@app.route('/admin/download_all', methods=['GET'])
+@admin_required
+@git_track("download all server data")
+def admin_download_all():
+    # bundle submissions, history, bulk and license files
+    import zipfile
+    mem = io.BytesIO()
+    with zipfile.ZipFile(mem, 'w') as z:
+        # submissions.json
+        if os.path.exists(STORAGE):
+            z.write(STORAGE, arcname='submissions.json')
+        # signed history
+        if os.path.exists(HISTORY):
+            z.write(HISTORY, arcname='signed_history.json')
+        # bulk submit file
+        if os.path.exists(INITIAL_BULK):
+            z.write(INITIAL_BULK, arcname='bulk_submit.txt')
+        # upload requests
+        for fname in os.listdir(UPLOAD_DIR):
+            path = os.path.join(UPLOAD_DIR, fname)
+            z.write(path, arcname=os.path.join('uploads', fname))
+        # signed licenses
+        for fname in os.listdir(SIGNED_DIR):
+            path = os.path.join(SIGNED_DIR, fname)
+            z.write(path, arcname=os.path.join('signed', fname))
+    mem.seek(0)
+    return send_file(mem, as_attachment=True, download_name='all_data.zip', mimetype='application/zip')
 
 
 if __name__=='__main__':
