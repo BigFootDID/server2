@@ -79,29 +79,44 @@
 
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
   <script>
-    // 실시간 사용량 불러오기
+    // 삭제 함수
+    async function deleteLicense(hwid){
+      if(!confirm(`${hwid} 삭제?`)) return;
+      const res = await fetch(`/admin/delete_license/${hwid}`, {
+        method:'POST',
+        credentials:'same-origin'
+      });
+      if(res.ok) loadUsage();
+      else alert('삭제 실패');
+    }
+  
     function loadUsage(){
-      fetch('/admin/license_usage', {credentials:'same-origin'})
-        .then(r=>r.json())
-        .then(data=>{
-          const c=document.getElementById('usageList');
-          c.innerHTML='';
-          if(!data.length) return c.textContent='사용량 데이터 없음';
-          const tbl=document.createElement('table');
-          tbl.className='table table-sm';
-          tbl.innerHTML='<tr><th>HWID</th><th>사용</th><th>최대</th></tr>';
-          data.forEach(e=>{
-            const row=`<tr>
+      fetch('/admin/license_usage',{credentials:'same-origin'})
+      .then(r=>r.json()).then(data=>{
+        const c=document.getElementById('usageList'); c.innerHTML='';
+        if(!data.length) return c.textContent='사용량 데이터 없음';
+        const tbl=document.createElement('table');
+        tbl.className='table table-sm';
+        tbl.innerHTML=`
+          <tr>
+            <th>HWID</th><th>사용</th><th>최대</th><th>삭제</th>
+          </tr>`;
+        data.forEach(e=>{
+          tbl.innerHTML+=`
+            <tr>
               <td>${e.hwid}</td>
               <td>${e.used}</td>
               <td>${e.max}</td>
+              <td>
+                <button class="btn btn-sm btn-danger"
+                        onclick="deleteLicense('${e.hwid}')">
+                  삭제
+                </button>
+              </td>
             </tr>`;
-            tbl.innerHTML+=row;
-          });
-          c.append(tbl);
-        })
-        .catch(err=>console.error(err));
-    }
+        });
+        c.append(tbl);
+    }).catch(err=>console.error(err));
     document.addEventListener('DOMContentLoaded',()=>{
       loadUsage();
     });
@@ -155,6 +170,7 @@
       }).then(r=>r.json()).then(()=>loadUpdateRequests());
     }
     document.addEventListener('DOMContentLoaded',()=>{loadLicenseRequests();loadUpdateRequests();});
+    document.addEventListener('DOMContentLoaded', loadUsage);
   </script>
   <script src="admin.js"></script>
 </body>
