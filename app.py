@@ -433,14 +433,21 @@ def update_usage():
 @admin_required
 @git_track("fetched license usage report")
 def license_usage():
-    out=[]
+    usage = []
     for fn in os.listdir(SIGNED_DIR):
-        if fn.endswith('.lic'):
-            lic=json.load(open(os.path.join(SIGNED_DIR,fn)))
-            info=json.loads(base64.b64decode(lic['payload']).decode()); used=int(base64.b64decode(lic.get('used','MA==')).decode());
-            out.append({'hwid':info.get('hwid'),'used':used,'max':int(info.get('max',0))})
-    return jsonify(out)
-
+        if not fn.endswith('.lic'): continue
+        path = os.path.join(SIGNED_DIR, fn)
+        with open(path) as f:
+            data = json.load(f)
+        payload = json.loads(base64.b64decode(data['payload']).decode())
+        used = int(base64.b64decode(data['used']).decode())
+        usage.append({
+            'hwid': payload.get('hwid', 'unknown'),
+            'id': payload.get('id', 'unknown'),
+            'used': used,
+            'max': payload.get('max', '?')
+        })
+    return jsonify(usage)
 # --- Check license ---
 @app.route('/check_license/<hwid>', methods=['GET'])
 @git_track("checked license status")
