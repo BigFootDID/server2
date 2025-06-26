@@ -188,26 +188,46 @@ def page_admin(): return render_template('admin.html')
 @git_track("update bulk submissions")
 @require_app
 def upload_bulk():
-    if 'file' not in request.files: return jsonify(error='No file'),400
-    f = request.files['file']; fn = secure_filename(f.filename)
-    if not fn.endswith('.txt'): return jsonify(error='Only .txt'),400
+    if 'file' not in request.files:
+        return jsonify(error='No file'), 400
+    f = request.files['file']
+    fn = secure_filename(f.filename)
+    if not fn.endswith('.txt'):
+        return jsonify(error='Only .txt'), 400
+
     content = f.read().decode('utf-8')
-    # save raw to INITIAL_BULK
-    open(INITIAL_BULK,'w',encoding='utf-8').write(base64.b64encode(content.encode()).decode())
-    lines = content.splitlines(); now_iso = datetime.utcnow().isoformat(); client=ip()
-    new = {}; cnt=0; temp=None; buf=[]
+    lines = content.splitlines()
+    now_iso = datetime.utcnow().isoformat()
+    client = ip()
+
+    # decode된 내용 정리
+    new = {}
+    temp = None
+    buf = []
     for line in lines:
-        s=line.strip()
+        s = line.strip()
         if s.endswith('~') and temp is None:
-            temp=s[:-1].strip(); buf=[]
+            temp = s[:-1].strip()
+            buf = []
         elif s.endswith('~') and temp:
-            new[temp]={'code':'\n'.join(buf),'updated_at':now_iso,'uploader_ip':client}
-            cnt+=1; temp=None
-        elif temp: buf.append(line)
-    submissions.clear(); submissions.update(new)
-    json.dump(submissions, open(STORAGE,'w'), indent=2)
+            new[temp] = {'code': '\n'.join(buf), 'updated_at': now_iso, 'uploader_ip': client}
+            temp = None
+        elif temp:
+            buf.append(line)
+
+    # 기존 submissions에 merge (기존 항목은 덮어씀)
+    updated = 0
+    for pid, entry in new.items():
+        if pid not in submissions or submissions[pid]['code'] != entry['code']:
+            submissions[pid] = entry
+            updated += 1
+
+    # 저장
+    json.dump(submissions, open(STORAGE, 'w'), indent=2)
     save_bulk_from_submissions()
-    return jsonify(status='ok', updated=cnt, total=len(new))
+
+    return jsonify(status='ok', updated=updated, total=len(submissions))
+
 
 # --- Bulk download public ---
 # 서버 download_bulk_submit 핸들러 수정
