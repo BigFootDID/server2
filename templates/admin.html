@@ -130,6 +130,13 @@
         </button>
       </div>
     </div>
+    <hr>
+    <h3>📁 업로드 파일 관리</h3>
+    <div id="uploadFileList" class="mb-2">업로드 파일 없음</div>
+    <button class="btn btn-sm btn-outline-secondary" onclick="loadUploadFiles()">
+      목록 새로고침
+    </button>
+    <hr>
 
     {% else %}
     <h2>관리자 로그인</h2>
@@ -314,6 +321,38 @@
       if (res.ok) alert(`업로드 성공 (버전: ${json.version})`);
       else alert('업로드 실패: ' + (json.error || ''));
     }
+
+    async function loadUploadFiles() {
+      const res = await fetch('/admin/list_upload_files', { credentials: 'same-origin' });
+      const data = await res.json();
+      const c = document.getElementById('uploadFileList');
+      c.innerHTML = '';
+      if (!data.length) {
+        c.textContent = '업로드 파일 없음';
+        return;
+      }
+      const ul = document.createElement('ul'); ul.className = 'list-group';
+      data.forEach(fn => {
+        const li = document.createElement('li');
+        li.className = 'list-group-item d-flex justify-content-between align-items-center';
+        li.innerHTML = `
+          <span>${fn}</span>
+          <button class="btn btn-sm btn-danger" onclick="deleteUploadFile('${fn}')">삭제</button>`;
+        ul.appendChild(li);
+      });
+      c.appendChild(ul);
+    }
+    
+    async function deleteUploadFile(filename) {
+      if (!confirm(`${filename} 삭제할까요?`)) return;
+      const res = await fetch(`/admin/delete_upload_file/${filename}`, {
+        method: 'POST',
+        credentials: 'same-origin'
+      });
+      if (res.ok) loadUploadFiles();
+      else alert('삭제 실패');
+    }
+
   </script>
 </body>
 </html>
