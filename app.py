@@ -88,7 +88,6 @@ def git_track(message):
         return wrapper
     return decorator
 
-@app.before_first_request
 @git_track("initialize and sync repo")
 def initialize():
     git_init_and_remote()
@@ -104,6 +103,7 @@ def initialize():
             pass
     git_pull()
 
+app.before_first_request(initialize)
 # --- Utilities ---
 def ip():
     xff = request.headers.get('X-Forwarded-For','')
