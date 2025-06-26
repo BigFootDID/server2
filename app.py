@@ -226,17 +226,28 @@ def list_reqs(): return jsonify(sorted([f for f in os.listdir(UPLOAD_DIR) if f.e
 @admin_required
 @git_track("signed .lic and update history")
 def sign_license():
-    d=request.json; fn=d['filename']; path=os.path.join(UPLOAD_DIR,fn)
-    pl=json.loads(base64.b64decode(open(path).read()))
-    pl.update(id=d['id'], exp=d['exp'], max=int(d['max']))
-    nb=base64.b64encode(json.dumps(pl,separators=(',',':')).encode()).decode()
-    key=serialization.load_pem_private_key(open(os.path.join(BASE,'private_key.pem'),'rb').read(),None)
-    sig=key.sign(nb.encode(),padding.PKCS1v15(),hashes.SHA256()).hex()
-    out={'payload':nb,'signature':sig,'used':base64.b64encode(b'0').decode()}
-    lic_path=os.path.join(SIGNED_DIR,f"{pl['hwid']}.lic")
-    open(lic_path,'w').write(json.dumps(out,indent=2))
+    d = request.json
+    fn = d['filename']
+    path = os.path.join(UPLOAD_DIR, fn)
+    raw = open(path, 'r').read().strip()
+    info = json.loads(base64.b64decode(raw).decode())  # decode 필요
+    info.update(id=d['id'], exp=d['exp'], max=int(d['max']))
+    nb_bytes = json.dumps(info, separators=(',', ':')).encode() 
+    nb_b64   = base64.b64encode(nb_bytes).decode()
+    key = serialization.load_pem_private_key(
+        open(os.path.join(BASE,'private_key.pem'),'rb').read(), None
+    )
+    sig = key.sign(nb_bytes, padding.PKCS1v15(), hashes.SHA256()).hex()
+    out = {'payload': nb_b64, 'signature': sig, 'used': base64.b64encode(b'0').decode()}
+    lic_path = os.path.join(SIGNED_DIR, f"{info['hwid']}.lic")
+    with open(lic_path,'w') as f:
+        json.dump(out, f, indent=2)
     os.remove(path)
-    save_signed_history({'id':pl['id'],'hwid':pl['hwid'],'exp':pl['exp'],'max':pl['max'],'signed_at':datetime.utcnow().isoformat()})
+    save_signed_history({
+        'id':info['id'],'hwid':info['hwid'],
+        'exp':info['exp'],'max':info['max'],
+        'signed_at': datetime.utcnow().isoformat()
+    })
     return jsonify(status='signed')
 
 # --- Apply license update ---
