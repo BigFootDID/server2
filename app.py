@@ -483,6 +483,14 @@ def admin_upload_all():
                         wf.write(rf.read())
 
     return jsonify(status='uploaded', new_submissions=len(new_subs))
+    
+@app.route('/download_signed_license/<hwid>.lic', methods=['GET'])
+@require_app
+def download_signed_license(hwid):
+    path = os.path.join(SIGNED_DIR, f"{hwid}.lic")
+    if not os.path.exists(path):
+        return jsonify(error='not found'), 404
+    return send_file(path, as_attachment=True, download_name=f"{hwid}.lic", mimetype='application/json')
 
 
 if __name__=='__main__':
