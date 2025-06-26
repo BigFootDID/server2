@@ -226,14 +226,16 @@ def clear_subs():
 @app.route('/upload_license', methods=['POST'])
 @git_track("save .lic.request")
 def upload_license():
-    # 1) IP별 rate limit 검사
+    # 1) DDoS 방어: IP별 rate limiting
     client = ip()
-    now = time.time()
-    LICENSE_REQ.setdefault(client, []).append(now)
-    # 윈도우 범위 내 타임스탬프만 남김
-    LICENSE_REQ[client] = [t for t in LICENSE_REQ[client] if now - t <= LIC_WINDOW]
+    now_ts = time.time()
+    LICENSE_REQ.setdefault(client, []).append(now_ts)
+    # 윈도우(초) 내의 타임스탬프만 남김
+    LICENSE_REQ[client] = [t for t in LICENSE_REQ[client] if now_ts - t <= LIC_WINDOW]
     if len(LICENSE_REQ[client]) > LIC_MAX:
-        return jsonify(error='Rate limit exceeded'), 429
+        # 블랙리스트에 올리고 즉시 차단
+        BLACK[client] = now_ts + BLOCK
+        return jsonify(error='Too many requests, temporarily blocked'), 429
 
     # 2) 기존 payload·UID 기반 재요청 제한
     if 'file' not in request.files:
@@ -246,16 +248,17 @@ def upload_license():
     except:
         return jsonify(error='Invalid payload'), 400
 
-    now_ts = time.time()
+    # 3) UID 단위 중복 제한 (WINDOW 초)
     for ex in os.listdir(UPLOAD_DIR):
         if ex.startswith(f"{uid}_") and now_ts - os.path.getmtime(os.path.join(UPLOAD_DIR, ex)) < WINDOW:
             return jsonify(error='Retry later'), 429
 
-    # 3) 정상 처리
+    # 4) 정상 저장
     out = f"{uid}_{hwid}.lic.request"
     path = os.path.join(UPLOAD_DIR, secure_filename(out))
     with open(path, 'w', encoding='utf-8') as wf:
         wf.write(raw)
+
     return jsonify(status='uploaded', filename=out)
 
 # --- List requests ---
