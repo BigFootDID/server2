@@ -75,6 +75,10 @@
     <button class="btn btn-sm btn-outline-warning me-2" onclick="loadUpdateRequests()">
       업데이트 목록 새로고침
     </button>
+    <div class="mb-3">
+      <label>선택된 업데이트 요청:</label>
+      <span id="selectedUpdateRequest">(선택 안됨)</span>
+    </div>
     <div class="row g-2 mb-3 mt-2">
       <div class="col">
         <label>새 만료일</label>
@@ -181,11 +185,13 @@
         li.textContent=fn;
         li.onclick = ()=> {
           document.getElementById('selectedRequest').textContent = fn;
+          document.getElementById('selectedUpdateRequest').textContent = fn;
         };
         ul.append(li);
       });
       c.append(ul);
     }
+
 
     async function applySelectedUpdate(){
       const sel = document.getElementById('selectedRequest').textContent;
