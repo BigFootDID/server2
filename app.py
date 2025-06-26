@@ -337,36 +337,61 @@ def sign_license():
 @admin_required
 @git_track("applied license update")
 def apply_license_update(hwid):
-    files=[f for f in os.listdir(UPLOAD_DIR) if f.startswith(f"{hwid}_") and f.endswith('.lic.update')]
-    if not files: return jsonify(error='No update file'),404
-    latest=max(files, key=lambda f: os.path.getmtime(os.path.join(UPLOAD_DIR,f)))
-    raw=open(os.path.join(UPLOAD_DIR,latest)).read().strip()
+    files = [
+        f for f in os.listdir(UPLOAD_DIR)
+        if f.endswith('.lic.update') and f.split('_')[1] == hwid
+    ]
+    if not files:
+        return jsonify(error='No update file'), 404
+    latest = max(files, key=lambda f: os.path.getmtime(os.path.join(UPLOAD_DIR, f)))
+    raw = open(os.path.join(UPLOAD_DIR, latest)).read().strip()
     try:
-        data=json.loads(base64.b64decode(raw).decode()); payload=data['payload']; sig=data['signature']
+        data = json.loads(base64.b64decode(raw).decode())
+        payload = data['payload']
+        sig = data['signature']
     except:
-        return jsonify(error='Invalid update file'),400
-    out_path=os.path.join(SIGNED_DIR,f"{hwid}.lic")
-    with open(out_path,'w') as sf:
-        json.dump({'payload':payload,'signature':sig,'used':base64.b64encode(b'0').decode()}, sf, indent=2)
-    save_signed_history({'hwid':hwid,'applied_at':datetime.utcnow().isoformat()})
-    return jsonify(status='applied',hwid=hwid)
+        return jsonify(error='Invalid update file'), 400
+    out_path = os.path.join(SIGNED_DIR, f"{hwid}.lic")
+    with open(out_path, 'w') as sf:
+        json.dump({
+            'payload': payload,
+            'signature': sig,
+            'used': base64.b64encode(b'0').decode()
+        }, sf, indent=2)
+    save_signed_history({
+        'hwid': hwid,
+        'applied_at': datetime.utcnow().isoformat()
+    })
+    return jsonify(status='applied', hwid=hwid)
+
 
 # --- Upload license update ---
 @app.route('/upload_license_update', methods=['POST'])
 @git_track("save .lic.update")
 @require_app
 def upload_license_update():
-    client=ip(); now=time.time()
-    recent=[f for f in os.listdir(UPLOAD_DIR) if f.endswith('.lic.update') and now-os.path.getmtime(os.path.join(UPLOAD_DIR,f))<WINDOW]
-    if len([f for f in recent if f.split('_')[0]==client])>=MAX:
-        return jsonify(error='Rate limit exceeded'),429
-    if 'file' not in request.files: return jsonify(error='No file'),400
-    raw=request.files['file'].read().decode().strip()
-    try: hwid=json.loads(base64.b64decode(raw).decode()).get('hwid','unknown')
-    except: return jsonify(error='Invalid payload'),400
-    out=f"{hwid}_{client}.lic.update"; path=os.path.join(UPLOAD_DIR,secure_filename(out))
-    open(path,'w',encoding='utf-8').write(raw)
+    client = ip()
+    now = time.time()
+    recent = [
+        f for f in os.listdir(UPLOAD_DIR)
+        if f.endswith('.lic.update') and now - os.path.getmtime(os.path.join(UPLOAD_DIR, f)) < WINDOW
+    ]
+    if len([f for f in recent if f.split('_')[0] == client]) >= MAX:
+        return jsonify(error='Rate limit exceeded'), 429
+    if 'file' not in request.files:
+        return jsonify(error='No file'), 400
+    raw = request.files['file'].read().decode().strip()
+    try:
+        decoded = json.loads(base64.b64decode(raw).decode())
+        hwid = decoded.get('hwid', 'unknown')
+        uid = decoded.get('id', 'unknown')
+    except:
+        return jsonify(error='Invalid payload'), 400
+    out = f"{uid}_{hwid}.lic.update"
+    path = os.path.join(UPLOAD_DIR, secure_filename(out))
+    open(path, 'w', encoding='utf-8').write(raw)
     return jsonify(status='uploaded', filename=out)
+
 
 # --- Update usage ---
 @app.route('/update_usage', methods=['POST'])
