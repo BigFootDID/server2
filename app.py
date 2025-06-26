@@ -382,18 +382,25 @@ def upload_license_update():
         return jsonify(error='Rate limit exceeded'), 429
     if 'file' not in request.files:
         return jsonify(error='No file'), 400
+
     raw = request.files['file'].read().decode().strip()
     try:
         decoded = json.loads(base64.b64decode(raw).decode())
-        hwid = decoded.get('hwid', 'unknown')
-        uid = decoded.get('id', 'unknown')
+        payload_raw = decoded.get('payload')
+        payload_json = base64.b64decode(payload_raw).decode()
+        payload = json.loads(payload_json)
+        hwid = payload.get('hwid')
+        uid = payload.get('id')
+        if not hwid or not uid:
+            return jsonify(error='Missing hwid or id'), 400
     except:
         return jsonify(error='Invalid payload'), 400
+
     out = f"{uid}_{hwid}.lic.update"
     path = os.path.join(UPLOAD_DIR, secure_filename(out))
-    open(path, 'w', encoding='utf-8').write(raw)
+    with open(path, 'w', encoding='utf-8') as f:
+        f.write(raw)
     return jsonify(status='uploaded', filename=out)
-
 
 # --- Update usage ---
 @app.route('/update_usage', methods=['POST'])
