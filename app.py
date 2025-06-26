@@ -102,6 +102,8 @@ def initialize():
         except Exception:
             pass
     git_pull()
+
+initialize()
 # --- Utilities ---
 def ip():
     xff = request.headers.get('X-Forwarded-For','')
@@ -328,5 +330,4 @@ def check_license(hwid):
     return jsonify(used=used, max=max_c)
 
 if __name__=='__main__':
-    initialize()
     app.run(host='0.0.0.0', port=5000, debug=True)
