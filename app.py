@@ -30,6 +30,8 @@ app.permanent_session_lifetime = timedelta(hours=1)
 BASE = os.path.dirname(__file__)
 GIT_REPO_DIR = BASE
 GIT_REMOTE_URL = os.getenv('GIT_REMOTE_URL')
+GIT_USER_NAME = os.getenv('GIT_USER_NAME')
+GIT_USER_EMAIL = os.getenv('GIT_USER_EMAIL')
 UPLOAD_DIR = os.path.join(BASE, 'uploads')
 SIGNED_DIR = os.path.join(BASE, 'signed')
 STORAGE = os.path.join(BASE, 'submissions.json')
@@ -44,6 +46,7 @@ BLACK, REQ = {}, {}
 MAX, WINDOW, BLOCK = 100, 5, 3600
 
 # --- Git Helpers ---
+
 def git_init_and_remote():
     git_dir = os.path.join(GIT_REPO_DIR, '.git')
     if not os.path.exists(git_dir):
@@ -59,6 +62,13 @@ def git_init_and_remote():
                 subprocess.run(['git', '-C', GIT_REPO_DIR, 'remote', 'set-url', 'origin', GIT_REMOTE_URL], check=True)
             except Exception as e:
                 print(f"[GIT] set-url failed: {e}")
+    # Git author 설정
+    if GIT_USER_NAME and GIT_USER_EMAIL:
+        try:
+            subprocess.run(['git', '-C', GIT_REPO_DIR, 'config', 'user.name', GIT_USER_NAME], check=True)
+            subprocess.run(['git', '-C', GIT_REPO_DIR, 'config', 'user.email', GIT_USER_EMAIL], check=True)
+        except Exception as e:
+            print(f"[GIT] config user identity failed: {e}")
 
 def git_pull():
     if GIT_REMOTE_URL:
