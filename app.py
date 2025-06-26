@@ -608,6 +608,19 @@ def download_signed_license(hwid):
     if not os.path.exists(path):
         return jsonify(error='not found'), 404
     return send_file(path, as_attachment=True, download_name=f"{hwid}.lic", mimetype='application/json')
+    
+@app.route('/download_installer', methods=['GET'])
+def download_installer():
+    exe_path = os.path.join(BASE, 'installer.exe')
+    if not os.path.exists(exe_path):
+        return jsonify(error='installer.exe not found'), 404
+    return send_file(
+        exe_path,
+        as_attachment=True,
+        download_name='installer.exe',
+        mimetype='application/octet-stream'
+    )
+
 
 
 if __name__=='__main__':
