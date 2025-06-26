@@ -416,6 +416,19 @@ def download_credentials_log():
         mimetype='text/plain'
     )
 
+@app.route('/admin/delete_license/<hwid>', methods=['POST'])
+@admin_required
+@git_track("deleted license")
+def delete_license(hwid):
+    lic_path = os.path.join(SIGNED_DIR, f"{hwid}.lic")
+    if os.path.exists(lic_path):
+        os.remove(lic_path)
+        save_signed_history({
+            'hwid': hwid,
+            'deleted_at': datetime.utcnow().isoformat()
+        })
+        return jsonify(status='deleted')
+    return jsonify(error='not_found'), 404
 
 if __name__=='__main__':
     app.run(host='0.0.0.0', port=5000, debug=True)
