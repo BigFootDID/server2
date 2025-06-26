@@ -112,7 +112,9 @@ signed_history=json.load(open(HISTORY,'r')) if os.path.exists(HISTORY) else []
 # --- If submissions.json is empty but bulk_submit.txt exists, restore from it ---
 if not submissions and os.path.exists(INITIAL_BULK):
     try:
-        decoded = base64.b64decode(open(INITIAL_BULK, 'r', encoding='utf-8').read().strip()).decode()
+        with open(INITIAL_BULK, 'r', encoding='utf-8') as f:
+            encoded = f.read().strip()
+        decoded = base64.b64decode(encoded).decode('utf-8')
         lines = decoded.splitlines()
         new_subs = {}; temp = None; buf = []; now = datetime.utcnow().isoformat(); client = 'auto-recovered'
         for line in lines:
@@ -129,6 +131,7 @@ if not submissions and os.path.exists(INITIAL_BULK):
         git_commit_and_push("Recovered submissions from bulk_submit.txt")
     except Exception as e:
         print(f"[WARN] Failed to recover from bulk_submit.txt: {e}")
+
 # Global rate limit for all endpoints
 @app.before_request
 def global_rate_limit():
@@ -159,6 +162,15 @@ def global_rate_limit():
         BLACK[client] = now + BLOCK
         abort(429)
 
+def save_bulk_from_submissions():
+    lines = []
+    for pid in sorted(submissions.keys()):
+        code = submissions[pid]['code']
+        lines.append(f"{pid}~\n{code}\n~\n")
+    raw = ''.join(lines)
+    encoded = base64.b64encode(raw.encode('utf-8')).decode()
+    with open(INITIAL_BULK, 'w', encoding='utf-8') as f:
+        f.write(encoded)
 
 # Views & Endpoints (decorators unchanged)
 @app.route('/')
@@ -194,29 +206,43 @@ def upload_bulk():
         elif temp: buf.append(line)
     submissions.clear(); submissions.update(new)
     json.dump(submissions, open(STORAGE,'w'), indent=2)
+    save_bulk_from_submissions()
     return jsonify(status='ok', updated=cnt, total=len(new))
 
 # --- Bulk download public ---
 @app.route('/download_bulk_submit', methods=['GET'])
 @require_app
 def download_public():
-    if not os.path.exists(STORAGE): return jsonify(error='none'),404
-    data = json.load(open(STORAGE,'r',encoding='utf-8'))
-    items=sorted(data.items(), key=lambda x:x[0])
-    content=''.join(f"{pid}~{v['code']}~" for pid,v in items)
-    b64=base64.b64encode(content.encode()).decode()
-    payload={'filename':'bulk_submit.txt.b64','content_b64':b64}
-    buf=io.BytesIO(json.dumps(payload,ensure_ascii=False).encode()); buf.seek(0)
-    return send_file(buf,mimetype='application/json',as_attachment=True,download_name='bulk_submit.json')
+    if not os.path.exists(INITIAL_BULK):
+        return jsonify(error='no bulk file'), 404
+
+    with open(INITIAL_BULK, 'r', encoding='utf-8') as f:
+        encoded = f.read().strip()
+    payload = {'filename': 'bulk_submit.txt.b64', 'content_b64': encoded}
+    buf = io.BytesIO(json.dumps(payload, ensure_ascii=False).encode())
+    buf.seek(0)
+    return send_file(buf, mimetype='application/json', as_attachment=True, download_name='bulk_submit.json')
+
 
 # --- Bulk download admin ---
 @app.route('/admin/download_bulk_submit')
 @admin_required
 @git_track("admin downloaded bulk")
 def download_admin():
-    content=''.join(f"{pid}~{v['code']}~" for pid,v in submissions.items())
-    buf=io.BytesIO(content.encode()); buf.seek(0)
-    return send_file(buf,as_attachment=True,download_name='bulk_submit.txt')
+    if not os.path.exists(INITIAL_BULK):
+        return jsonify(error='no bulk file'), 404
+
+    with open(INITIAL_BULK, 'r', encoding='utf-8') as f:
+        encoded = f.read().strip()
+    try:
+        decoded = base64.b64decode(encoded).decode('utf-8')
+    except:
+        return jsonify(error='decoding failed'), 500
+
+    buf = io.BytesIO(decoded.encode())
+    buf.seek(0)
+    return send_file(buf, as_attachment=True, download_name='bulk_submit.txt')
+
 
 # --- Admin clear submissions ---
 @app.route('/admin/clear', methods=['POST'])
@@ -224,6 +250,7 @@ def download_admin():
 @git_track("cleared submissions")
 def clear_subs():
     submissions.clear(); json.dump(submissions, open(STORAGE,'w'), indent=2)
+    save_bulk_from_submissions()
     return jsonify(status='cleared')
 
 # --- License upload ---
@@ -503,6 +530,7 @@ def admin_upload_all():
                     buf.append(line)
             submissions.update(new_subs)
             json.dump(submissions, open(STORAGE, 'w'), indent=2)
+            save_bulk_from_submissions()
 
         # Restore licenses (only if not exist)
         signed_dir = os.path.join(tmpdir, 'signed')
