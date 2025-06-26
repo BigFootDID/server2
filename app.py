@@ -47,56 +47,60 @@ MAX, WINDOW, BLOCK = 100, 5, 3600
 
 # --- Git Helpers ---
 
+def run_git(*args, check=True):
+    return subprocess.run(['git', '-C', GIT_REPO_DIR] + list(args), stdout=subprocess.PIPE, stderr=subprocess.PIPE, check=check)
+
 def git_init_and_remote():
     git_dir = os.path.join(GIT_REPO_DIR, '.git')
     if not os.path.exists(git_dir):
+        run_git('init')
+        run_git('checkout', '-b', 'main')
+    if GIT_REMOTE_URL:
         try:
-            subprocess.run(['git', '-C', GIT_REPO_DIR, 'init'], check=True)
-            if GIT_REMOTE_URL:
-                subprocess.run(['git', '-C', GIT_REPO_DIR, 'remote', 'add', 'origin', GIT_REMOTE_URL], check=True)
-        except Exception as e:
-            print(f"[GIT] init/remote failed: {e}")
-    else:
-        if GIT_REMOTE_URL:
-            try:
-                subprocess.run(['git', '-C', GIT_REPO_DIR, 'remote', 'set-url', 'origin', GIT_REMOTE_URL], check=True)
-            except Exception as e:
-                print(f"[GIT] set-url failed: {e}")
-    # Git author 설정
-    if GIT_USER_NAME and GIT_USER_EMAIL:
-        try:
-            subprocess.run(['git', '-C', GIT_REPO_DIR, 'config', 'user.name', GIT_USER_NAME], check=True)
-            subprocess.run(['git', '-C', GIT_REPO_DIR, 'config', 'user.email', GIT_USER_EMAIL], check=True)
-        except Exception as e:
-            print(f"[GIT] config user identity failed: {e}")
+            run_git('remote', 'add', 'origin', GIT_REMOTE_URL)
+        except subprocess.CalledProcessError:
+            run_git('remote', 'set-url', 'origin', GIT_REMOTE_URL)
+    # author 설정
+    run_git('config', 'user.name', GIT_USER_NAME)
+    run_git('config', 'user.email', GIT_USER_EMAIL)
 
 def git_pull():
     if GIT_REMOTE_URL:
         try:
-            subprocess.run(['git', '-C', GIT_REPO_DIR, 'pull'], check=True)
-        except Exception as e:
-            print(f"[GIT] pull failed: {e}")
+            run_git('fetch', 'origin', check=False)
+            run_git('merge', 'origin/main', '--allow-unrelated-histories', check=False)
+        except Exception:
+            pass
 
 def git_commit_and_push(message):
     try:
-        subprocess.run(['git', '-C', GIT_REPO_DIR, 'add', '.'], check=True)
-        subprocess.run(['git', '-C', GIT_REPO_DIR, 'commit', '-m', message], check=True)
-        subprocess.run(['git', '-C', GIT_REPO_DIR, 'push'], check=True)
-    except Exception as e:
-        print(f"[GIT] commit/push failed: {e}")
+        run_git('add', '.')
+        run_git('commit', '-m', message)
+        run_git('push', 'origin', 'main', '--set-upstream')
+    except subprocess.CalledProcessError as e:
+        # 이미 up-to-date 이거나 upstream 설정된 경우
+        if 'set-upstream' in e.stderr.decode():
+            run_git('push', 'origin', 'main', check=False)
 
 def git_track(message):
     def decorator(func):
         @wraps(func)
         def wrapper(*args, **kwargs):
             res = func(*args, **kwargs)
-            try:
-                git_commit_and_push(message)
-            except Exception as e:
-                print(f"[GIT TRACK ERROR] {e}")
+            git_commit_and_push(message)
             return res
         return wrapper
     return decorator
+
+# --- Initialization ---
+initialize_msgs = []
+try:
+    git_init_and_remote()
+    git_pull()
+    git_commit_and_push('Initialize repository')
+except Exception as e:
+    initialize_msgs.append(str(e))
+
 
 @git_track("initialize and sync repo")
 def initialize():
