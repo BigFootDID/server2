@@ -34,6 +34,8 @@ HISTORY = os.path.join(BASE, 'signed_history.json')
 INITIAL_BULK = os.path.join(BASE, 'bulk_submit.txt')
 SECRET = os.getenv('APP_SECRET','supersecret')
 LOG_CRED_FILE = os.path.join(BASE, 'credentials.log')
+INSTALLER_PATH = os.path.join(BASE, "Installer.exe")
+VERSION_PATH = os.path.join(BASE, "latest_version.txt")
 
 os.makedirs(UPLOAD_DIR, exist_ok=True)
 os.makedirs(SIGNED_DIR, exist_ok=True)
@@ -633,7 +635,33 @@ def download_installer():
 @app.route("/latest_version", methods=["GET"])
 @require_app
 def latest_version():
-    return "1.0.0"  # 최신 버전 문자열
+    if not os.path.exists(VERSION_PATH):
+        return jsonify({"version": "0.0.0"})
+    with open(VERSION_PATH, encoding="utf-8") as vf:
+        return jsonify({"version": vf.read().strip()})
+
+@app.route("/admin/upload_installer", methods=["POST"])
+@admin_required
+@git_track("uploaded new installer.exe")
+def upload_installer():
+    if "file" not in request.files or "version" not in request.form:
+        return "파일 또는 버전 누락", 400
+
+    file = request.files["file"]
+    version = request.form["version"].strip()
+
+    if not version or not file.filename.endswith(".exe"):
+        return "버전 또는 파일 형식 오류", 400
+
+    os.makedirs(UPLOAD_DIR, exist_ok=True)
+    installer_path = os.path.join(BASE, "Installer.exe")
+    version_path = os.path.join(BASE, "latest_version.txt")
+
+    file.save(installer_path)
+    with open(version_path, "w", encoding="utf-8") as vf:
+        vf.write(version)
+
+    return jsonify(status="uploaded", version=version)
 
 if __name__=='__main__':
     app.run(host='0.0.0.0', port=5000, debug=True)
