@@ -341,7 +341,7 @@ def sign_license():
 def apply_license_update(hwid):
     files = [
         f for f in os.listdir(UPLOAD_DIR)
-        if f.endswith('.lic.update') and f.split('_')[1] == hwid
+        if f.endswith('.lic.update') and f.split('_')[1].split('.')[0] == hwid
     ]
     if not files:
         return jsonify(error='No update file'), 404
@@ -353,19 +353,29 @@ def apply_license_update(hwid):
         sig = data['signature']
     except:
         return jsonify(error='Invalid update file'), 400
+
     out_path = os.path.join(SIGNED_DIR, f"{hwid}.lic")
+
+    # 기존 사용량 읽기 (존재하면)
+    used = 'MA=='  # 기본값 base64('0')
+    if os.path.exists(out_path):
+        with open(out_path, 'r') as f:
+            old_lic = json.load(f)
+            used = old_lic.get('used', 'MA==')
+
     with open(out_path, 'w') as sf:
         json.dump({
             'payload': payload,
             'signature': sig,
-            'used': base64.b64encode(b'0').decode()
+            'used': used  # 기존 사용량 유지
         }, sf, indent=2)
+
     save_signed_history({
         'hwid': hwid,
         'applied_at': datetime.utcnow().isoformat()
     })
-    return jsonify(status='applied', hwid=hwid)
 
+    return jsonify(status='applied', hwid=hwid)
 
 # --- Upload license update ---
 @app.route('/upload_license_update', methods=['POST'])
