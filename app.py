@@ -45,7 +45,7 @@ MAX, WINDOW, BLOCK = 10, 60, 3600  # requests, seconds, block duration
 # Token Bucket parameters for all endpoints
 TOKEN_BUCKET = {}
 TB_CAPACITY = 10      # max tokens per IP
-TB_FILL_RATE = 0.2   # tokens replenished per second
+TB_FILL_RATE = 1.0   # tokens replenished per second
 
 # Git helpers omitted for brevity (unchanged)
 def run_git(*args, check=True): return subprocess.run(['git', '-C', GIT_REPO_DIR] + list(args), stdout=subprocess.PIPE, stderr=subprocess.PIPE, check=check)
