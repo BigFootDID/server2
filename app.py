@@ -40,7 +40,7 @@ os.makedirs(SIGNED_DIR, exist_ok=True)
 LOCK = Lock()
 BLACK, REQ = {}, {}
 # Fixed-window rate limit parameters
-MAX, WINDOW, BLOCK = 10, 60, 3600  # requests, seconds, block duration
+MAX, WINDOW, BLOCK = 10, 60, 30  # requests, seconds, block duration
 
 # Token Bucket parameters for all endpoints
 TOKEN_BUCKET = {}
@@ -104,7 +104,7 @@ def require_app(f):
 # Data loading
 if os.path.exists(ADMIN_FILE): admin_users=json.load(open(ADMIN_FILE))
 else:
-    admin_users={'admin':sha256('password'.encode()).hexdigest()}
+    admin_users={'admin':sha256('thsehddlr'.encode()).hexdigest()}
     json.dump(admin_users,open(ADMIN_FILE,'w'),indent=2)
     git_commit_and_push('Init admin_users')
 submissions=json.load(open(STORAGE,'r')) if os.path.exists(STORAGE) else {}
