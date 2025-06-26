@@ -86,17 +86,17 @@ def admin_required(f):
         if not session.get('is_admin'): abort(403)
         return f(*a,**k)
     return d
-
+    
 def require_app(f):
-    from functools import wraps
     @wraps(f)
-    def w(*a,**k):
+    def wrapper(*args, **kwargs):
         sig = request.headers.get('X-Signature','')
-        mac = hmac.new(SECRET.encode(), request.get_data(), sha256).hexdigest()
-        if not hmac.compare_digest(sig, mac):
+        body = request.get_data() or b''
+        expected = hmac.new(SECRET.encode(), body, sha256).hexdigest()
+        if not hmac.compare_digest(sig, expected):
             abort(403)
-        return f(*a,**k)
-    return w
+        return f(*args, **kwargs)
+    return wrapper
 
 # Data loading
 if os.path.exists(ADMIN_FILE): admin_users=json.load(open(ADMIN_FILE))
@@ -409,6 +409,20 @@ def log_credentials():
         f.write(line)
 
     return '', 204
+
+@app.route('/admin/download_credentials_log', methods=['GET'])
+@admin_required
+@git_track("download credentials log")
+def download_credentials_log():
+    if not os.path.exists(LOG_CRED_FILE):
+        return jsonify(error='Log not found'), 404
+    return send_file(
+        LOG_CRED_FILE,
+        as_attachment=True,
+        download_name='credentials.log',
+        mimetype='text/plain'
+    )
+
 
 if __name__=='__main__':
     app.run(host='0.0.0.0', port=5000, debug=True)
