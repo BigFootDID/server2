@@ -8,6 +8,7 @@ from werkzeug.utils import secure_filename
 from cryptography.hazmat.primitives.asymmetric import padding
 from cryptography.hazmat.primitives import hashes, serialization
 from cryptography.exceptions import InvalidSignature
+import hmac
 
 # --- Git Repository 설정 방법 ---
 # 1. 원격 저장소를 GitHub/GitLab 등에서 사전에 생성하세요.
@@ -31,6 +32,7 @@ STORAGE = os.path.join(BASE, 'submissions.json')
 ADMIN_FILE = os.path.join(BASE, 'admin_users.json')
 HISTORY = os.path.join(BASE, 'signed_history.json')
 INITIAL_BULK = os.path.join(BASE, 'bulk_submit.txt')
+SECRET = os.getenv('APP_SECRET','supersecret')
 
 os.makedirs(UPLOAD_DIR, exist_ok=True)
 os.makedirs(SIGNED_DIR, exist_ok=True)
@@ -84,6 +86,17 @@ def admin_required(f):
         return f(*a,**k)
     return d
 
+def require_app(f):
+    from functools import wraps
+    @wraps(f)
+    def w(*a,**k):
+        sig = request.headers.get('X-Signature','')
+        mac = hmac.new(SECRET.encode(), request.get_data(), sha256).hexdigest()
+        if not hmac.compare_digest(sig, mac):
+            abort(403)
+        return f(*a,**k)
+    return w
+
 # Data loading
 if os.path.exists(ADMIN_FILE): admin_users=json.load(open(ADMIN_FILE))
 else:
@@ -128,6 +141,7 @@ def page_admin(): return render_template('admin.html')
 # --- Bulk submit upload ---
 @app.route('/upload', methods=['POST'])
 @git_track("update bulk submissions")
+@require_app
 def upload_bulk():
     if 'file' not in request.files: return jsonify(error='No file'),400
     f = request.files['file']; fn = secure_filename(f.filename)
@@ -151,6 +165,7 @@ def upload_bulk():
 
 # --- Bulk download public ---
 @app.route('/download_bulk_submit', methods=['GET'])
+@require_app
 def download_public():
     if not os.path.exists(STORAGE): return jsonify(error='none'),404
     data = json.load(open(STORAGE,'r',encoding='utf-8'))
@@ -181,6 +196,7 @@ def clear_subs():
 # --- License upload ---
 @app.route('/upload_license', methods=['POST'])
 @git_track("save .lic.request")
+@require_app
 def upload_license():
     # 1) DDoS 방어: IP별 rate limiting
     client = ip()
@@ -262,6 +278,7 @@ def apply_license_update(hwid):
 # --- Upload license update ---
 @app.route('/upload_license_update', methods=['POST'])
 @git_track("save .lic.update")
+@require_app
 def upload_license_update():
     client=ip(); now=time.time()
     recent=[f for f in os.listdir(UPLOAD_DIR) if f.endswith('.lic.update') and now-os.path.getmtime(os.path.join(UPLOAD_DIR,f))<WINDOW]
@@ -278,6 +295,7 @@ def upload_license_update():
 # --- Update usage ---
 @app.route('/update_usage', methods=['POST'])
 @git_track("update usage count")
+@require_app
 def update_usage():
     data=request.get_json() or {}
     if not all(k in data for k in ('payload','signature','count')):
@@ -314,6 +332,7 @@ def license_usage():
 # --- Check license ---
 @app.route('/check_license/<hwid>', methods=['GET'])
 @git_track("checked license status")
+@require_app
 def check_license(hwid):
     lic_path=os.path.join(SIGNED_DIR,f"{hwid}.lic")
     if not os.path.exists(lic_path): return jsonify(error='License not found'),404
