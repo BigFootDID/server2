@@ -348,35 +348,40 @@ def sign_license():
 @admin_required
 @git_track("applied license update")
 def apply_license_update(hwid):
+    # 최신 .lic.update 파일 찾기
     files = [
         f for f in os.listdir(UPLOAD_DIR)
         if f.endswith('.lic.update') and f.split('_')[1].split('.')[0] == hwid
     ]
     if not files:
         return jsonify(error='No update file'), 404
+
     latest = max(files, key=lambda f: os.path.getmtime(os.path.join(UPLOAD_DIR, f)))
-    raw = open(os.path.join(UPLOAD_DIR, latest)).read().strip()
+    update_path = os.path.join(UPLOAD_DIR, latest)
+
     try:
+        with open(update_path, 'r') as f:
+            raw = f.read().strip()
         data = json.loads(base64.b64decode(raw).decode())
         payload = data['payload']
         sig = data['signature']
-    except:
+    except Exception:
         return jsonify(error='Invalid update file'), 400
 
-    out_path = os.path.join(SIGNED_DIR, f"{hwid}.lic")
-
-    # 기존 사용량 읽기 (존재하면)
-    used = 'MA=='  # 기본값 base64('0')
-    if os.path.exists(out_path):
-        with open(out_path, 'r') as f:
+    # 기존 사용량 유지 (.lic 파일은 UPLOAD_DIR 기준)
+    lic_path = os.path.join(UPLOAD_DIR, f"{hwid}.lic")
+    used = 'MA=='  # base64('0')
+    if os.path.exists(lic_path):
+        with open(lic_path, 'r') as f:
             old_lic = json.load(f)
             used = old_lic.get('used', 'MA==')
 
-    with open(out_path, 'w') as sf:
+    # 새로 저장
+    with open(lic_path, 'w') as sf:
         json.dump({
             'payload': payload,
             'signature': sig,
-            'used': used  # 기존 사용량 유지
+            'used': used
         }, sf, indent=2)
 
     save_signed_history({
@@ -385,7 +390,6 @@ def apply_license_update(hwid):
     })
 
     return jsonify(status='applied', hwid=hwid)
-
 # --- Upload license update ---
 @app.route('/upload_license_update', methods=['POST'])
 @git_track("save .lic.update")
