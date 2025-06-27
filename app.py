@@ -661,9 +661,17 @@ def download_installer():
 @app.route("/latest_version", methods=["GET"])
 @require_app
 def latest_version():
-    if not os.path.exists(VERSION_PATH):
+    os_type = request.args.get("os")
+    if os_type == "win":
+        version_path = os.path.join(BASE, "latest_version_win.txt")
+    elif os_type == "mac":
+        version_path = os.path.join(BASE, "latest_version_mac.txt")
+    else:
+        return jsonify({"error": "os 파라미터 필요"}), 400
+
+    if not os.path.exists(version_path):
         return jsonify({"version": "0.0.0"})
-    with open(VERSION_PATH, encoding="utf-8") as vf:
+    with open(version_path, encoding="utf-8") as vf:
         return jsonify({"version": vf.read().strip()})
 
 @app.route("/admin/upload_installer", methods=["POST"])
