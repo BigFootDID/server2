@@ -647,16 +647,23 @@ def download_signed_license(hwid):
 @app.route('/download_installer')
 def download_installer():
     from flask import after_this_request
-    path = os.path.join(BASE, 'Installer.exe')
+
+    ua = request.headers.get("User-Agent", "").lower()
+    if "mac" in ua or "darwin" in ua:
+        fname = "Installer.dmg"
+    else:
+        fname = "Installer.exe"
+
+    path = os.path.join(BASE, fname)
     if not os.path.exists(path):
-        return jsonify(error='Installer.exe not found'), 404
+        return jsonify(error=f'{fname} not found'), 404
 
     @after_this_request
     def redirect_after(response):
         response.headers["Refresh"] = "0; url=/"  # index로 자동 리디렉션
         return response
 
-    return send_file(path, as_attachment=True, download_name="Installer.exe")
+    return send_file(path, as_attachment=True, download_name=fname)
 
 @app.route("/latest_version", methods=["GET"])
 @require_app
