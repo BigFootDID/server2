@@ -115,19 +115,28 @@ signed_history=json.load(open(HISTORY,'r')) if os.path.exists(HISTORY) else []
 if not submissions and os.path.exists(INITIAL_BULK):
     try:
         with open(INITIAL_BULK, 'r', encoding='utf-8') as f:
-            encoded = f.read().strip()
+            encoded = f.read()
         decoded = base64.b64decode(encoded).decode('utf-8')
         lines = decoded.splitlines()
-        new_subs = {}; temp = None; buf = []; now = datetime.utcnow().isoformat(); client = 'auto-recovered'
+        new_subs = {}
+        temp = None
+        buf = []
+        now = datetime.utcnow().isoformat()
+        client = 'auto-recovered'
         for line in lines:
-            s = line.strip()
+            s = line.rstrip()
             if s.endswith('~') and temp is None:
-                temp = s[:-1].strip(); buf = []
+                temp = s[:-1].strip()
+                buf = []
             elif s.endswith('~') and temp:
-                new_subs[temp] = {'code': '\n'.join(buf), 'updated_at': now, 'uploader_ip': client}
+                new_subs[temp] = {
+                    'code': '\n'.join(buf),
+                    'updated_at': now,
+                    'uploader_ip': client
+                }
                 temp = None
             elif temp:
-                buf.append(line)
+                buf.append(line)  # 원본 그대로 append
         submissions.update(new_subs)
         json.dump(submissions, open(STORAGE, 'w'), indent=2)
         git_commit_and_push("Recovered submissions from bulk_submit.txt")
