@@ -668,26 +668,36 @@ def latest_version():
 
 @app.route("/admin/upload_installer", methods=["POST"])
 @admin_required
-@git_track("uploaded new installer.exe")
+@git_track("uploaded new installer")
 def upload_installer():
     if "file" not in request.files or "version" not in request.form:
         return "파일 또는 버전 누락", 400
 
     file = request.files["file"]
     version = request.form["version"].strip()
+    filename = file.filename.lower()
 
-    if not version or not file.filename.endswith(".exe"):
-        return "버전 또는 파일 형식 오류", 400
+    # 파일 형식 확인 및 경로 결정
+    if filename.endswith(".exe"):
+        suffix = ".exe"
+        target_name = "Installer.exe"
+        version_file = "latest_version_win.txt"
+    elif filename.endswith(".dmg"):
+        suffix = ".dmg"
+        target_name = "Installer.dmg"
+        version_file = "latest_version_mac.txt"
+    else:
+        return "지원하지 않는 파일 형식", 400
 
     os.makedirs(UPLOAD_DIR, exist_ok=True)
-    installer_path = os.path.join(BASE, "Installer.exe")
-    version_path = os.path.join(BASE, "latest_version.txt")
+    installer_path = os.path.join(BASE, target_name)
+    version_path = os.path.join(BASE, version_file)
 
     file.save(installer_path)
     with open(version_path, "w", encoding="utf-8") as vf:
         vf.write(version)
 
-    return jsonify(status="uploaded", version=version)
+    return jsonify(status="uploaded", version=version, type=suffix[1:])
 
 # 업로드 폴더 리스트
 @app.route('/admin/list_upload_files')
