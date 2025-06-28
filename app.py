@@ -369,14 +369,14 @@ def apply_license_update(hwid):
         return jsonify(error='Invalid update file'), 400
 
     # 기존 사용량 유지 (.lic 파일은 UPLOAD_DIR 기준)
-    lic_path = os.path.join(UPLOAD_DIR, f"{hwid}.lic")
+    lic_path = os.path.join(SIGNED_DIR, f"{hwid}.lic")
+
     used = 'MA=='  # base64('0')
     if os.path.exists(lic_path):
         with open(lic_path, 'r') as f:
             old_lic = json.load(f)
             used = old_lic.get('used', 'MA==')
 
-    # 새로 저장
     with open(lic_path, 'w') as sf:
         json.dump({
             'payload': payload,
