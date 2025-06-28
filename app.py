@@ -247,7 +247,7 @@ def upload_bulk():
 def download_public():
     if not os.path.exists(INITIAL_BULK):
         return jsonify(error='bulk not found'), 404
-    raw = open(INITIAL_BULK, 'r', encoding='utf-8').read().strip()
+    raw = open(INITIAL_BULK, 'r', encoding='utf-8').read()
     payload = {
         'filename': 'bulk_submit.txt.b64',
         'content_b64': raw  # 이미 인코딩된 상태
