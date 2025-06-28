@@ -762,13 +762,5 @@ def upload_signed_license():
     save_signed_history({'uploaded':hwid,'at':datetime.utcnow().isoformat()})
     return jsonify(status='uploaded'),200
 
-@app.route('/download_signed_license/<hwid>.lic', methods=['GET'])
-@require_app
-def download_signed_license(hwid):
-    path = os.path.join(SIGNED_DIR, f"{hwid}.lic")
-    if not os.path.exists(path):
-        return jsonify(error='not found'),404
-    return send_file(path, as_attachment=True, download_name=f"{hwid}.lic" )
-
 if __name__=='__main__':
     app.run(host='0.0.0.0', port=5000, debug=True)
