@@ -670,7 +670,6 @@ def download_installer():
     return send_file(path, as_attachment=True, download_name=fname)
 
 @app.route("/latest_version", methods=["GET"])
-@require_app
 def latest_version():
     os_type = request.args.get("os")
     if os_type == "win":
