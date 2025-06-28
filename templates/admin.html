@@ -118,7 +118,7 @@
       const res = await fetch('/admin/download_bulk_submit', {credentials:'same-origin'});
       if(!res.ok){ document.getElementById('codeResult').textContent = '코드 로딩 실패'; return; }
       const txt = await res.text();
-      const pat = new RegExp(`${pid}~\\r?\\n([\\s\\S]*?)\\r?\\n~`, 'm');
+      const pat = new RegExp(`${pid}~\\r?\\n([\\s\\S]*?)\\r?\\n?~`, 'm');
       const mm = txt.match(pat);
       const out = mm ? mm[1] : '해당 코드 없음';
       document.getElementById('codeResult').textContent = out;
