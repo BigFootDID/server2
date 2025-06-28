@@ -243,7 +243,7 @@ def upload_bulk():
 # --- Bulk download public ---
 @app.route('/download_bulk_submit', methods=['GET'])
 @require_app
- def download_bulk_submit():
+def download_bulk_submit():
      """
      Public endpoint: returns JSON containing base64-encoded bulk_submit content.
      """
@@ -261,7 +261,7 @@ def upload_bulk():
 @app.route('/admin/download_bulk_submit', methods=['GET'])
 @admin_required
 @git_track("admin downloaded bulk")
- def admin_download_bulk_submit():
+def admin_download_bulk_submit():
      """
      Admin endpoint: returns the same JSON as public, but only accessible by admin.
      """
