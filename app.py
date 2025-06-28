@@ -348,31 +348,43 @@ def sign_license():
 @admin_required
 @git_track("applied license update")
 def apply_license_update(hwid):
+    # 새 exp, max 값
+    data = request.get_json() or {}
+    new_exp = data.get('exp')
+    new_max = data.get('max')
+
     # 최신 .lic.update 파일 찾기
-    files = [
-        f for f in os.listdir(UPLOAD_DIR)
-        if f.endswith('.lic.update') and f.split('_')[1].split('.')[0] == hwid
-    ]
-    if not files:
+    ups = [f for f in os.listdir(UPLOAD_DIR)
+           if f.endswith('.lic.update') and f.split('_')[1].split('.')[0] == hwid]
+    if not ups:
         return jsonify(error='No update file'), 404
+    latest = max(ups, key=lambda f: os.path.getmtime(os.path.join(UPLOAD_DIR, f)))
+    raw = open(os.path.join(UPLOAD_DIR, latest), 'r', encoding='utf-8').read().strip()
 
-    latest = max(files, key=lambda f: os.path.getmtime(os.path.join(UPLOAD_DIR, f)))
-    update_path = os.path.join(UPLOAD_DIR, latest)
-
-    # 업데이트 파일 로드 및 서명 검증
+    # 서명 검증
     try:
-        raw = open(update_path, 'r', encoding='utf-8').read()
-        decoded = json.loads(base64.b64decode(raw).decode())
-        payload_b64 = decoded['payload']
-        sig = bytes.fromhex(decoded['signature'])
-        pub = serialization.load_pem_public_key(
-            open(os.path.join(BASE, 'public_key.pem'), 'rb').read()
-        )
+        upd = json.loads(base64.b64decode(raw).decode())
+        payload_b64 = upd['payload']
+        sig = bytes.fromhex(upd['signature'])
+        pub = serialization.load_pem_public_key(open(os.path.join(BASE, 'public_key.pem'),'rb').read())
         pub.verify(sig, base64.b64decode(payload_b64), padding.PKCS1v15(), hashes.SHA256())
     except InvalidSignature:
         return jsonify(error='Invalid signature'), 403
-    except Exception:
+    except:
         return jsonify(error='Invalid update file'), 400
+
+    # payload 디코딩 & exp, max 적용
+    info = json.loads(base64.b64decode(payload_b64).decode())
+    if new_exp:
+        info['exp'] = new_exp
+    if new_max:
+        info['max'] = int(new_max)
+
+    # 재인코딩 & 재서명
+    nb = json.dumps(info, separators=(',',':')).encode()
+    nb_b64 = base64.b64encode(nb).decode()
+    key = serialization.load_pem_private_key(open(os.path.join(BASE,'private_key.pem'),'rb').read(), None)
+    new_sig = key.sign(nb, padding.PKCS1v15(), hashes.SHA256()).hex()
 
     # 기존 사용량 유지
     lic_path = os.path.join(SIGNED_DIR, f"{hwid}.lic")
@@ -381,12 +393,8 @@ def apply_license_update(hwid):
         old = json.load(open(lic_path, 'r', encoding='utf-8'))
         used = old.get('used', 'MA==')
 
-    # 새 .lic 파일로 덮어쓰기
-    new_lic = {
-        'payload': payload_b64,
-        'signature': decoded['signature'],
-        'used': used
-    }
+    # 새 .lic 저장
+    new_lic = {'payload': nb_b64, 'signature': new_sig, 'used': used}
     with open(lic_path, 'w', encoding='utf-8') as wf:
         json.dump(new_lic, wf, indent=2)
 
