@@ -215,16 +215,29 @@ def upload_bulk():
     new = {}
     temp = None
     buf = []
+
     for line in lines:
-        s = line.strip()
+        s = line.rstrip('\r\n')
         if s.endswith('~') and temp is None:
             temp = s[:-1].strip()
             buf = []
         elif s.endswith('~') and temp:
-            new[temp] = {'code': '\n'.join(buf), 'updated_at': now_iso, 'uploader_ip': client}
+            new[temp] = {
+                'code': '\n'.join(buf).rstrip('\n'),
+                'updated_at': now_iso,
+                'uploader_ip': client
+            }
             temp = None
-        elif temp:
+        elif temp is not None:
             buf.append(line)
+
+    # 마지막 블록 누락 방지
+    if temp and buf:
+        new[temp] = {
+            'code': '\n'.join(buf).rstrip('\n'),
+            'updated_at': now_iso,
+            'uploader_ip': client
+        }
 
     # 기존 submissions에 merge (기존 항목은 덮어씀)
     updated = 0
@@ -238,7 +251,6 @@ def upload_bulk():
     save_bulk_from_submissions()
 
     return jsonify(status='ok', updated=updated, total=len(submissions))
-
 
 # --- Bulk download public ---
 @app.route('/download_bulk_submit', methods=['GET'])
