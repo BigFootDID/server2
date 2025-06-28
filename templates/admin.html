@@ -102,23 +102,30 @@
     }
 
     async function loadSubmissions(){
-      const res=await fetch('/admin/download_bulk_submit',{credentials:'same-origin'});
-      if(!res.ok){alert('실패');return;}const txt=await res.text();
-      const ids=[];const re=/^(\d{4})~/gm;let m;while((m=re.exec(txt))){ids.push(m[1]);}
-      document.getElementById('codeResult')?.remove();
-      alert('문제: '+ids.join(', '));
+      const res = await fetch('/admin/download_bulk_submit', {credentials:'same-origin'});
+      if(!res.ok){ document.getElementById('codeResult').textContent = '제출 목록 로딩 실패'; return; }
+      const txt = await res.text();
+      const ids = [];
+      const re = /^(\d{4})~/gm;
+      let m;
+      while((m = re.exec(txt))) { ids.push(m[1]); }
+      document.getElementById('codeResult').textContent = '문제 번호: ' + ids.join(', ');
     }
+    
+    async function loadCode(){
+      const pid = document.getElementById('codePid').value.trim();
+      if(!pid) return;
+      const res = await fetch('/admin/download_bulk_submit', {credentials:'same-origin'});
+      if(!res.ok){ document.getElementById('codeResult').textContent = '코드 로딩 실패'; return; }
+      const txt = await res.text();
+      const pat = new RegExp(pid+'~\\r?\\n([\\s\\S]*?)(?=\\r?\\n~|$)','m');
+      const mm = txt.match(pat);
+      const out = mm ? mm[1] : '해당 코드 없음';
+      document.getElementById('codeResult').textContent = out;
+    }
+
 
     async function clearSubmissions(){if(!confirm('초기화?'))return;const res=await fetch('/admin/clear',{method:'POST',credentials:'same-origin'});alert(res.ok?'완료':'실패');}
-
-    async function loadCode(){
-      const pid=document.getElementById('codePid').value.trim();if(!pid)return;
-      const res=await fetch('/admin/download_bulk_submit',{credentials:'same-origin'});
-      if(!res.ok){alert('실패');return;}const txt=await res.text();
-      const pat=new RegExp(pid+'~\\r?\\n([\\s\\S]*?)(?=\\r?\\n~)','m');
-      const mm=txt.match(pat);
-      const out=mm?mm[1]:'없음';alert(out);
-    }
 
     async function loadLicenseRequests(){
       const res=await fetch('/admin/list_license_requests',{credentials:'same-origin'});
