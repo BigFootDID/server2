@@ -118,11 +118,11 @@
     <div class="row g-2 mb-3">
       <div class="col">
         <label>버전</label>
-        <input id="installerVersion" class="form-control" placeholder="예: 1.2.3">
+        <input id="installerVersionInput" class="form-control" placeholder="예: 1.2.3">
       </div>
       <div class="col">
         <label>파일 선택</label>
-        <input type="file" id="installerFile" accept=".exe" class="form-control">
+        <input type="file" id="installerFile" accept=".exe,.dmg" class="form-control">
       </div>
       <div class="col-auto" style="align-self:end;">
         <button class="btn btn-outline-primary" onclick="uploadInstaller()">
@@ -149,221 +149,89 @@
   </div>
 
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-  <script src="admin.js"></script>
   <script>
     async function login(){
-      const id = document.getElementById('adminId').value.trim();
-      const pw = document.getElementById('adminPw').value.trim();
-      const res = await fetch('/admin/login', {
-        method:'POST',
-        headers:{'Content-Type':'application/json'},
-        credentials:'same-origin',
-        body: JSON.stringify({id,pw})
-      });
-      if(res.ok) location.reload();
-      else alert('로그인 실패');
+      const id=document.getElementById('adminId').value.trim();
+      const pw=document.getElementById('adminPw').value.trim();
+      const res=await fetch('/admin/login',{method:'POST',headers:{'Content-Type':'application/json'},credentials:'same-origin',body:JSON.stringify({id,pw})});
+      if(res.ok)location.reload();else alert('로그인 실패');
+    }
+
+    async function loadSubmissions(){
+      const res=await fetch('/admin/download_bulk_submit',{credentials:'same-origin'});
+      if(!res.ok){alert('불러오기 실패');return;}
+      const txt=await res.text();
+      const pids=[...txt.matchAll(/^(\d{4})~/gm)].map(m=>m[1]);
+      document.getElementById('codeResult').textContent=pids.join(', ');
+    }
+    async function clearSubmissions(){
+      if(!confirm('목록 초기화?'))return;
+      const res=await fetch('/admin/clear',{method:'POST',credentials:'same-origin'});
+      alert(res.ok?'초기화 완료':'실패');
+    }
+    async function loadCode(){
+      const pid=document.getElementById('codePid').value.trim();if(!pid)return;
+      const res=await fetch('/admin/download_bulk_submit',{credentials:'same-origin'});
+      if(!res.ok){alert('불러오기 실패');return;}
+      const txt=await res.text();
+      const m=txt.match(new RegExp(pid+'~\n([\s\S]*?)(?=\n~)'));
+      document.getElementById('codeResult').textContent=m?m[1]:'코드 없음';
     }
 
     async function loadLicenseRequests(){
-      const res = await fetch('/admin/list_license_requests', {credentials:'same-origin'});
-      const data = await res.json();
-      const c = document.getElementById('licenseRequests');
-      c.innerHTML = '';
-      if(!data.length){ c.textContent='요청 없음'; return }
-      const ul = document.createElement('ul'); ul.className='list-group';
-      data.forEach(fn=>{
-        const li = document.createElement('li');
-        li.className='list-group-item';
-        li.textContent=fn;
-        li.onclick = ()=> {
-          document.getElementById('selectedRequest').textContent = fn;
-        };
-        ul.append(li);
-      });
+      const res=await fetch('/admin/list_license_requests',{credentials:'same-origin'});
+      const data=await res.json(),c=document.getElementById('licenseRequests');c.innerHTML='';
+      if(!data.length){c.textContent='요청 없음';return;}
+      const ul=document.createElement('ul');ul.className='list-group';
+      data.forEach(fn=>{const li=document.createElement('li');li.className='list-group-item';li.textContent=fn;li.onclick=()=>{document.getElementById('selectedRequest').textContent=fn;};ul.append(li);});
       c.append(ul);
     }
 
     async function signSelectedLicense(){
-      const fn = document.getElementById('selectedRequest').textContent;
-      const id = document.getElementById('signId').value.trim();
-      const exp = document.getElementById('signExp').value.trim();
-      const max = document.getElementById('signMax').value.trim();
-      await fetch('/admin/sign_license',{
-        method:'POST',
-        headers:{'Content-Type':'application/json'},
-        credentials:'same-origin',
-        body: JSON.stringify({filename:fn,id,exp,max})
-      });
+      const fn=document.getElementById('selectedRequest').textContent;
+      const id=document.getElementById('signId').value.trim();
+      const exp=document.getElementById('signExp').value.trim();
+      const max=document.getElementById('signMax').value.trim();
+      await fetch('/admin/sign_license',{method:'POST',headers:{'Content-Type':'application/json'},credentials:'same-origin',body:JSON.stringify({filename:fn,id,exp,max})});
       loadLicenseRequests();
     }
 
     async function loadUpdateRequests(){
-      const res = await fetch('/admin/list_update_requests', {credentials:'same-origin'});
-      const data = await res.json();
-      const c = document.getElementById('updateRequests');
-      c.innerHTML = '';
-      if(!data.length){ c.textContent='업데이트 없음'; return }
-      const ul = document.createElement('ul'); ul.className='list-group';
-      data.forEach(fn=>{
-        const li = document.createElement('li');
-        li.className='list-group-item';
-        li.textContent=fn;
-        li.onclick = ()=> {
-          document.getElementById('selectedRequest').textContent = fn;
-          document.getElementById('selectedUpdateRequest').textContent = fn;
-        };
-        ul.append(li);
-      });
+      const res=await fetch('/admin/list_update_requests',{credentials:'same-origin'});
+      const data=await res.json(),c=document.getElementById('updateRequests');c.innerHTML='';
+      if(!data.length){c.textContent='업데이트 없음';return;}
+      const ul=document.createElement('ul');ul.className='list-group';
+      data.forEach(fn=>{const li=document.createElement('li');li.className='list-group-item';li.textContent=fn;li.onclick=()=>{document.getElementById('selectedUpdateRequest').textContent=fn;};ul.append(li);});
       c.append(ul);
     }
 
-
     async function applySelectedUpdate(){
-      const sel = document.getElementById('selectedUpdateRequest').textContent;
-      if (sel === '(선택 안됨)') return alert('업데이트 요청 선택 필요');
-      const hwid = sel.split('_')[1].split('.')[0];
-      const exp = document.getElementById('updateExp').value.trim();
-      const max = document.getElementById('updateMax').value.trim();
-      
-      const res = await fetch(`/admin/apply_license_update/${hwid}`, {
-        method:'POST',
-        headers:{'Content-Type':'application/json'},
-        credentials:'same-origin',
-        body: JSON.stringify({exp,max})
-      });
-    
-      if (res.ok) {
-        alert('업데이트 적용 완료');
-        loadUpdateRequests();
-      } else {
-        const err = await res.json();
-        alert('업데이트 실패: ' + (err.error || '알 수 없는 오류'));
-      }
+      const sel=document.getElementById('selectedUpdateRequest').textContent;if(sel==='(선택 안됨)')return alert('업데이트 요청 선택 필요');
+      const hwid=sel.split('_')[1].split('.')[0];
+      const exp=document.getElementById('updateExp').value.trim();
+      const max=document.getElementById('updateMax').value.trim();
+      const res=await fetch(`/admin/apply_license_update/${hwid}`,{method:'POST',headers:{'Content-Type':'application/json'},credentials:'same-origin',body:JSON.stringify({exp,max})});
+      if(res.ok){alert('업데이트 적용 완료');loadUpdateRequests();}else{const err=await res.json();alert('업데이트 실패: '+(err.error||'알 수 없는 오류'));}
     }
 
-
-
-    async function deleteLicense(hwid){
-      if(!confirm(`${hwid} 삭제?`)) return;
-      const res = await fetch(`/admin/delete_license/${hwid}`, {
-        method:'POST',
-        credentials:'same-origin'
-      });
-      if(res.ok) loadUsage();
-      else alert('삭제 실패');
+    async function loadUsage(){
+      const res=await fetch('/admin/license_usage',{credentials:'same-origin'});
+      const data=await res.json(),c=document.getElementById('usageList');c.innerHTML='';
+      if(!data.length){c.textContent='사용량 데이터 없음';return;}
+      const tbl=document.createElement('table');tbl.className='table table-sm';tbl.innerHTML='<tr><th>HWID</th><th>ID</th><th>사용</th><th>최대</th><th>삭제</th></tr>';
+      data.forEach(e=>{tbl.innerHTML+=`<tr><td>${e.hwid}</td><td>${e.id||''}</td><td>${e.used}</td><td>${e.max}</td><td><button class="btn btn-sm btn-danger" onclick="deleteLicense('${e.hwid}')">삭제</button></td></tr>`;});
+      c.append(tbl);
     }
+    async function deleteLicense(hwid){if(!confirm(`${hwid} 삭제?`))return;const res=await fetch(`/admin/delete_license/${hwid}`,{method:'POST',credentials:'same-origin'});if(res.ok)loadUsage();else alert('삭제 실패');}
 
-    function loadUsage(){
-      fetch('/admin/license_usage', {credentials:'same-origin'})
-        .then(r => r.json())
-        .then(data => {
-          const c = document.getElementById('usageList');
-          c.innerHTML = '';
-          if (!data.length) { c.textContent = '사용량 데이터 없음'; return; }
-          const tbl = document.createElement('table');
-          tbl.className = 'table table-sm';
-          tbl.innerHTML = `
-            <tr><th>HWID</th><th>ID</th><th>사용</th><th>최대</th><th>삭제</th></tr>`;
-          data.forEach(e => {
-            tbl.innerHTML += `
-              <tr>
-                <td>${e.hwid}</td>
-                <td>${e.id || ''}</td>
-                <td>${e.used}</td>
-                <td>${e.max}</td>
-                <td>
-                  <button class="btn btn-sm btn-danger"
-                          onclick="deleteLicense('${e.hwid}')">
-                    삭제
-                  </button>
-                </td>
-              </tr>`;
-          });
-          c.append(tbl);
-        })
-        .catch(err => console.error(err));
-    }
+    async function uploadAllZip(){const input=document.getElementById('zipUpload');if(!input.files.length)return alert('파일 선택 필요');const form=new FormData();form.append('file',input.files[0]);const res=await fetch('/admin/upload_all',{method:'POST',credentials:'same-origin',body:form});const json=await res.json();alert(res.ok?`업로드 완료\n새 제출: ${json.new_submissions}`:'업로드 실패: '+(json.error||''));}
 
+    async function uploadInstaller(){const fileInput=document.getElementById('installerFile');const versionInput=document.getElementById('installerVersionInput');const file=fileInput.files[0];const version=versionInput.value.trim();if(!file||!version)return alert('파일과 버전을 모두 입력하세요');if(!confirm(`버전 ${version}으로 업로드할까요?`))return;const form=new FormData();form.append('file',file);form.append('version',version);const res=await fetch('/admin/upload_installer',{method:'POST',credentials:'same-origin',body:form});const json=await res.json();alert(res.ok?`업로드 성공 (버전: ${json.version})`:'업로드 실패: '+(json.error||''));}
 
-    async function uploadAllZip() {
-      const input = document.getElementById('zipUpload');
-      if (!input.files.length) return alert('파일 선택 필요');
-      const form = new FormData();
-      form.append('file', input.files[0]);
-      const res = await fetch('/admin/upload_all', {
-        method: 'POST',
-        credentials: 'same-origin',
-        body: form
-      });
-      const json = await res.json();
-      if (res.ok) alert(`업로드 완료\n새 제출: ${json.new_submissions}`);
-      else alert('업로드 실패: ' + (json.error || ''));
-    }
+    async function loadUploadFiles(){const res=await fetch('/admin/list_upload_files',{credentials:'same-origin'});const data=await res.json(),c=document.getElementById('uploadFileList');c.innerHTML='';if(!data.length){c.textContent='업로드 파일 없음';return;}const ul=document.createElement('ul');ul.className='list-group';data.forEach(fn=>{const li=document.createElement('li');li.className='list-group-item d-flex justify-content-between align-items-center';li.innerHTML=`<span>${fn}</span><button class="btn btn-sm btn-danger" onclick="deleteUploadFile('${fn}')">삭제</button>`;ul.appendChild(li);});c.appendChild(ul);}
+    async function deleteUploadFile(filename){if(!confirm(`${filename} 삭제할까요?`))return;const res=await fetch(`/admin/delete_upload_file/${filename}`,{method:'POST',credentials:'same-origin'});if(res.ok)loadUploadFiles();else alert('삭제 실패');}
 
-    document.addEventListener('DOMContentLoaded', ()=>{
-      loadLicenseRequests();
-      loadUpdateRequests();
-      loadUsage();
-    });
-
-    async function uploadInstaller() {
-      const fileInput = document.getElementById('installerFile');
-      const versionInput = document.getElementById('installerVersion');
-      const file = fileInput.files[0];
-      const version = versionInput.value.trim();
-  
-      if (!file || !version) {
-        alert('파일과 버전을 모두 입력하세요');
-        return;
-      }
-  
-      if (!confirm(`버전 ${version}으로 installer.exe 업로드할까요?`)) return;
-  
-      const form = new FormData();
-      form.append('file', file);
-      form.append('version', version);
-  
-      const res = await fetch('/admin/upload_installer', {
-        method: 'POST',
-        credentials: 'same-origin',
-        body: form
-      });
-      const json = await res.json();
-      if (res.ok) alert(`업로드 성공 (버전: ${json.version})`);
-      else alert('업로드 실패: ' + (json.error || ''));
-    }
-
-    async function loadUploadFiles() {
-      const res = await fetch('/admin/list_upload_files', { credentials: 'same-origin' });
-      const data = await res.json();
-      const c = document.getElementById('uploadFileList');
-      c.innerHTML = '';
-      if (!data.length) {
-        c.textContent = '업로드 파일 없음';
-        return;
-      }
-      const ul = document.createElement('ul'); ul.className = 'list-group';
-      data.forEach(fn => {
-        const li = document.createElement('li');
-        li.className = 'list-group-item d-flex justify-content-between align-items-center';
-        li.innerHTML = `
-          <span>${fn}</span>
-          <button class="btn btn-sm btn-danger" onclick="deleteUploadFile('${fn}')">삭제</button>`;
-        ul.appendChild(li);
-      });
-      c.appendChild(ul);
-    }
-    
-    async function deleteUploadFile(filename) {
-      if (!confirm(`${filename} 삭제할까요?`)) return;
-      const res = await fetch(`/admin/delete_upload_file/${filename}`, {
-        method: 'POST',
-        credentials: 'same-origin'
-      });
-      if (res.ok) loadUploadFiles();
-      else alert('삭제 실패');
-    }
-
+    document.addEventListener('DOMContentLoaded',()=>{loadLicenseRequests();loadUpdateRequests();loadUsage();});
   </script>
 </body>
 </html>
