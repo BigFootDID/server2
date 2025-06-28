@@ -211,6 +211,15 @@ def upload_bulk():
     now_iso = datetime.utcnow().isoformat()
     client = ip()
 
+    def balance_braces(lines):
+        joined = '\n'.join(lines)
+        open_count = joined.count('{')
+        close_count = joined.count('}')
+        missing = open_count - close_count
+        if missing > 0:
+            lines.extend(['}'] * missing)
+        return lines
+
     # decode된 내용 정리
     new = {}
     temp = None
@@ -222,6 +231,7 @@ def upload_bulk():
             temp = s[:-1].strip()
             buf = []
         elif s.endswith('~') and temp:
+            buf = balance_braces(buf)
             new[temp] = {
                 'code': '\n'.join(buf).rstrip('\n'),
                 'updated_at': now_iso,
@@ -233,6 +243,7 @@ def upload_bulk():
 
     # 마지막 블록 누락 방지
     if temp and buf:
+        buf = balance_braces(buf)
         new[temp] = {
             'code': '\n'.join(buf).rstrip('\n'),
             'updated_at': now_iso,
