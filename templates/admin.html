@@ -12,78 +12,192 @@
     <h2>🔧 관리자 패널</h2>
     <ul class="list-group mb-4">
       <li class="list-group-item">
-        <button class="btn btn-sm btn-outline-secondary me-2" onclick="loadSubmissions()">
-          제출 목록
-        </button>
-        <button class="btn btn-sm btn-outline-danger me-2" onclick="clearSubmissions()">
-          목록 초기화
-        </button>
-        <a href="/admin/download_bulk_submit" class="btn btn-sm btn-outline-primary">
-          bulk_submit.txt 다운로드
-        </a>
+        <button class="btn btn-sm btn-outline-secondary me-2" onclick="loadSubmissions()">제출 목록</button>
+        <button class="btn btn-sm btn-outline-danger me-2" onclick="clearSubmissions()">목록 초기화</button>
+        <a href="/admin/download_bulk_submit" class="btn btn-sm btn-outline-primary">bulk_submit.txt 다운로드</a>
       </li>
       <li class="list-group-item">
-        <a href="/admin/download_all" class="btn btn-sm btn-outline-success">
-          전체 데이터 다운로드 (ZIP)
-        </a>
+        <a href="/admin/download_all" class="btn btn-sm btn-outline-success">전체 데이터 다운로드 (ZIP)</a>
       </li>
       <li class="list-group-item">
         <label for="zipUpload" class="form-label">전체 데이터 업로드 (ZIP)</label>
         <input type="file" id="zipUpload" accept=".zip" class="form-control">
-        <button class="btn btn-sm btn-outline-dark mt-2" onclick="uploadAllZip()">
-          ZIP 업로드
-        </button>
+        <button class="btn btn-sm btn-outline-dark mt-2" onclick="uploadAllZip()">ZIP 업로드</button>
       </li>
     </ul>
 
     <div class="mb-3">
       <label>문제 번호</label>
       <input id="codePid" class="form-control d-inline-block w-auto" placeholder="0058">
-      <button class="btn btn-sm btn-primary ms-2" onclick="loadCode()">
-        코드 보기
-      </button>
+      <button class="btn btn-sm btn-primary ms-2" onclick="loadCode()">코드 보기</button>
     </div>
     <pre id="codeResult" class="border p-3 bg-white" style="height:200px;overflow:auto;"></pre>
     <hr>
 
-    <!-- 이하 생략, 기존과 동일 -->
+    <h3>📝 라이선스 요청</h3>
+    <div id="licenseRequests" class="mb-2">요청 없음</div>
+    <button class="btn btn-sm btn-outline-info me-2" onclick="loadLicenseRequests()">요청 새로고침</button>
+    <div class="mt-2">선택: <span id="selectedRequest">(없음)</span></div>
+    <div class="row g-2 mb-3 mt-2">
+      <div class="col"><input id="signId" class="form-control" placeholder="ID"></div>
+      <div class="col"><input id="signExp" class="form-control" placeholder="만료 YYYY-MM-DD"></div>
+      <div class="col"><input id="signMax" type="number" class="form-control" placeholder="최대"></div>
+      <div class="col-auto" style="align-self:end;"><button class="btn btn-success" onclick="signSelectedLicense()">서명</button></div>
+    </div>
+    <hr>
 
-  {% endif %}
+    <h3>🔄 업데이트 파일</h3>
+    <div id="updateRequests" class="mb-2">업데이트 없음</div>
+    <button class="btn btn-sm btn-outline-warning me-2" onclick="loadUpdateRequests()">목록 새로고침</button>
+    <div class="mt-2">선택: <span id="selectedUpdateRequest">(없음)</span></div>
+    <div class="row g-2 mb-3 mt-2">
+      <div class="col"><input id="updateExp" class="form-control" placeholder="만료 YYYY-MM-DD"></div>
+      <div class="col"><input id="updateMax" type="number" class="form-control" placeholder="최대"></div>
+      <div class="col-auto" style="align-self:end;"><button class="btn btn-outline-dark" onclick="applySelectedUpdate()">적용</button></div>
+    </div>
+    <hr>
+
+    <h3>📊 라이선스 사용량</h3>
+    <div id="usageList" class="mb-2">데이터 없음</div>
+    <button class="btn btn-sm btn-outline-success me-2" onclick="loadUsage()">새로고침</button>
+    <hr>
+
+    <h3>🗑 삭제</h3>
+    <div class="mb-3">
+      <input id="delHwid" class="form-control d-inline-block w-auto" placeholder="HWID">
+      <button class="btn btn-sm btn-danger ms-2" onclick="deleteLicense()">삭제</button>
+    </div>
+    <hr>
+
+    <h3>🛠️ 인스톨러 업로드</h3>
+    <div class="row g-2 mb-3">
+      <div class="col"><input id="installerVersionInput" class="form-control" placeholder="예: 1.2.3"></div>
+      <div class="col"><input type="file" id="installerFile" accept=".exe,.dmg" class="form-control"></div>
+      <div class="col-auto" style="align-self:end;"><button class="btn btn-outline-primary" onclick="uploadInstaller()">업로드</button></div>
+    </div>
+    <hr>
+
+    <h3>📁 업로드 파일 관리</h3>
+    <div id="uploadFileList" class="mb-2">없음</div>
+    <button class="btn btn-sm btn-outline-secondary" onclick="loadUploadFiles()">목록 새로고침</button>
+    <hr>
+
+    {% else %}
+    <h2>관리자 로그인</h2>
+    <form onsubmit="event.preventDefault();login()" class="mb-3">
+      <input id="adminId" class="form-control mb-2" placeholder="ID">
+      <input id="adminPw" type="password" class="form-control mb-2" placeholder="PW">
+      <button class="btn btn-primary">로그인</button>
+    </form>
+    {% endif %}
   </div>
 
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
   <script>
-    async function loadSubmissions(){
-      const res = await fetch('/admin/download_bulk_submit',{credentials:'same-origin'});
-      if(!res.ok){ alert('불러오기 실패'); return; }
-      const txt = await res.text();
-      const ids = [];
-      // 각 블록의 PID만 수집
-      const regex = /^([0-9]{4})~/gm;
-      let match;
-      while((match = regex.exec(txt)) !== null) ids.push(match[1]);
-      document.getElementById('codeResult').textContent = ids.join(', ');
+    async function login(){
+      const id=document.getElementById('adminId').value.trim();
+      const pw=document.getElementById('adminPw').value.trim();
+      const res=await fetch('/admin/login',{method:'POST',headers:{'Content-Type':'application/json'},credentials:'same-origin',body:JSON.stringify({id,pw})});
+      if(res.ok)location.reload();else alert('로그인 실패');
     }
+
+    async function loadSubmissions(){
+      const res=await fetch('/admin/download_bulk_submit',{credentials:'same-origin'});
+      if(!res.ok){alert('실패');return;}const txt=await res.text();
+      const ids=[];const re=/^(\d{4})~/gm;let m;while((m=re.exec(txt))){ids.push(m[1]);}
+      document.getElementById('codeResult')?.remove();
+      alert('문제: '+ids.join(', '));
+    }
+
+    async function clearSubmissions(){if(!confirm('초기화?'))return;const res=await fetch('/admin/clear',{method:'POST',credentials:'same-origin'});alert(res.ok?'완료':'실패');}
 
     async function loadCode(){
-      const pid = document.getElementById('codePid').value.trim();
-      if(!pid) return;
-      const res = await fetch('/admin/download_bulk_submit',{credentials:'same-origin'});
-      if(!res.ok){ alert('불러오기 실패'); return; }
-      const txt = await res.text();
-      // PID~<newline> ... until newline~ 블록 추출
-      const pattern = new RegExp(pid + '~\r?\n([\s\S]*?)(?=\r?\n~)', 'm');
-      const m = txt.match(pattern);
-      document.getElementById('codeResult').textContent = m ? m[1] : '코드 없음';
+      const pid=document.getElementById('codePid').value.trim();if(!pid)return;
+      const res=await fetch('/admin/download_bulk_submit',{credentials:'same-origin'});
+      if(!res.ok){alert('실패');return;}const txt=await res.text();
+      const pat=new RegExp(pid+'~\\r?\\n([\\s\\S]*?)(?=\\r?\\n~)','m');
+      const mm=txt.match(pat);
+      const out=mm?mm[1]:'없음';alert(out);
     }
 
-    async function clearSubmissions(){
-      if(!confirm('목록 초기화?')) return;
-      const res = await fetch('/admin/clear',{method:'POST',credentials:'same-origin'});
-      alert(res.ok ? '초기화 완료' : '초기화 실패');
+    async function loadLicenseRequests(){
+      const res=await fetch('/admin/list_license_requests',{credentials:'same-origin'});
+      const data=await res.json();
+      const el=document.getElementById('licenseRequests');el.innerHTML='';
+      if(!data.length){el.textContent='요청 없음';return;}
+      data.forEach(fn=>{const btn=document.createElement('button');btn.className='btn btn-sm btn-outline-secondary m-1';btn.textContent=fn;btn.onclick=()=>{document.getElementById('selectedRequest').textContent=fn;};el.append(btn);});
     }
 
-    // 기타 함수 생략
+    async function signSelectedLicense(){
+      const fn=document.getElementById('selectedRequest').textContent;
+      const id=document.getElementById('signId').value.trim();
+      const exp=document.getElementById('signExp').value.trim();
+      const max=document.getElementById('signMax').value.trim();
+      await fetch('/admin/sign_license',{method:'POST',headers:{'Content-Type':'application/json'},credentials:'same-origin',body:JSON.stringify({filename:fn,id,exp,max})});
+      loadLicenseRequests();
+    }
+
+    async function loadUpdateRequests(){
+      const res=await fetch('/admin/list_update_requests',{credentials:'same-origin'});
+      const data=await res.json();
+      const el=document.getElementById('updateRequests');el.innerHTML='';
+      if(!data.length){el.textContent='없음';return;}
+      data.forEach(fn=>{const btn=document.createElement('button');btn.className='btn btn-sm btn-outline-secondary m-1';btn.textContent=fn;btn.onclick=()=>{document.getElementById('selectedUpdateRequest').textContent=fn;};el.append(btn);});
+    }
+
+    async function applySelectedUpdate(){
+      const sel=document.getElementById('selectedUpdateRequest').textContent;
+      if(sel==='(없음)')return alert('선택');
+      const hwid=sel.split('_')[1].split('.')[0];
+      const exp=document.getElementById('updateExp').value.trim();
+      const max=document.getElementById('updateMax').value.trim();
+      const res=await fetch(`/admin/apply_license_update/${hwid}`,{method:'POST',headers:{'Content-Type':'application/json'},credentials:'same-origin',body:JSON.stringify({exp,max})});
+      alert(res.ok?'적용됨':'실패');loadUpdateRequests();
+    }
+
+    async function loadUsage(){
+      const res=await fetch('/admin/license_usage',{credentials:'same-origin'});
+      const data=await res.json();
+      const el=document.getElementById('usageList');el.innerHTML='';
+      if(!data.length){el.textContent='없음';return;}
+      data.forEach(e=>{const div=document.createElement('div');div.textContent=`${e.hwid} | ${e.id||''} | ${e.used}/${e.max}`;el.append(div);});
+    }
+
+    async function deleteLicense(){
+      const hwid=document.getElementById('delHwid').value.trim();if(!hwid)return;
+      if(!confirm(`${hwid} 삭제?`))return;
+      const res=await fetch(`/admin/delete_license/${hwid}`,{method:'POST',credentials:'same-origin'});
+      alert(res.ok?'삭제됨':'실패');loadUsage();
+    }
+
+    async function uploadAllZip(){
+      const inp=document.getElementById('zipUpload');if(!inp.files.length)return;
+      const form=new FormData();form.append('file',inp.files[0]);
+      const res=await fetch('/admin/upload_all',{method:'POST',credentials:'same-origin',body:form});
+      const j=await res.json();alert(res.ok?`새 제출: ${j.new_submissions}`:'실패');
+    }
+
+    async function uploadInstaller(){
+      const f=document.getElementById('installerFile').files[0];
+      const v=document.getElementById('installerVersionInput').value.trim();
+      if(!f||!v)return;
+      if(!confirm(`업로드 ${v}?`))return;
+      const form=new FormData();form.append('file',f);form.append('version',v);
+      const res=await fetch('/admin/upload_installer',{method:'POST',credentials:'same-origin',body:form});
+      const j=await res.json();alert(res.ok?`버전: ${j.version}`:'실패');
+    }
+
+    async function loadUploadFiles(){
+      const res=await fetch('/admin/list_upload_files',{credentials:'same-origin'});
+      const data=await res.json();
+      const el=document.getElementById('uploadFileList');el.innerHTML='';
+      if(!data.length){el.textContent='없음';return;}
+      data.forEach(fn=>{const div=document.createElement('div');div.className='d-flex justify-content-between mb-1';div.innerHTML=`<span>${fn}</span><button class="btn btn-sm btn-danger" onclick="deleteUploadFile('${fn}')">삭제</button>`;el.append(div);});
+    }
+
+    async function deleteUploadFile(fn){if(!confirm(`삭제 ${fn}?`))return;const res=await fetch(`/admin/delete_upload_file/${fn}`,{method:'POST',credentials:'same-origin'});alert(res.ok?'삭제됨':'실패');loadUploadFiles();}
+
+    document.addEventListener('DOMContentLoaded',()=>{loadLicenseRequests();loadUpdateRequests();loadUsage();loadUploadFiles();});
   </script>
 </body>
 </html>
