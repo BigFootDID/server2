@@ -735,5 +735,34 @@ def delete_upload_file(filename):
         return jsonify(status='deleted')
     return jsonify(error='파일 없음'), 404
 
+# server.py 에 추가
+@app.route('/upload_signed_license', methods=['POST'])
+@require_app
+def upload_signed_license():
+    if 'file' not in request.files:
+        return jsonify(error='No license file'), 400
+    f = request.files['file']
+    fn = secure_filename(f.filename)
+    if not fn.endswith('.lic'):
+        return jsonify(error='Invalid file'), 400
+    path = os.path.join(SIGNED_DIR, fn)
+    if os.path.exists(path):
+        return jsonify(status='exists'), 200
+    content = f.read().decode('utf-8')
+    try:
+        data = json.loads(content)
+        pb = data['payload']
+        sig = bytes.fromhex(data['signature'])
+        pub = serialization.load_pem_public_key(open(os.path.join(BASE,'public_key.pem'),'rb').read())
+        pub.verify(sig, base64.b64decode(pb.encode()), padding.PKCS1v15(), hashes.SHA256())
+    except InvalidSignature:
+        return jsonify(error='Invalid signature'), 403
+    except:
+        return jsonify(error='Invalid content'), 400
+    with open(path, 'w', encoding='utf-8') as wf:
+        wf.write(content)
+    save_signed_history({'uploaded': fn, 'at': datetime.utcnow().isoformat()})
+    return jsonify(status='uploaded'), 200
+
 if __name__=='__main__':
     app.run(host='0.0.0.0', port=5000, debug=True)
