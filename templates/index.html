@@ -21,15 +21,12 @@
   <div class="container mt-5 text-center">
     <h2 class="mb-4">KOIStudy Solver</h2>
     <div class="d-flex justify-content-center gap-3">
-      <a href="/upload.html" class="btn btn-success btn-lg">
-        📥 제출 업로드
-      </a>
-      <a href="/license.html" class="btn btn-warning btn-lg">
-        📎 라이선스 업로드
-      </a>
+      <a href="/upload.html" class="btn btn-success btn-lg">📥 제출 업로드</a>
+      <a href="/license.html" class="btn btn-warning btn-lg">📎 라이선스 업로드</a>
     </div>
     <div class="mt-4">
-      <div class="mt-3" id="osVersionInfo"></div>
+      <!-- 인스톨러 버전 표시 -->
+      <div class="mt-3" id="installerVersion"></div>
       <button id="downloadBtn" class="btn btn-secondary btn-lg">🛠 설치파일 다운로드</button>
       <div class="progress mt-3" style="height: 20px; display: none;" id="progressWrapper">
         <div id="progressBar" class="progress-bar progress-bar-striped progress-bar-animated" style="width: 0%">0%</div>
@@ -51,6 +48,7 @@
   </div>
 
   <script>
+    // 관리자 로그인
     document.getElementById('loginForm').addEventListener('submit', async function (e) {
       e.preventDefault();
       const id = document.getElementById('adminId').value;
@@ -62,69 +60,36 @@
           body: JSON.stringify({ id, pw })
         });
         const data = await res.json();
-        if (res.ok) {
-          window.location.href = '/admin.html';
-        } else {
-          document.getElementById('loginResult').innerText = data.error || '로그인 실패';
-        }
-      } catch (err) {
+        if (res.ok) window.location.href = '/admin.html';
+        else document.getElementById('loginResult').innerText = data.error || '로그인 실패';
+      } catch {
         document.getElementById('loginResult').innerText = '서버 오류';
       }
     });
+
+    // 설치파일 다운로드 진행바
     document.getElementById('downloadBtn').addEventListener('click', () => {
       const bar = document.getElementById('progressBar');
       const wrapper = document.getElementById('progressWrapper');
-      wrapper.style.display = 'block';
-      let sec = 0;
+      wrapper.style.display = 'block'; let sec = 0;
       const interval = setInterval(() => {
-        sec++;
-        const percent = Math.min(100, sec * 10);
-        bar.style.width = percent + '%';
-        bar.innerText = percent + '%';
-        if (sec >= 10) {
-          clearInterval(interval);
-          window.location.href = '/download_installer';
-        }
+        sec++; const percent = Math.min(100, sec * 10);
+        bar.style.width = percent + '%'; bar.innerText = percent + '%';
+        if (sec >= 10) { clearInterval(interval); window.location.href = '/download_installer'; }
       }, 1000);
     });
-    async function showOsAndVersion() {
-      // OS 및 파일명
-      let osType = 'win', osName = 'Windows', installer = 'Installer.exe';
-      const ua = navigator.userAgent.toLowerCase();
-      if (ua.includes('mac') || ua.includes('darwin')) {
-        osType = 'mac';
-        osName = 'macOS';
-        installer = 'Installer.dmg';
-      }
-      // 버전 요청
-      let version = '...';
-      try {
-        const res = await fetch(`/latest_version?os=${osType}`);
-        if (res.ok) {
-          const data = await res.json();
-          version = data.version || '?';
-        }
-      } catch {}
-      document.getElementById('osVersionInfo').innerText =
-        `OS: ${osName}   |   설치파일: ${installer}   |   최신 버전: ${version}`;
-    }
 
-    document.getElementById('downloadBtn').addEventListener('click', …)
-
+    // 인스톨러 버전 표시
     async function showInstallerVersion() {
-      let osType = /mac|darwin/.test(navigator.userAgent.toLowerCase()) ? 'mac' : 'win';
+      const osType = /mac|darwin/.test(navigator.userAgent.toLowerCase()) ? 'mac' : 'win';
       let version = '...';
       try {
         const res = await fetch(`/latest_version?os=${osType}`);
-        if (res.ok) {
-          version = (await res.json()).version || '?';
-        }
+        if (res.ok) version = (await res.json()).version || '?';
       } catch {}
-      document.getElementById('installerVersion').innerText =
-        `인스톨러 버전: ${version}`;
+      document.getElementById('installerVersion').innerText = `인스톨러 버전: ${version}`;
     }
     showInstallerVersion();
-    showOsAndVersion();
   </script>
 </body>
 </html>
