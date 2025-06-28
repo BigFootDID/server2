@@ -359,30 +359,36 @@ def apply_license_update(hwid):
     latest = max(files, key=lambda f: os.path.getmtime(os.path.join(UPLOAD_DIR, f)))
     update_path = os.path.join(UPLOAD_DIR, latest)
 
+    # 업데이트 파일 로드 및 서명 검증
     try:
-        with open(update_path, 'r') as f:
-            raw = f.read().strip()
-        data = json.loads(base64.b64decode(raw).decode())
-        payload = data['payload']
-        sig = data['signature']
+        raw = open(update_path, 'r', encoding='utf-8').read()
+        decoded = json.loads(base64.b64decode(raw).decode())
+        payload_b64 = decoded['payload']
+        sig = bytes.fromhex(decoded['signature'])
+        pub = serialization.load_pem_public_key(
+            open(os.path.join(BASE, 'public_key.pem'), 'rb').read()
+        )
+        pub.verify(sig, base64.b64decode(payload_b64), padding.PKCS1v15(), hashes.SHA256())
+    except InvalidSignature:
+        return jsonify(error='Invalid signature'), 403
     except Exception:
         return jsonify(error='Invalid update file'), 400
 
-    # 기존 사용량 유지 (.lic 파일은 UPLOAD_DIR 기준)
+    # 기존 사용량 유지
     lic_path = os.path.join(SIGNED_DIR, f"{hwid}.lic")
-
-    used = 'MA=='  # base64('0')
+    used = 'MA=='
     if os.path.exists(lic_path):
-        with open(lic_path, 'r') as f:
-            old_lic = json.load(f)
-            used = old_lic.get('used', 'MA==')
+        old = json.load(open(lic_path, 'r', encoding='utf-8'))
+        used = old.get('used', 'MA==')
 
-    with open(lic_path, 'w') as sf:
-        json.dump({
-            'payload': payload,
-            'signature': sig,
-            'used': used
-        }, sf, indent=2)
+    # 새 .lic 파일로 덮어쓰기
+    new_lic = {
+        'payload': payload_b64,
+        'signature': decoded['signature'],
+        'used': used
+    }
+    with open(lic_path, 'w', encoding='utf-8') as wf:
+        json.dump(new_lic, wf, indent=2)
 
     save_signed_history({
         'hwid': hwid,
