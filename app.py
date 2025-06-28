@@ -241,24 +241,32 @@ def upload_bulk():
 
 
 # --- Bulk download public ---
-# 서버 download_bulk_submit 핸들러 수정
 @app.route('/download_bulk_submit', methods=['GET'])
 @require_app
-def download_public():
-    if not os.path.exists(INITIAL_BULK):
-        return jsonify(error='bulk not found'), 404
-    raw = open(INITIAL_BULK, 'r', encoding='utf-8').read()
-    payload = {
-        'filename': 'bulk_submit.txt.b64',
-        'content_b64': raw  # 이미 인코딩된 상태
-    }
-    buf = io.BytesIO(json.dumps(payload, ensure_ascii=False).encode())
-    buf.seek(0)
-    return send_file(buf, mimetype='application/json', as_attachment=True, download_name='bulk_submit.json')
-
-
+ def download_bulk_submit():
+     """
+     Public endpoint: returns JSON containing base64-encoded bulk_submit content.
+     """
+     if not os.path.exists(INITIAL_BULK):
+         return jsonify(error='bulk not found'), 404
+     # INITIAL_BULK already contains base64-encoded lines
+     with open(INITIAL_BULK, 'r', encoding='utf-8') as f:
+         content_b64 = f.read().strip()
+     return jsonify(
+         filename='bulk_submit.txt.b64',
+         content_b64=content_b64
+     )
 
 # --- Bulk download admin ---
+@app.route('/admin/download_bulk_submit', methods=['GET'])
+@admin_required
+@git_track("admin downloaded bulk")
+ def admin_download_bulk_submit():
+     """
+     Admin endpoint: returns the same JSON as public, but only accessible by admin.
+     """
+     # reuse public logic
+     return download_bulk_submit()
 @app.route('/admin/download_bulk_submit')
 @admin_required
 @git_track("admin downloaded bulk")
@@ -276,7 +284,6 @@ def download_admin():
     buf = io.BytesIO(decoded.encode())
     buf.seek(0)
     return send_file(buf, as_attachment=True, download_name='bulk_submit.txt')
-
 
 # --- Admin clear submissions ---
 @app.route('/admin/clear', methods=['POST'])
