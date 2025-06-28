@@ -258,19 +258,10 @@ def download_bulk_submit():
      )
 
 # --- Bulk download admin ---
-@app.route('/admin/download_bulk_submit', methods=['GET'])
-@admin_required
-@git_track("admin downloaded bulk")
-def admin_download_bulk_submit():
-     """
-     Admin endpoint: returns the same JSON as public, but only accessible by admin.
-     """
-     # reuse public logic
-     return download_bulk_submit()
 @app.route('/admin/download_bulk_submit')
 @admin_required
 @git_track("admin downloaded bulk")
-def download_admin():
+def admin_download_bulk_submit():
     if not os.path.exists(INITIAL_BULK):
         return jsonify(error='no bulk file'), 404
 
