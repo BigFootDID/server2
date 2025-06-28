@@ -735,34 +735,40 @@ def delete_upload_file(filename):
         return jsonify(status='deleted')
     return jsonify(error='파일 없음'), 404
 
-# server.py 에 추가
 # server.py
+
 @app.route('/upload_signed_license', methods=['POST'])
 @require_app
 def upload_signed_license():
     f = request.files.get('file')
     if not f or not f.filename.endswith('.lic'):
         return jsonify(error='Invalid file'),400
-    data = f.read().decode()
+
+    data = f.read().decode('utf-8')
     try:
         lic = json.loads(data)
         pb = lic['payload']
         sig = bytes.fromhex(lic['signature'])
         pub = serialization.load_pem_public_key(open(os.path.join(BASE,'public_key.pem'),'rb').read())
-        pub.verify(sig, base64.b64decode(pb.encode()), padding.PKCS1v15(), hashes.SHA256())
+        pub.verify(sig, base64.b64decode(pb), padding.PKCS1v15(), hashes.SHA256())
         info = json.loads(base64.b64decode(pb).decode())
-        hwid = info.get('hwid')
-        if not hwid: raise
-    except InvalidSignature:
-        return jsonify(error='Invalid signature'),403
-    except:
-        return jsonify(error='Bad format'),400
+        hwid = info['hwid']
+    except Exception:
+        return jsonify(error='Bad license'),400
 
     path = os.path.join(SIGNED_DIR, f"{hwid}.lic")
     with open(path,'w',encoding='utf-8') as wf:
         wf.write(data)
     save_signed_history({'uploaded':hwid,'at':datetime.utcnow().isoformat()})
     return jsonify(status='uploaded'),200
+
+@app.route('/download_signed_license/<hwid>.lic', methods=['GET'])
+@require_app
+def download_signed_license(hwid):
+    path = os.path.join(SIGNED_DIR, f"{hwid}.lic")
+    if not os.path.exists(path):
+        return jsonify(error='not found'),404
+    return send_file(path, as_attachment=True, download_name=f"{hwid}.lic" )
 
 if __name__=='__main__':
     app.run(host='0.0.0.0', port=5000, debug=True)
