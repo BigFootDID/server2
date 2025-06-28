@@ -108,6 +108,22 @@
       document.getElementById('osVersionInfo').innerText =
         `OS: ${osName}   |   설치파일: ${installer}   |   최신 버전: ${version}`;
     }
+
+    document.getElementById('downloadBtn').addEventListener('click', …)
+
+    async function showInstallerVersion() {
+      let osType = /mac|darwin/.test(navigator.userAgent.toLowerCase()) ? 'mac' : 'win';
+      let version = '...';
+      try {
+        const res = await fetch(`/latest_version?os=${osType}`);
+        if (res.ok) {
+          version = (await res.json()).version || '?';
+        }
+      } catch {}
+      document.getElementById('installerVersion').innerText =
+        `인스톨러 버전: ${version}`;
+    }
+    showInstallerVersion();
     showOsAndVersion();
   </script>
 </body>
