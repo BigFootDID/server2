@@ -81,13 +81,15 @@
 
     // 인스톨러 버전 표시
     async function showInstallerVersion() {
-      const osType = /mac|darwin/.test(navigator.userAgent.toLowerCase()) ? 'mac' : 'win';
+      const ua = navigator.userAgent.toLowerCase();
+      const osType = ua.includes('mac') || ua.includes('darwin') ? 'mac' : 'win';
+      const osName = osType === 'mac' ? 'macOS' : 'Windows';
       let version = '...';
       try {
         const res = await fetch(`/latest_version?os=${osType}`);
         if (res.ok) version = (await res.json()).version || '?';
       } catch {}
-      document.getElementById('installerVersion').innerText = `인스톨러 버전: ${version}`;
+      document.getElementById('installerVersion').innerText = `OS: ${osName} | 인스톨러 버전: ${version}`;
     }
     showInstallerVersion();
   </script>
