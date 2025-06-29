@@ -9,6 +9,7 @@ from cryptography.hazmat.primitives.asymmetric import padding
 from cryptography.hazmat.primitives import hashes, serialization
 from cryptography.exceptions import InvalidSignature
 import hmac
+import re
 
 # --- Git Repository 설정 방법 ---
 # 1. 원격 저장소를 GitHub/GitLab 등에서 사전에 생성하세요.
