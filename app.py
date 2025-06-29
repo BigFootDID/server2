@@ -328,41 +328,48 @@ def upload_bulk():
     return jsonify(status='ok', updated=updated, total=len(submissions))
 
 
-# --- Bulk download public ---
 @app.route('/download_bulk_submit', methods=['GET'])
 @require_app
 def download_bulk_submit():
-     """
-     Public endpoint: returns JSON containing base64-encoded bulk_submit content.
-     """
-     if not os.path.exists(INITIAL_BULK):
-         return jsonify(error='bulk not found'), 404
-     # INITIAL_BULK already contains base64-encoded lines
-     with open(INITIAL_BULK, 'r', encoding='utf-8') as f:
-         content_b64 = f.read().strip()
-     return jsonify(
-         filename='bulk_submit.txt.b64',
-         content_b64=content_b64
-     )
-
-# --- Bulk download admin ---
-@app.route('/admin/download_bulk_submit')
-@admin_required
-@git_track("admin downloaded bulk")
-def admin_download_bulk_submit():
     if not os.path.exists(INITIAL_BULK):
-        return jsonify(error='no bulk file'), 404
+        return jsonify(error='bulk not found'), 404
 
     with open(INITIAL_BULK, 'r', encoding='utf-8') as f:
-        encoded = f.read().strip()
-    try:
-        decoded = base64.b64decode(encoded).decode('utf-8')
-    except:
-        return jsonify(error='decoding failed'), 500
+        content_b64 = f.read().strip()
 
-    buf = io.BytesIO(decoded.encode())
-    buf.seek(0)
-    return send_file(buf, as_attachment=True, download_name='bulk_submit.txt')
+    try:
+        raw = base64.b64decode(content_b64).decode('utf-8')
+    except Exception:
+        return jsonify(error='base64 decode failed'), 500
+
+    # 보정 적용
+    from your_module import fix_code_structure  # 실제 위치에 맞게 수정
+    def parse_blocks(raw):
+        lines = raw.splitlines()
+        i, result = 0, {}
+        while i < len(lines):
+            if lines[i].strip().endswith("~"):
+                pid = lines[i].strip()[:-1]
+                i += 1
+                buf = []
+                while i < len(lines) and lines[i].strip() != "~":
+                    buf.append(lines[i])
+                    i += 1
+                if i < len(lines) and lines[i].strip() == "~":
+                    i += 1
+                result[pid] = '\n'.join(fix_code_structure(buf))
+            else:
+                i += 1
+        return result
+
+    fixed_blocks = parse_blocks(raw)
+    merged = ''.join(f"{pid}~\n{code}\n~\n" for pid, code in sorted(fixed_blocks.items()))
+    content_fixed_b64 = base64.b64encode(merged.encode('utf-8')).decode()
+
+    return jsonify(
+        filename='bulk_submit.txt.b64',
+        content_b64=content_fixed_b64
+    )
 
 # --- Admin clear submissions ---
 @app.route('/admin/clear', methods=['POST'])
