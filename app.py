@@ -383,8 +383,6 @@ def download_bulk_submit():
     except Exception:
         return jsonify(error='base64 decode failed'), 500
 
-    # 보정 적용
-    from your_module import fix_code_structure  # 실제 위치에 맞게 수정
     def parse_blocks(raw):
         lines = raw.splitlines()
         i, result = 0, {}
