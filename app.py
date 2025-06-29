@@ -194,7 +194,80 @@ def page_license(): return render_template('license.html')
 @admin_required
 def page_admin(): return render_template('admin.html')
 
-# --- Bulk submit upload ---
+# 전역 객체 가정
+# submissions: dict
+# STORAGE: str (JSON 저장 경로)
+# ip(): 클라이언트 IP 반환 함수
+# save_bulk_from_submissions(): submissions → bulk 파일 저장 함수
+# @git_track / @require_app: 데코레이터
+
+def detect_language(lines):
+    py_keywords = ('def ', 'class ', 'import ', 'from ', 'self', 'print(')
+    c_keywords = ('#include', ';', '{', '}', 'int ', 'void ', 'main', '//')
+    py_score = sum(any(k in line for k in py_keywords) for line in lines)
+    c_score = sum(any(k in line for k in c_keywords) for line in lines)
+    return 'python' if py_score >= c_score else 'c'
+
+def fix_python_code(lines):
+    block_pattern = re.compile(r'^\s*(def|class|if|for|while|else|elif|try|except|with)\b.*:\s*$')
+    indent_stack = []
+    fixed = []
+    for i, line in enumerate(lines):
+        stripped = line.rstrip()
+        indent = len(stripped) - len(stripped.lstrip())
+        if block_pattern.match(stripped):
+            indent_stack.append(indent)
+            fixed.append(stripped)
+            if i+1 >= len(lines) or len(lines[i+1].strip()) == 0 or len(lines[i+1]) - len(lines[i+1].lstrip()) <= indent:
+                fixed.append(' ' * (indent + 4) + 'pass')
+            continue
+        while indent_stack and indent <= indent_stack[-1]:
+            indent_stack.pop()
+        fixed.append(stripped)
+    return fixed
+
+def fix_c_code(lines):
+    block_start_pattern = re.compile(r'^\s*(if|for|while|else|switch|do|try|catch)\b[^{;]*$')
+    result = []
+    stack = []
+    i = 0
+    while i < len(lines):
+        line = lines[i].rstrip()
+        stripped = line.strip()
+        opens = stripped.count('{')
+        closes = stripped.count('}')
+        if block_start_pattern.match(stripped) and opens == 0 and closes == 0:
+            result.append(line)
+            result.append('{')
+            stack.append('{')
+            i += 1
+            while i < len(lines):
+                body_line = lines[i].rstrip()
+                result.append(body_line)
+                opens += body_line.count('{')
+                closes += body_line.count('}')
+                i += 1
+                if opens > closes:
+                    break
+            continue
+        result.append(line)
+        if opens > closes:
+            stack.extend(['{'] * (opens - closes))
+        elif closes > opens:
+            for _ in range(closes - opens):
+                if stack:
+                    stack.pop()
+        i += 1
+    result.extend(['}'] * len(stack))
+    return result
+
+def fix_code_structure(lines):
+    lang = detect_language(lines)
+    if lang == 'python':
+        return fix_python_code(lines)
+    else:
+        return fix_c_code(lines)
+
 @app.route('/upload', methods=['POST'])
 @git_track("update bulk submissions")
 @require_app
@@ -211,57 +284,49 @@ def upload_bulk():
     now_iso = datetime.utcnow().isoformat()
     client = ip()
 
-    def balance_braces(lines):
-        joined = '\n'.join(lines)
-        open_count = joined.count('{')
-        close_count = joined.count('}')
-        missing = open_count - close_count
-        if missing > 0:
-            lines.extend(['}'] * missing)
-        return lines
-
-    # decode된 내용 정리
     new = {}
-    temp = None
-    buf = []
+    current_pid = None
+    buffer = []
 
-    for line in lines:
-        s = line.rstrip('\r\n')
-        if s.endswith('~') and temp is None:
-            temp = s[:-1].strip()
-            buf = []
-        elif s.endswith('~') and temp:
-            buf = balance_braces(buf)
-            new[temp] = {
-                'code': '\n'.join(buf).rstrip('\n'),
-                'updated_at': now_iso,
-                'uploader_ip': client
-            }
-            temp = None
-        elif temp is not None:
-            buf.append(line)
+    for raw in lines:
+        line = raw.strip()
+        if line.endswith('~'):
+            marker = line[:-1].strip()
+            if current_pid is None:
+                current_pid = marker
+                buffer = []
+            else:
+                buffer = fix_code_structure(buffer)
+                new[current_pid] = {
+                    'code': '\n'.join(buffer).rstrip('\n'),
+                    'updated_at': now_iso,
+                    'uploader_ip': client
+                }
+                current_pid = None
+                buffer = []
+        else:
+            if current_pid is not None:
+                buffer.append(raw.rstrip('\r\n'))
 
-    # 마지막 블록 누락 방지
-    if temp and buf:
-        buf = balance_braces(buf)
-        new[temp] = {
-            'code': '\n'.join(buf).rstrip('\n'),
+    if current_pid and buffer:
+        buffer = fix_code_structure(buffer)
+        new[current_pid] = {
+            'code': '\n'.join(buffer).rstrip('\n'),
             'updated_at': now_iso,
             'uploader_ip': client
         }
 
-    # 기존 submissions에 merge (기존 항목은 덮어씀)
     updated = 0
     for pid, entry in new.items():
         if pid not in submissions or submissions[pid]['code'] != entry['code']:
             submissions[pid] = entry
             updated += 1
 
-    # 저장
     json.dump(submissions, open(STORAGE, 'w'), indent=2)
     save_bulk_from_submissions()
 
     return jsonify(status='ok', updated=updated, total=len(submissions))
+
 
 # --- Bulk download public ---
 @app.route('/download_bulk_submit', methods=['GET'])
